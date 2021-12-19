@@ -33,8 +33,7 @@ components:
     create_room:
       summary: Create a new game room.
       description: >-
-        Client can create a new game room, which other client can then join later on. This also the
-        only way clients can start a game.
+        Client can create a new game room.
       payload:
         $ref: "#/components/schemas/create_room"
       x-response:
@@ -58,21 +57,9 @@ components:
     new_room:
       type: object
       properties:
-        action:
+        room_code:
           type: string
-          const: room_created
-        content:
-          type: object
-          properties:
-            room_code:
-              type: string
-              description: Unique code to join the room.
-              example: abc123
-          required:
-            - room_code
+          description: Unique code to join the room.
+          example: abc123
       required:
-        - action
-        - content
-    client_id:
-      type: string
-      description: client originated ID reflected in response message.
+        - room_code
