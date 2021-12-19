@@ -12,46 +12,33 @@ start:
 
 .PHONY: start-deps
 start-deps:
-	@docker-compose up --build -d database database-gui
+	@docker-compose up --build -d database database-gui database-seed management-api
+
 
 .PHONY: unit_tests
 unit_tests:
-	@tox -e py39
+	@poetry run pytest -v tests/unit
 
 
 .PHONY: integration_tests
 integration_tests:
-	@tox -e integration
+	@poetry run pytest -v tests/integration
 
 
 .PHONY: coverage
 coverage:
-	@tox -e coverage
-
-
-.PHONY: install-venv
-install-venv:
-	@tox -e dev
+	@poetry run pytest -v --junitxml=report.xml --cov=app/ tests/integration
+	@poetry run coverage xml
 
 
 .PHONY: install-hooks
 install-hooks:
-	@tox -e pre-commit -- install
+	@poetry pre-commit install
 
 
 .PHONY: lint
 lint:
-	@tox -e pre-commit -- run --all-files
-
-
-.PHONY: install-dev
-install-dev:
-	@pip install -e .
-
-
-.PHONY: build-package
-build-package:
-	@python setup.py sdist
+	@poetry run pre-commit run --all-files
 
 
 .PHONY: clean

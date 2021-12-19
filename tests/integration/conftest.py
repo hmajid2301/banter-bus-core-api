@@ -1,43 +1,71 @@
-from typing import AsyncIterator
+import asyncio
+from typing import Any, AsyncIterator, Awaitable, List, Optional
 
 import pytest
-from asgi_lifespan import LifespanManager
-from httpx import AsyncClient
+import socketio
+import uvicorn
+from socketio import ASGIApp
+from socketio.asyncio_client import AsyncClient
 
-from app.factory import get_read_scopes, get_write_scopes
-from app.main import app
+from app import main
+
+PORT = 8000
+LISTENING_IF = "127.0.0.1"
+BASE_URL = f"http://{LISTENING_IF}:{PORT}"
 
 
-def get_auth_override():
-    return True
+class UvicornTestServer(uvicorn.Server):
+    def __init__(self, app: ASGIApp = main.app, host: str = LISTENING_IF, port: int = PORT):
+        self._startup_done = asyncio.Event()
+        self._serve_task: Optional[Awaitable[Any]] = None
+        super().__init__(config=uvicorn.Config(app, host=host, port=port))
+
+    async def startup(self, sockets: Optional[List] = None) -> None:
+        await super().startup(sockets=sockets)
+        self.config.setup_event_loop()
+        self._startup_done.set()
+
+    async def start_up(self) -> None:
+        self._serve_task = asyncio.create_task(self.serve())
+        await self._startup_done.wait()
+
+    async def tear_down(self) -> None:
+        self.should_exit = True
+        if self._serve_task:
+            await self._serve_task
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
+def event_loop():
+    loop = asyncio.get_event_loop()
+    yield loop
+    loop.close()
+
+
+@pytest.fixture(autouse=True, scope="session")
+async def startup_and_shutdown_server():
+    server = UvicornTestServer()
+    await server.start_up()
+    yield
+    await server.tear_down()
+
+
+@pytest.fixture(scope="session")
 async def client() -> AsyncIterator[AsyncClient]:
-    app.dependency_overrides[get_write_scopes] = get_auth_override
-    app.dependency_overrides[get_read_scopes] = get_auth_override
-
-    async with LifespanManager(app):
-        async with AsyncClient(app=app, base_url="http://localhost") as client:
-            yield client
+    sio = socketio.AsyncClient()
+    await sio.connect(BASE_URL)
+    yield sio
+    await sio.disconnect()
 
 
 @pytest.fixture(autouse=True)
-async def setup_and_teardown(client):
-    from app.game.game_models import Game
-    from app.question.question_models import Question
-    from app.story.story_models import Story
-    from tests.data.game_collection import games
-    from tests.data.question_collection import questions
-    from tests.data.story_collection import stories
+async def setup_and_teardown(startup_and_shutdown_server):
+    from app.room.room_models import Room
+    from tests.data.room_collection import rooms
 
     try:
-        await Game.insert_many(documents=games)
-        await Story.insert_many(documents=stories)
-        await Question.insert_many(documents=questions)
+        await Room.insert_many(documents=rooms)
     except Exception as e:
         print("Failed", e)
     yield
-    await Game.delete_all()
-    await Story.delete_all()
-    await Question.delete_all()
+    await Room.delete_all()

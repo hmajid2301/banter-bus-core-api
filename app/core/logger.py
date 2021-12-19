@@ -13,6 +13,7 @@ def setup_logger(log_level: str):
             structlog.dev.set_exc_info,
             structlog.processors.TimeStamper(),
             structlog.dev.ConsoleRenderer(),
+            structlog.processors.JSONRenderer(indent=2, sort_keys=True),
         ],
         wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
         context_class=dict,

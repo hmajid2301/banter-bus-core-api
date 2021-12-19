@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     WEB_HOST: str = "0.0.0.0"
     WEB_PORT: int = 8080
 
+    MANAGEMENT_API_URL: str
+    MANAGEMENT_API_PORT: int
+
     class Config:
         env_prefix = "BANTER_BUS_CORE_API_"
         env_file = ".env"
@@ -29,7 +32,15 @@ class Settings(BaseSettings):
 
         return uri
 
+    def get_management_url(self) -> str:
+        management_api_base = self.MANAGEMENT_API_URL
+        if self.MANAGEMENT_API_PORT:
+            management_api_base += f":{self.MANAGEMENT_API_PORT}"
+
+        return management_api_base
+
 
 @lru_cache()
 def get_settings():
+    print("HERE")
     return Settings()

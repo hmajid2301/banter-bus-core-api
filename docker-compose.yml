@@ -2,7 +2,7 @@ version: "3"
 
 services:
   api:
-    container_name: banter-bus-api
+    container_name: banter-bus-core-api
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,6 +10,21 @@ services:
       - 8080:8080
     volumes:
       - ${PWD}/app/:/app/
+    depends_on:
+      - database
+
+  management-api:
+    container_name: banter-bus-management-api
+    image: registry.gitlab.com/banter-bus/banter-bus-management-api:test
+    environment:
+      - BANTER_BUS_MANAGEMENT_API_DB_USERNAME=banterbus
+      - BANTER_BUS_MANAGEMENT_API_DB_PASSWORD=banterbus
+      - BANTER_BUS_MANAGEMENT_API_DB_HOST=banter-bus-database
+      - BANTER_BUS_MANAGEMENT_API_DB_NAME=banter_bus_management_api
+      - BANTER_BUS_MANAGEMENT_API_AUTH0_DOMAIN=a
+      - BANTER_BUS_MANAGEMENT_API_AUTH0_CUSTOM_API=a
+    ports:
+      - 8090:8080
     depends_on:
       - database
 
@@ -36,3 +51,22 @@ services:
       - /data/db mongoclient/mongoclient
     ports:
       - 4000:3000
+
+  database-seed:
+    container_name: banter-bus-database-seed
+    image: registry.gitlab.com/banter-bus/banter-bus-management-api/database-seed:latest
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=banterbus
+      - MONGO_INITDB_ROOT_PASSWORD=banterbus
+      - MONGO_INITDB_DATABASE=banter_bus_management_api
+      - MONGO_HOSTNAME=banter-bus-database:27017
+    depends_on:
+      - database
+
+  memory-store:
+    container_name: banter-bus-datastore
+    image: redis:6.2.4
+    volumes:
+      - /data/datastore /data
+    ports:
+      - 6379:6379

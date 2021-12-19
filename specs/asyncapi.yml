@@ -1,0 +1,78 @@
+asyncapi: 2.1.0
+info:
+  title: Banter Bus Core API
+  version: 1.0.0
+  description: |
+    The Web Socket API definition for the Banter Bus application.
+
+    ### Supported Games
+
+     * [Fibbing It](https://gitlab.com/banter-bus/banter-bus-server/-/wikis/docs/rules/fibbing_it)
+servers:
+  production:
+    url: wss://core.api.banterbus.games/ws
+    protocol: wss
+    description: Main API broker
+defaultContentType: application/json
+channels:
+  /:
+    publish:
+      description: Send messages to the API
+      operationId: receivedMessage
+      message:
+        oneOf:
+          - $ref: "#/components/messages/create_room"
+    subscribe:
+      description: Messages that you receive from the API
+      operationId: sendMessage
+      message:
+        oneOf:
+          - $ref: "#/components/messages/room_created"
+components:
+  messages:
+    create_room:
+      summary: Create a new game room.
+      description: >-
+        Client can create a new game room, which other client can then join later on. This also the
+        only way clients can start a game.
+      payload:
+        $ref: "#/components/schemas/create_room"
+      x-response:
+        $ref: "#/components/messages/room_created"
+    room_created:
+      summary: Room created is a response to `create_room` message.
+      description: >-
+        Server responds to `create_room` message. Which includes unique room URL and unique room code for other clients
+        to join the room.
+      payload:
+        $ref: "#/components/schemas/new_room"
+  schemas:
+    create_room:
+      type: object
+      properties:
+        game_name:
+          type: string
+          description: Name of the game to create the room for, will fail if game is not enabled
+      required:
+        - game_name
+    new_room:
+      type: object
+      properties:
+        action:
+          type: string
+          const: room_created
+        content:
+          type: object
+          properties:
+            room_code:
+              type: string
+              description: Unique code to join the room.
+              example: abc123
+          required:
+            - room_code
+      required:
+        - action
+        - content
+    client_id:
+      type: string
+      description: client originated ID reflected in response message.

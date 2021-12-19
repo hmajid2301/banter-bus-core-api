@@ -1,9 +1,9 @@
 from typing import List
 
-from app.game.game_models import Game
+from app.clients.management_api.models import GameOut
 
-games: List[Game] = [
-    Game(
+games: List[GameOut] = [
+    GameOut(
         **{
             "name": "quibly",
             "rules_url": "https://gitlab.com/banter-bus/banter-bus-server/-/wikis/docs/rules/quibly",
@@ -12,7 +12,7 @@ games: List[Game] = [
             "display_name": "Quibly",
         }
     ),
-    Game(
+    GameOut(
         **{
             "name": "fibbing_it",
             "rules_url": "https://gitlab.com/banter-bus/banter-bus-server/-/wikis/docs/rules/fibbing_it",
@@ -21,7 +21,7 @@ games: List[Game] = [
             "display_name": "Fibbing IT!",
         }
     ),
-    Game(
+    GameOut(
         **{
             "name": "drawlosseum",
             "rules_url": "https://google.com/drawlosseum",
