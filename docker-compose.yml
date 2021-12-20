@@ -1,4 +1,4 @@
-version: "3"
+version: "3.8"
 
 services:
   api:
@@ -6,6 +6,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: production
+    env_file:
+      - .env
     ports:
       - 8080:8080
     volumes:

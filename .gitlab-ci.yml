@@ -26,12 +26,14 @@ cache:
     BANTER_BUS_CORE_API_DB_USERNAME: banterbus
     BANTER_BUS_CORE_API_DB_PASSWORD: banterbus
     BANTER_BUS_CORE_API_DB_HOST: banter-bus-database
+    BANTER_BUS_CORE_API_DB_PORT: 27017
     BANTER_BUS_CORE_API_DB_NAME: test
     BANTER_BUS_CORE_API_MANAGEMENT_API_URL: http://banter-bus-management-api
     BANTER_BUS_CORE_API_MANAGEMENT_API_PORT: 8090
     BANTER_BUS_MANAGEMENT_API_DB_USERNAME: banterbus
     BANTER_BUS_MANAGEMENT_API_DB_PASSWORD: banterbus
     BANTER_BUS_MANAGEMENT_API_DB_HOST: banter-bus-database
+    BANTER_BUS_MANAGEMENT_API_DB_PORT: 27017
     BANTER_BUS_MANAGEMENT_API_DB_NAME: test
     BANTER_BUS_MANAGEMENT_API_AUTH0_DOMAIN: test@example.com
     BANTER_BUS_MANAGEMENT_API_AUTH0_CUSTOM_API: test
@@ -39,12 +41,10 @@ cache:
     MONGO_HOSTNAME: banter-bus-database:27017
     FF_NETWORK_PER_BUILD: 1
 
-services:
-  - docker:dind
-
 stages:
   - pre
   - test
+  - publish
 
 before_script:
   - pip download --dest=${PIP_DOWNLOAD_DIR} poetry
@@ -103,3 +103,19 @@ test:integration-tests:
     - .test
   script:
     - make integration_tests
+
+publish:cloud-run:
+  stage: publish
+  services:
+    - docker:dind
+  image: google/cloud-sdk
+  only:
+    - main
+  before_script: []
+  script:
+    - cat $GCP_CLOUD_BUILD_KEY | docker login -u _json_key --password-stdin https://eu.gcr.io
+    - gcloud auth activate-service-account --key-file $GCP_CLOUD_BUILD_KEY
+    - gcloud config set project banter-bus
+    - docker build -f Dockerfile -t eu.gcr.io/$GCP_PROJECT_ID/banterbus-core-api --target production .
+    - docker push eu.gcr.io/$GCP_PROJECT_ID/banterbus-core-api
+    - gcloud run deploy banterbus-core-api --image eu.gcr.io/$GCP_PROJECT_ID/banterbus-core-api --region europe-west1 --platform managed --allow-unauthenticated

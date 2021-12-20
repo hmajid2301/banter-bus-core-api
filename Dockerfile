@@ -1,4 +1,4 @@
-FROM python:3.9.8-slim as python-base
+FROM python:3.9.8 as python-base
 
 ENV PYTHONUNBUFFERED=1 \
 	PYTHONDONTWRITEBYTECODE=1 \
@@ -13,17 +13,15 @@ ENV PYTHONUNBUFFERED=1 \
 	POETRY_NO_INTERACTION=1 \
 	\
 	PYSETUP_PATH="/opt/pysetup" \
-	VENV_PATH="/opt/pysetup/.venv"
-
+	VENV_PATH="/opt/pysetup/.venv" \
+	\
+	BANTER_BUS_CORE_API_WEB_HOST="0.0.0.0" \
+	BANTER_BUS_CORE_API_WEB_PORT=8080
 
 ENV PATH="$POETRY_HOME/bin:$VENV_PATH/bin:$PATH"
 
-FROM python-base as builder-base
 
-RUN apt-get update \
-	&& apt-get install --no-install-recommends -y \
-	curl \
-	build-essential
+FROM python-base as builder-base
 
 RUN curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
 
@@ -33,9 +31,20 @@ COPY poetry.lock pyproject.toml ./
 RUN poetry install --no-dev
 
 
+FROM python-base as production
+
+ENV BANTER_BUS_CORE_API_ENVIRONMENT=production
+COPY --from=builder-base $PYSETUP_PATH $PYSETUP_PATH
+COPY ./app /app
+
+WORKDIR /
+EXPOSE 8080
+CMD uvicorn app.main:app --host ${BANTER_BUS_CORE_API_WEB_HOST} --port ${BANTER_BUS_CORE_API_WEB_PORT}
+
+
 FROM python-base as development
 
-ENV FASTAPI_ENV=development
+ENV BANTER_BUS_CORE_API_ENVIRONMENT=development
 WORKDIR $PYSETUP_PATH
 
 COPY --from=builder-base $POETRY_HOME $POETRY_HOME
@@ -43,17 +52,6 @@ COPY --from=builder-base $PYSETUP_PATH $PYSETUP_PATH
 
 RUN poetry install
 
-WORKDIR /app
-
-EXPOSE 8000
-CMD ["uvicorn", "--reload", "main:app"]
-
-
-FROM python-base as production
-
-ENV FASTAPI_ENV=production
-COPY --from=builder-base $PYSETUP_PATH $PYSETUP_PATH
-COPY ./app /app/
-
-WORKDIR /app
-CMD ["uvicorn", "main:app"]
+WORKDIR /
+EXPOSE 8080
+CMD uvicorn --reload app.main:app --host ${BANTER_BUS_CORE_API_WEB_HOST} --port ${BANTER_BUS_CORE_API_WEB_PORT}

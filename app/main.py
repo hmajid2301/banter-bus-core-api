@@ -1,5 +1,3 @@
-import logging
-
 import socketio
 import uvicorn
 from beanie import init_beanie
@@ -11,17 +9,19 @@ from app.room.room_event_handlers import create_room
 from app.room.room_events_models import CreateRoom, Error
 from app.room.room_models import Room
 
-logger = logging.getLogger()
-
 
 async def startup():
-    config = get_settings()
-    setup_logger(log_level=config.LOG_LEVEL, env=config.ENVIRONMENT)
-    uri = config.get_mongodb_uri()
-    client = motor_asyncio.AsyncIOMotorClient(uri)
-    await init_beanie(database=client[config.DB_NAME], document_models=[Room])
-    log = get_logger()
-    log.info(f"starting banter-bus-core-api {config.WEB_HOST}:{config.WEB_PORT}")
+    try:
+        config = get_settings()
+        setup_logger(log_level=config.LOG_LEVEL, env=config.ENVIRONMENT)
+        uri = config.get_mongodb_uri()
+        client = motor_asyncio.AsyncIOMotorClient(uri)
+        await init_beanie(database=client[config.DB_NAME], document_models=[Room])
+        log = get_logger()
+        log.info(f"starting banter-bus-core-api {config.WEB_HOST}:{config.WEB_PORT}")
+    except Exception:
+        log = get_logger()
+        log.exception("Failed to start application")
 
 
 sio = socketio.AsyncServer(async_mode="asgi")
