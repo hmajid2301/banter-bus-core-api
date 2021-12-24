@@ -55,6 +55,19 @@ before_script:
   - poetry config virtualenvs.in-project true
   - poetry install -vv
 
+publish:docker-test:
+  stage: pre
+  only:
+    - main
+  image: docker
+  services:
+    - docker:dind
+  before_script: []
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -f Dockerfile -t ${CI_REGISTRY_IMAGE}:test .
+    - docker push ${CI_REGISTRY_IMAGE}:test
+
 test:lint:
   stage: test
   only:
@@ -135,19 +148,6 @@ verify:test-contract:
       --broker-token ${BROKER_TOKEN} --provider-app-version ${MANAGEMENT_API_VERSION} \
       --provider-base-url "${BANTER_BUS_CORE_API_MANAGEMENT_API_URL}:${BANTER_BUS_CORE_API_MANAGEMENT_API_PORT}" --publish-verification-results
 
-publish:docker-test:
-  stage: publish
-  only:
-    - main
-  image: docker
-  services:
-    - docker:dind
-  before_script: []
-  script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -f Dockerfile -t ${CI_REGISTRY_IMAGE}:test .
-    - docker push ${CI_REGISTRY_IMAGE}:test
-
 publish:cloud-run:
   stage: publish
   image: google/cloud-sdk
@@ -155,11 +155,14 @@ publish:cloud-run:
     - main
   services:
     - docker:dind
+  dependencies:
+    - publish:docker-test
   before_script: []
   script:
     - cat $GCP_CLOUD_BUILD_KEY | docker login -u _json_key --password-stdin https://eu.gcr.io
     - gcloud auth activate-service-account --key-file $GCP_CLOUD_BUILD_KEY
     - gcloud config set project banter-bus
-    - docker build -f Dockerfile -t eu.gcr.io/$GCP_PROJECT_ID/banter-bus-core-api --target production .
+    - docker pull ${CI_REGISTRY_IMAGE}:test
+    - docker tag ${CI_REGISTRY_IMAGE}:test eu.gcr.io/$GCP_PROJECT_ID/banter-bus-management-api
     - docker push eu.gcr.io/$GCP_PROJECT_ID/banter-bus-core-api
     - gcloud run deploy banter-bus-core-api --image eu.gcr.io/$GCP_PROJECT_ID/banter-bus-core-api --region europe-west1 --platform managed --allow-unauthenticated
