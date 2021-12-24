@@ -65,7 +65,7 @@ publish:docker-test:
   before_script: []
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -f Dockerfile -t ${CI_REGISTRY_IMAGE}:test .
+    - docker build -f Dockerfile --target production -t ${CI_REGISTRY_IMAGE}:test .
     - docker push ${CI_REGISTRY_IMAGE}:test
 
 test:lint:
