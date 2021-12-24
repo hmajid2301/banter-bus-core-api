@@ -163,6 +163,6 @@ publish:cloud-run:
     - gcloud auth activate-service-account --key-file $GCP_CLOUD_BUILD_KEY
     - gcloud config set project banter-bus
     - docker pull ${CI_REGISTRY_IMAGE}:test
-    - docker tag ${CI_REGISTRY_IMAGE}:test eu.gcr.io/$GCP_PROJECT_ID/banter-bus-management-api
+    - docker tag ${CI_REGISTRY_IMAGE}:test eu.gcr.io/$GCP_PROJECT_ID/banter-bus-core-api
     - docker push eu.gcr.io/$GCP_PROJECT_ID/banter-bus-core-api
     - gcloud run deploy banter-bus-core-api --image eu.gcr.io/$GCP_PROJECT_ID/banter-bus-core-api --region europe-west1 --platform managed --allow-unauthenticated
