@@ -14,7 +14,7 @@
       "request": "launch",
       "module": "pytest",
       "args": ["-rf", "tests/unit"],
-      "justMyCode": true
+      "justMyCode": false
     },
     {
       "name": "Tests: Integration",
@@ -22,7 +22,7 @@
       "request": "launch",
       "module": "pytest",
       "args": ["-rf", "tests/integration"],
-      "justMyCode": true,
+      "justMyCode": false,
       "env": {
         "PYTHONASYNCIODEBUG": "1"
       }
@@ -33,7 +33,7 @@
       "request": "launch",
       "module": "pytest",
       "args": ["-rf", "${file}"],
-      "justMyCode": true
+      "justMyCode": false
     }
   ]
 }

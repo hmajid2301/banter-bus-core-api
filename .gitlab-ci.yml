@@ -5,6 +5,11 @@ variables:
   PIP_CACHE_DIR: "${CI_PROJECT_DIR}/.cache/pip"
   PIP_DOWNLOAD_DIR: ".pip"
   DOCKER_HOST: tcp://docker:2375
+  BANTER_BUS_CORE_API_DB_USERNAME: banterbus
+  BANTER_BUS_CORE_API_DB_PASSWORD: banterbus
+  BANTER_BUS_CORE_API_DB_HOST: banter-bus-database
+  BANTER_BUS_CORE_API_DB_PORT: 27017
+  BANTER_BUS_CORE_API_DB_NAME: test
 
 cache:
   key: "${CI_JOB_NAME}"
@@ -24,11 +29,6 @@ cache:
     MONGO_INITDB_ROOT_USERNAME: banterbus
     MONGO_INITDB_ROOT_PASSWORD: banterbus
     MONGO_INITDB_DATABASE: test
-    BANTER_BUS_CORE_API_DB_USERNAME: banterbus
-    BANTER_BUS_CORE_API_DB_PASSWORD: banterbus
-    BANTER_BUS_CORE_API_DB_HOST: banter-bus-database
-    BANTER_BUS_CORE_API_DB_PORT: 27017
-    BANTER_BUS_CORE_API_DB_NAME: test
     BANTER_BUS_CORE_API_MANAGEMENT_API_URL: http://banter-bus-management-api
     BANTER_BUS_CORE_API_MANAGEMENT_API_PORT: 8090
     BANTER_BUS_MANAGEMENT_API_DB_USERNAME: banterbus
@@ -44,8 +44,10 @@ cache:
 
 stages:
   - pre
-  - publish
   - test
+  - post-test
+  - verify
+  - publish
 
 before_script:
   - pip download --dest=${PIP_DOWNLOAD_DIR} poetry
@@ -92,7 +94,48 @@ test:integration-tests:
   script:
     - make integration_tests
 
-publish-docker:test:
+test:publish-contract:
+  stage: test
+  only:
+    - main
+  script:
+    - make contract_tests
+    - |
+      curl -X PUT -H "Authorization: Bearer ${BROKER_TOKEN}" -H "Content-Type: application/json" \
+          -d @core_api-management_api-pact.json \
+          https://banterbus.pactflow.io/pacts/provider/management_api/consumer/core_api/version/${CI_COMMIT_SHORT_SHA}
+
+management-api:commit:
+  stage: post-test
+  image: bitnami/git
+  before_script: []
+  script:
+    - git clone https://gitlab.com/banter-bus/banter-bus-management-api.git
+    - cd banter-bus-management-api
+    - echo "MANAGEMENT_API_VERSION=$(git rev-parse --short HEAD)" >> ../build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+
+verify:test-contract:
+  stage: verify
+  image:
+    name: pactfoundation/pact-cli:latest
+    entrypoint: [""]
+  only:
+    - main
+  extends:
+    - .test
+  dependencies:
+    - management-api:commit
+  before_script: []
+  script:
+    - |
+      pact verify --pact-broker-base-url 'https://banterbus.pactflow.io' --provider management_api \
+      --broker-token ${BROKER_TOKEN} --provider-app-version ${MANAGEMENT_API_VERSION} \
+      --provider-base-url "${BANTER_BUS_CORE_API_MANAGEMENT_API_URL}:${BANTER_BUS_CORE_API_MANAGEMENT_API_PORT}" --publish-verification-results
+
+publish:docker-test:
   stage: publish
   only:
     - main
@@ -107,16 +150,16 @@ publish-docker:test:
 
 publish:cloud-run:
   stage: publish
-  services:
-    - docker:dind
   image: google/cloud-sdk
   only:
     - main
+  services:
+    - docker:dind
   before_script: []
   script:
     - cat $GCP_CLOUD_BUILD_KEY | docker login -u _json_key --password-stdin https://eu.gcr.io
     - gcloud auth activate-service-account --key-file $GCP_CLOUD_BUILD_KEY
     - gcloud config set project banter-bus
-    - docker build -f Dockerfile -t eu.gcr.io/$GCP_PROJECT_ID/banterbus-core-api --target production .
-    - docker push eu.gcr.io/$GCP_PROJECT_ID/banterbus-core-api
-    - gcloud run deploy banterbus-core-api --image eu.gcr.io/$GCP_PROJECT_ID/banterbus-core-api --region europe-west1 --platform managed --allow-unauthenticated
+    - docker build -f Dockerfile -t eu.gcr.io/$GCP_PROJECT_ID/banter-bus-core-api --target production .
+    - docker push eu.gcr.io/$GCP_PROJECT_ID/banter-bus-core-api
+    - gcloud run deploy banter-bus-core-api --image eu.gcr.io/$GCP_PROJECT_ID/banter-bus-core-api --region europe-west1 --platform managed --allow-unauthenticated

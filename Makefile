@@ -25,6 +25,11 @@ integration_tests:
 	@poetry run pytest -v tests/integration
 
 
+.PHONY: contract_tests
+contract_tests:
+	@poetry run pytest -v tests/contract
+
+
 .PHONY: coverage
 coverage:
 	@poetry run pytest -v --junitxml=report.xml --cov=app/ tests/integration
