@@ -21,7 +21,7 @@ def setup_logger(log_level: str, env: str):
         processors.extend(
             [
                 structlog.processors.format_exc_info,
-                structlog.processors.JSONRenderer(indent=2, sort_keys=True),
+                structlog.processors.JSONRenderer(sort_keys=True),
             ]
         )
     else:

@@ -121,6 +121,8 @@ test:publish-contract:
 management-api:commit:
   stage: post-test
   image: bitnami/git
+  only:
+    - main
   before_script: []
   script:
     - git clone https://gitlab.com/banter-bus/banter-bus-management-api.git

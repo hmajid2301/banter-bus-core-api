@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseSettings
 
@@ -21,6 +21,8 @@ class Settings(BaseSettings):
 
     MANAGEMENT_API_URL: str
     MANAGEMENT_API_PORT: int
+
+    CORS: List[str] = []
 
     class Config:
         env_prefix = "BANTER_BUS_CORE_API_"

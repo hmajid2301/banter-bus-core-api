@@ -24,7 +24,8 @@ async def startup():
         log.exception("Failed to start application")
 
 
-sio = socketio.AsyncServer(async_mode="asgi")
+config = get_settings()
+sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins=config.CORS)
 app = socketio.ASGIApp(sio, on_startup=startup)
 
 
