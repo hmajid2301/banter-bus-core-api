@@ -19,9 +19,10 @@ async def startup():
         await init_beanie(database=client[config.DB_NAME], document_models=[Room])
         log = get_logger()
         log.info(f"starting banter-bus-core-api {config.WEB_HOST}:{config.WEB_PORT}")
-    except Exception:
+    except Exception as e:
         log = get_logger()
         log.exception("Failed to start application")
+        raise e
 
 
 config = get_settings()

@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run: Fast API",
+      "name": "Run: Socketio API",
       "type": "python",
       "request": "launch",
       "module": "uvicorn",

@@ -2,8 +2,6 @@
 from asyncio import get_event_loop
 from typing import TYPE_CHECKING, Awaitable
 
-from fastapi.encoders import jsonable_encoder
-
 from app.clients.management_api import models as m
 
 if TYPE_CHECKING:
@@ -15,7 +13,7 @@ class _StoriesApi:
         self.api_client = api_client
 
     def _build_for_add_story(self, story_in: m.StoryIn) -> Awaitable[m.StoryOut]:
-        body = jsonable_encoder(story_in)
+        body = story_in.dict()
 
         return self.api_client.request(type_=m.StoryOut, method="POST", url="/story", json=body)
 

@@ -1,9 +1,9 @@
 import atexit
 import os
 import time
+from http import HTTPStatus
 
 import pytest
-from fastapi import status
 from pactman import Consumer, Like, Provider
 
 from app.clients.management_api.api.games_api import AsyncGamesApi
@@ -42,7 +42,7 @@ async def test_enabled_game(pact, game_api_client: AsyncGamesApi):
 
     pact.given("fibbing_it exists and is enabled").upon_receiving("a request for fibbing_it game info").with_request(
         "GET", "/game/fibbing_it"
-    ).will_respond_with(status.HTTP_200_OK, body=expected)
+    ).will_respond_with(HTTPStatus.OK, body=expected)
 
     with pact:
         await game_api_client.get_game(game_name="fibbing_it")
@@ -62,7 +62,7 @@ async def test_disabled_game(pact, game_api_client: AsyncGamesApi):
 
     pact.given("quibly exists and is disabled").upon_receiving("a request for quibly game info").with_request(
         "GET", "/game/quibly"
-    ).will_respond_with(status.HTTP_200_OK, body=expected)
+    ).will_respond_with(HTTPStatus.OK, body=expected)
 
     with pact:
         await game_api_client.get_game(game_name="quibly")
@@ -72,7 +72,7 @@ async def test_disabled_game(pact, game_api_client: AsyncGamesApi):
 async def test_not_found_game(pact, game_api_client: AsyncGamesApi):
     pact.given("quibly2 does not exist").upon_receiving("a request for quibly2 game info").with_request(
         "GET", "/game/quibly2"
-    ).will_respond_with(status.HTTP_404_NOT_FOUND)
+    ).will_respond_with(HTTPStatus.NOT_FOUND)
 
     with pact:
         with pytest.raises(UnexpectedResponse):

@@ -1,9 +1,8 @@
 import random
 import string
 from datetime import datetime
+from http import HTTPStatus
 from uuid import uuid4
-
-from fastapi import status
 
 from app.clients.management_api.api.games_api import AsyncGamesApi
 from app.clients.management_api.exceptions import UnexpectedResponse
@@ -21,6 +20,8 @@ class RoomService:
         if not is_game_enabled:
             raise GameNotEnabled(f"{game_name=} is not enabled")
 
+        print("HELLo!!!")
+        print("HELLo!!!")
         room_id = uuid4()
         room_code = await self._get_unused_room_code()
 
@@ -44,7 +45,7 @@ class RoomService:
         except UnexpectedResponse as e:
             status_code = e.status_code
 
-            if status_code == status.HTTP_404_NOT_FOUND:
+            if status_code == HTTPStatus.NOT_FOUND:
                 raise GameNotFound(message=f"{game_name=} not found", e=e)
             else:
                 raise e

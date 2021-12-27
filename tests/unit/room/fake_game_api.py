@@ -1,6 +1,6 @@
+from http import HTTPStatus
 from typing import List
 
-from fastapi import status
 from httpx import Headers
 
 from app.clients.management_api import models as m
@@ -18,5 +18,5 @@ class FakeGameAPI(AsyncGamesApi):
                 return game
 
         raise UnexpectedResponse(
-            status_code=status.HTTP_404_NOT_FOUND, reason_phrase="", content="".encode("utf-8"), headers=Headers()
+            status_code=HTTPStatus.NOT_FOUND, reason_phrase="", content="".encode("utf-8"), headers=Headers()
         )

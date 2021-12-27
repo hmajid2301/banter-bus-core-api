@@ -3,6 +3,8 @@ from typing import List, Optional
 
 from pydantic import BaseSettings
 
+from app.core.logger import get_logger
+
 
 class Settings(BaseSettings):
     ENVIRONMENT: str = "production"
@@ -20,7 +22,7 @@ class Settings(BaseSettings):
     WEB_PORT: int = 8080
 
     MANAGEMENT_API_URL: str
-    MANAGEMENT_API_PORT: int
+    MANAGEMENT_API_PORT: Optional[int]
 
     CORS: List[str] = []
 
@@ -30,7 +32,9 @@ class Settings(BaseSettings):
 
     def get_mongodb_uri(self) -> str:
         uri = f"{self.DB_SCHEMA}://{self.DB_USERNAME}:{self.DB_PASSWORD}@{self.DB_HOST}"
+        log = get_logger()
         if self.DB_PORT:
+            log.info("DB_PORT", db_port=self.DB_PORT)
             uri += f":{self.DB_PORT}"
         if self.AUTH_DB_NAME:
             uri += f"?authSource={self.AUTH_DB_NAME}"
