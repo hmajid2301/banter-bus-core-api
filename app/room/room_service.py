@@ -20,8 +20,6 @@ class RoomService:
         if not is_game_enabled:
             raise GameNotEnabled(f"{game_name=} is not enabled")
 
-        print("HELLo!!!")
-        print("HELLo!!!")
         room_id = uuid4()
         room_code = await self._get_unused_room_code()
 

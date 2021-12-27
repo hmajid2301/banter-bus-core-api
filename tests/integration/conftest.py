@@ -4,10 +4,10 @@ from typing import Any, AsyncIterator, Awaitable, List, Optional
 import pytest
 import socketio
 import uvicorn
-from socketio import ASGIApp
+from fastapi.applications import FastAPI
 from socketio.asyncio_client import AsyncClient
 
-from app import main
+from app import application
 
 PORT = 8000
 LISTENING_IF = "127.0.0.1"
@@ -15,7 +15,7 @@ BASE_URL = f"http://{LISTENING_IF}:{PORT}"
 
 
 class UvicornTestServer(uvicorn.Server):
-    def __init__(self, app: ASGIApp = main.app, host: str = LISTENING_IF, port: int = PORT):
+    def __init__(self, app: FastAPI = application, host: str = LISTENING_IF, port: int = PORT):
         self._startup_done = asyncio.Event()
         self._serve_task: Optional[Awaitable[Any]] = None
         super().__init__(config=uvicorn.Config(app, host=host, port=port))

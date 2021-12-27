@@ -50,6 +50,8 @@ spec:
               value: production
             - name: BANTER_BUS_CORE_API_CORS
               value: '["https://banterbus.games"]'
+            - name: BANTER_BUS_CORE_API_REGEX_CORS
+              value: '["https://*--banterbus.netlify.app"]'
             - name: BANTER_BUS_CORE_API_DB_PASSWORD
               valueFrom:
                 secretKeyRef:

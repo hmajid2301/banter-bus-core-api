@@ -1,9 +1,7 @@
 from functools import lru_cache
 from typing import List, Optional
 
-from pydantic import BaseSettings
-
-from app.core.logger import get_logger
+from pydantic import AnyHttpUrl, BaseSettings
 
 
 class Settings(BaseSettings):
@@ -24,7 +22,8 @@ class Settings(BaseSettings):
     MANAGEMENT_API_URL: str
     MANAGEMENT_API_PORT: Optional[int]
 
-    CORS: List[str] = []
+    CORS: List[AnyHttpUrl] = []
+    REGEX_CORS: Optional[str] = None
 
     class Config:
         env_prefix = "BANTER_BUS_CORE_API_"
@@ -32,9 +31,7 @@ class Settings(BaseSettings):
 
     def get_mongodb_uri(self) -> str:
         uri = f"{self.DB_SCHEMA}://{self.DB_USERNAME}:{self.DB_PASSWORD}@{self.DB_HOST}"
-        log = get_logger()
         if self.DB_PORT:
-            log.info("DB_PORT", db_port=self.DB_PORT)
             uri += f":{self.DB_PORT}"
         if self.AUTH_DB_NAME:
             uri += f"?authSource={self.AUTH_DB_NAME}"
