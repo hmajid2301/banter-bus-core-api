@@ -39,7 +39,7 @@ COPY ./app /app
 
 WORKDIR /
 EXPOSE 8080
-CMD uvicorn app.main:app --host ${BANTER_BUS_CORE_API_WEB_HOST} --port ${BANTER_BUS_CORE_API_WEB_PORT}
+CMD uvicorn app:app --host ${BANTER_BUS_CORE_API_WEB_HOST} --port ${BANTER_BUS_CORE_API_WEB_PORT}
 
 
 FROM python-base as development
@@ -54,4 +54,4 @@ RUN poetry install
 
 WORKDIR /
 EXPOSE 8080
-CMD uvicorn --reload app.main:app --host ${BANTER_BUS_CORE_API_WEB_HOST} --port ${BANTER_BUS_CORE_API_WEB_PORT}
+CMD uvicorn --reload app:app --host ${BANTER_BUS_CORE_API_WEB_HOST} --port ${BANTER_BUS_CORE_API_WEB_PORT}
