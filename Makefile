@@ -12,6 +12,7 @@ start:
 
 .PHONY: start-deps
 start-deps:
+	@docker-compose pull
 	@docker-compose up --build -d database database-gui database-seed management-api
 
 
