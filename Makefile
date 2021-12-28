@@ -16,6 +16,21 @@ start-deps:
 	@docker-compose up --build -d database database-gui database-seed management-api
 
 
+.PHONY: unit_tests_docker
+unit_tests_docker:
+	@docker-compose run app make unit_tests
+
+
+.PHONY: integration_tests_docker
+integration_tests_docker:
+	@docker-compose run app make integration_tests
+
+
+.PHONY: coverage_docker
+coverage_docker:
+	@docker-compose run app make coverage
+
+
 .PHONY: unit_tests
 unit_tests:
 	@poetry run pytest -v tests/unit

@@ -1,22 +1,30 @@
 version: "3.8"
 
 services:
-  api:
+  app:
     container_name: banter-bus-core-api
     build:
       context: .
       dockerfile: Dockerfile
-      target: production
-    env_file:
-      - .env
+      target: development
+    environment:
+      BANTER_BUS_CORE_API_DB_USERNAME: banterbus
+      BANTER_BUS_CORE_API_DB_PASSWORD: banterbus
+      BANTER_BUS_CORE_API_DB_HOST: banter-bus-database
+      BANTER_BUS_CORE_API_DB_PORT: 27017
+      BANTER_BUS_CORE_API_DB_NAME: test
+      BANTER_BUS_CORE_API_MANAGEMENT_API_URL: http://banter-bus-management-api
+      BANTER_BUS_CORE_API_MANAGEMENT_API_PORT: 8090
     ports:
       - 8080:8080
     volumes:
-      - ${PWD}/app/:/app/
+      - ./:/app
     depends_on:
       - database
+      - management_api
+      - database-seed
 
-  management-api:
+  management_api:
     container_name: banter-bus-management-api
     image: registry.gitlab.com/banter-bus/banter-bus-management-api:test
     environment:
