@@ -26,8 +26,9 @@ services:
       - BANTER_BUS_MANAGEMENT_API_DB_NAME=banter_bus_management_api
       - BANTER_BUS_MANAGEMENT_API_AUTH0_DOMAIN=a
       - BANTER_BUS_MANAGEMENT_API_AUTH0_CUSTOM_API=a
+      - BANTER_BUS_MANAGEMENT_API_WEB_PORT=8090
     ports:
-      - 8090:8080
+      - 8090:8090
     depends_on:
       - database
 
