@@ -4,8 +4,6 @@ metadata:
   name: banter-bus-core-api
   namespace: "78358389381"
   selfLink: /apis/serving.knative.dev/v1/namespaces/78358389381/services/banter-bus-core-api
-  uid: 9ebf9146-a5ab-4be1-8473-928a98b3395a
-  resourceVersion: AAXUDQsOl90
   creationTimestamp: "2021-12-19T23:04:49.349876Z"
   labels:
     cloud.googleapis.com/location: europe-west1
@@ -42,16 +40,16 @@ spec:
               value: banter-bus-database.ffljl.mongodb.net
             - name: BANTER_BUS_CORE_API_DB_NAME
               value: core_api
-            - name: BANTER_BUS_CORE_API_MANAGEMENT_API_URL
-              value: https://management.api.banterbus.games
             - name: BANTER_BUS_CORE_API_DB_SCHEMA
               value: mongodb+srv
-            - name: BANTER_BUS_MANAGEMENT_API_ENVIRONMENT
+            - name: BANTER_BUS_CORE_API_ENVIRONMENT
               value: production
             - name: BANTER_BUS_CORE_API_CORS
               value: '["https://banterbus.games"]'
             - name: BANTER_BUS_CORE_API_REGEX_CORS
               value: '["https://*--banterbus.netlify.app"]'
+            - name: BANTER_BUS_CORE_API_MANAGEMENT_API_URL
+              value: https://management.api.banterbus.games
             - name: BANTER_BUS_CORE_API_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -73,13 +71,10 @@ status:
   conditions:
     - type: Ready
       status: "True"
-      lastTransitionTime: "2021-12-26T14:02:48.642771Z"
     - type: ConfigurationsReady
       status: "True"
-      lastTransitionTime: "2021-12-26T14:02:43.587010Z"
     - type: RoutesReady
       status: "True"
-      lastTransitionTime: "2021-12-26T14:02:48.722397Z"
   url: https://banter-bus-core-api-x6ccwlffzq-ew.a.run.app
   address:
     url: https://banter-bus-core-api-x6ccwlffzq-ew.a.run.app

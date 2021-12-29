@@ -1,0 +1,7 @@
+_commit: 6a1af18
+_src_path: gl:banter-bus/fastapi-template
+database_name: core_api
+service_name: banter-bus-core-api
+service_prefix: BANTER_BUS_CORE_API
+service_title: Banter Bus Core API
+short_description: The core API using websockets (socketio) to manage game state.

@@ -27,7 +27,6 @@ def setup_logger(log_level: str, env: str):
     else:
         processors.extend(
             [
-                _add_module_and_lineno,
                 structlog.dev.set_exc_info,
                 structlog.dev.ConsoleRenderer(),
             ]
@@ -59,31 +58,31 @@ def _setup_stdlib_logger(log_level: str, env: str):
         },
         "handlers": {
             "default": {
-                "level": "DEBUG",
+                "level": log_level,
                 "class": "logging.StreamHandler",
                 "formatter": "json" if env == "production" else "console",
             },
             "uvicorn.access": {
-                "level": "INFO",
+                "level": log_level,
                 "class": "logging.StreamHandler",
                 "formatter": "access",
             },
             "uvicorn.default": {
-                "level": "INFO",
+                "level": log_level,
                 "class": "logging.StreamHandler",
                 "formatter": "default",
             },
         },
         "loggers": {
-            "": {"handlers": ["default"], "level": "INFO"},
+            "": {"handlers": ["default"], "level": log_level},
             "uvicorn.error": {
                 "handlers": ["default" if env == "production" else "uvicorn.default"],
-                "level": "INFO",
+                "level": log_level,
                 "propagate": False,
             },
             "uvicorn.access": {
                 "handlers": ["default" if env == "production" else "uvicorn.access"],
-                "level": "INFO",
+                "level": log_level,
                 "propagate": False,
             },
         },
