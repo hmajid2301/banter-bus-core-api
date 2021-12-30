@@ -9,8 +9,8 @@ services:
       - XDG_DATA_HOME=/commandhistory/
     command: tail -f /dev/null
     volumes:
-      - ${PWD}:/app/
-      - api-bashhistory:/commandhistory
+      - ./:/app
+      - app-bashhistory:/commandhistory
 
 volumes:
   api-bashhistory:

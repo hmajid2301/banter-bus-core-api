@@ -216,4 +216,8 @@ $RECYCLE.BIN/
 
 .env
 report.xml
-core_api-management_api-pact.json
+.devcontainer/config.sh
+.devcontainer/devcontainer.json
+.devcontainer/config.sh
+.devcontainer/devcontainer.json
+*-pact.json
