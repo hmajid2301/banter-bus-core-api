@@ -46,8 +46,6 @@ spec:
               value: production
             - name: BANTER_BUS_CORE_API_CORS
               value: '["https://banterbus.games"]'
-            - name: BANTER_BUS_CORE_API_REGEX_CORS
-              value: '["https://*--banterbus.netlify.app"]'
             - name: BANTER_BUS_CORE_API_MANAGEMENT_API_URL
               value: https://management.api.banterbus.games
             - name: BANTER_BUS_CORE_API_DB_PASSWORD
