@@ -1,4 +1,5 @@
-from app.core.logger import get_logger
+from omnibus.log.logger import get_logger
+
 from app.main import socket_manager as sm
 from app.room.room_events_models import CreateRoom, Error, RoomCreated
 from app.room.room_factory import get_game_api, get_room_service

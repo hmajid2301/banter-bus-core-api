@@ -13,7 +13,7 @@ from app.room.room_repository import AbstractRoomRepository
 
 class RoomService:
     def __init__(self, room_repository: AbstractRoomRepository) -> None:
-        self.room_repoistory = room_repository
+        self.room_repository = room_repository
 
     async def create(self, game_name: str, management_client: AsyncGamesApi) -> Room:
         is_game_enabled = await self._is_enabled_game(game_name=game_name, management_client=management_client)
@@ -32,7 +32,7 @@ class RoomService:
             created_at=datetime.now(),
             updated_at=datetime.now(),
         )
-        await self.room_repoistory.add(room)
+        await self.room_repository.add(room)
         return room
 
     @staticmethod
@@ -50,7 +50,7 @@ class RoomService:
 
     async def _get_unused_room_code(self) -> str:
         letters = string.ascii_uppercase
-        used_room_codes = await self.room_repoistory.get_all_room_codes()
+        used_room_codes = await self.room_repository.get_all_room_codes()
 
         new_room_code = ""
         while not new_room_code:

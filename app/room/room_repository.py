@@ -2,9 +2,9 @@ import abc
 from typing import List
 
 from beanie.operators import NotIn
+from omnibus.database.repository import AbstractRepository
 from pymongo.errors import DuplicateKeyError
 
-from app.core.repository import AbstractRepository
 from app.room.room_exceptions import RoomExistsException
 from app.room.room_models import GameState, Room, RoomCodes
 
