@@ -1,25 +1,67 @@
-from omnibus.log.logger import get_logger
+from typing import List
 
-from app.main import socket_manager as sm
-from app.room.room_events_models import CreateRoom, Error, RoomCreated
+from omnibus.log.logger import get_logger
+from pydantic import parse_obj_as
+
+from app.main import sio
+from app.player.player_factory import get_player_service
+from app.player.player_models import NewPlayer
+from app.room.room_events_models import (
+    CreateRoom,
+    Error,
+    JoinRoom,
+    Player,
+    RoomCreated,
+    RoomJoined,
+)
+from app.room.room_exceptions import NicknameExistsException
 from app.room.room_factory import get_game_api, get_room_service
 
 
-@sm.on("CREATE_ROOM")
-async def create_room_event(sid, *args, **kwargs):
-    create_room_data = CreateRoom(**args[0])
+@sio.on("CREATE_ROOM")
+async def create_room(_, *args):
     logger = get_logger()
     logger.debug("creating room")
     try:
+        create_room = CreateRoom(**args[0])
         room_service = get_room_service()
         game_api_client = get_game_api()
-        created_room = await room_service.create(
-            game_name=create_room_data.game_name, management_client=game_api_client
-        )
+        created_room = await room_service.create(game_name=create_room.game_name, management_client=game_api_client)
         room_created = RoomCreated(**created_room.dict())
-        await sm.emit("ROOM_CREATED", room_created.dict())
+        await sio.emit("ROOM_CREATED", room_created.dict())
         logger.debug("room created", room_created=room_created.dict())
     except Exception:
         logger.exception("failed to create room")
         error = Error(code="room_create_fail", message="failed to create room")
-        await sm.emit("ERROR", error.dict())
+        await sio.emit("ERROR", error.dict())
+
+
+@sio.on("JOIN_ROOM")
+async def join_room(sid, *args):
+    logger = get_logger()
+    logger.debug("joining room", player_id=sid)
+    try:
+        join_room = JoinRoom(**args[0])
+        room_service = get_room_service()
+        player_service = get_player_service()
+        new_player = NewPlayer(
+            player_id=sid,
+            avatar=join_room.avatar,
+            nickname=join_room.nickname,
+        )
+        room_players = await room_service.join(
+            player_service=player_service, room_code=join_room.room_code, new_player=new_player
+        )
+        players = parse_obj_as(List[Player], room_players.players)
+        room_joined = RoomJoined(players=players, host_player_nickname=room_players.host_player_nickname)
+        sio.enter_room(sid, join_room.room_code)
+        await sio.emit("ROOM_JOINED", data=room_joined.dict(), room=join_room.room_code)
+        logger.debug("room joined", room_joined=room_joined.dict())
+    except NicknameExistsException as e:
+        logger.exception("nickname already exists", played_id=sid, nickname=e.nickname)
+        error = Error(code="room_join_fail", message=f"nickname {e.nickname} already exists")
+        await sio.emit("ERROR", error.dict())
+    except Exception:
+        logger.exception("failed to join room", played_id=sid)
+        error = Error(code="room_join_fail", message="failed to join room")
+        await sio.emit("ERROR", error.dict())

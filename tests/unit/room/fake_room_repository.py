@@ -1,7 +1,7 @@
 from typing import List
 
-from app.room.room_exceptions import RoomExistsException
-from app.room.room_models import Room
+from app.room.room_exceptions import RoomExistsException, RoomNotFound
+from app.room.room_models import Room, RoomState
 from app.room.room_repository import AbstractRoomRepository
 
 
@@ -17,7 +17,10 @@ class FakeRoomRepository(AbstractRoomRepository):
             self.rooms.append(new_room)
 
     async def get(self, id_: str) -> Room:
-        return await super().get(id_)
+        for room in self.rooms:
+            if room.room_id == id_:
+                return room
+        raise RoomNotFound("room not found")
 
     async def remove(self, id_: str):
         return await super().remove(id_)
@@ -27,3 +30,15 @@ class FakeRoomRepository(AbstractRoomRepository):
         for room in self.rooms:
             room_codes.append(room.room_code)
         return room_codes
+
+    async def get_open_room(self, room_code: str) -> Room:
+        for room in self.rooms:
+            if room.room_code == room_code and room.state == RoomState.CREATED:
+                return room
+
+        raise RoomNotFound("room not found")
+
+    async def update_host(self, room: Room, player_id: str):
+        for r in self.rooms:
+            if r.room_id == room.room_id:
+                r.host = player_id

@@ -5,13 +5,21 @@ from beanie.operators import NotIn
 from omnibus.database.repository import AbstractRepository
 from pymongo.errors import DuplicateKeyError
 
-from app.room.room_exceptions import RoomExistsException
-from app.room.room_models import GameState, Room, RoomCodes
+from app.room.room_exceptions import RoomExistsException, RoomNotFound
+from app.room.room_models import Room, RoomCodes, RoomState
 
 
 class AbstractRoomRepository(AbstractRepository[Room]):
     @abc.abstractmethod
     async def get_all_room_codes(self) -> List[str]:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def get_open_room(self, room_code: str) -> Room:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def update_host(self, room: Room, player_id: str):
         raise NotImplementedError
 
 
@@ -20,11 +28,17 @@ class RoomRepository(AbstractRoomRepository):
         try:
             await Room.insert(room)
         except DuplicateKeyError:
-            raise RoomExistsException(f"question {room.room_id=} already exists")
+            raise RoomExistsException(f"player {room.room_id=} already exists")
+
+    async def get(self, id_: str) -> Room:
+        return await super().get(id_)
+
+    async def remove(self, id_: str):
+        return await super().remove(id_)
 
     async def get_all_room_codes(self) -> List[str]:
         rooms_code_aggregate: List[RoomCodes] = (
-            await Room.find(NotIn(Room.state, [GameState.ABANDONED, GameState.FINISHED]))
+            await Room.find(NotIn(Room.state, [RoomState.ABANDONED, RoomState.FINISHED]))
             .aggregate(
                 [
                     {
@@ -47,8 +61,12 @@ class RoomRepository(AbstractRoomRepository):
 
         return room_codes
 
-    async def get(self, id_: str) -> Room:
-        return await super().get(id_)
+    async def get_open_room(self, room_code: str) -> Room:
+        room = await Room.find_one(Room.room_code == room_code, Room.state == RoomState.CREATED)
+        if room is None:
+            raise RoomNotFound(f"room with {room_code=} not found")
+        return room
 
-    async def remove(self, id_: str):
-        return await super().remove(id_)
+    async def update_host(self, room: Room, player_id: str):
+        room.host = player_id
+        await room.save()

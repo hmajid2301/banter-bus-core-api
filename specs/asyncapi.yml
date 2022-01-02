@@ -1,4 +1,4 @@
-asyncapi: 2.1.0
+asyncapi: 2.2.0
 info:
   title: Banter Bus Core API
   version: 1.0.0
@@ -17,14 +17,11 @@ defaultContentType: application/json
 channels:
   /:
     publish:
-      description: Send messages to the API
-      operationId: receivedMessage
       message:
         oneOf:
           - $ref: "#/components/messages/create_room"
+          - $ref: "#/components/messages/join_room"
     subscribe:
-      description: Messages that you receive from the API
-      operationId: sendMessage
       message:
         oneOf:
           - $ref: "#/components/messages/room_created"
@@ -45,6 +42,14 @@ components:
         to join the room.
       payload:
         $ref: "#/components/schemas/new_room"
+    join_room:
+      summary: When a player has joined a game room.
+      description: >-
+        Client can create a new game room.
+      payload:
+        $ref: "#/components/schemas/join_room"
+      x-response:
+        $ref: "#/components/messages/room_joined"
   schemas:
     create_room:
       type: object
@@ -60,6 +65,43 @@ components:
         room_code:
           type: string
           description: Unique code to join the room.
-          example: abc123
+          example: ABCDE
       required:
         - room_code
+    join_room:
+      type: object
+      properties:
+        avatar:
+          type: string
+          format: byte
+          description: Binary representation of the player avatar.
+        nickname:
+          type: string
+          description: The nickname of the player joining the room
+          example: Majiy
+        room_code:
+          type: string
+          description: The unqiue code of the room to join.
+          example: ABCDE
+      required:
+        - avatar
+        - nickname
+        - room_code
+    room_joined:
+      type: object
+      properties:
+        nickname:
+          type: string
+          description: The nickname of the player joining the room
+          example: Majiy
+        avatar:
+          type: string
+          format: byte
+          description: Binary representation of the player avatar.
+        is_host:
+          type: boolean
+          description: If the player is the host or not
+      required:
+        - nickname
+        - avatar
+        - is_host

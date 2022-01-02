@@ -39,12 +39,16 @@ async def client() -> AsyncIterator[AsyncClient]:
 
 @pytest.fixture(autouse=True)
 async def setup_and_teardown(startup_and_shutdown_server):
+    from app.player.player_models import Player
     from app.room.room_models import Room
+    from tests.data.player_collection import players
     from tests.data.room_collection import rooms
 
     try:
         await Room.insert_many(documents=rooms)
+        await Player.insert_many(documents=players)
     except Exception as e:
         print("Failed", e)
     yield
     await Room.delete_all()
+    await Player.delete_all()
