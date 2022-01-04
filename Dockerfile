@@ -47,8 +47,8 @@ FROM builder as development
 
 ENV BANTER_BUS_CORE_API_ENVIRONMENT=development
 
-COPY ./ /app
 RUN poetry install
+COPY ./ /app
 
 WORKDIR /app
 EXPOSE 8080

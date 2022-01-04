@@ -45,19 +45,18 @@ spec:
             - name: BANTER_BUS_CORE_API_ENVIRONMENT
               value: production
             - name: BANTER_BUS_CORE_API_CORS
-              value: '["https://banterbus.games"]'
-            - name: BANTER_BUS_CORE_API_MANAGEMENT_API_URL
-              value: https://management.api.banterbus.games
+              value: '["*"]'
+            - name: BANTER_BUS_CORE_API_REGEX_CORS
+              value: '["*"]'
+            - name: BANTER_BUS_CORE_API_CLIENT_ID
+              value: 78358389381-o5nq31qc9ntq5evfg03n4565cjbf8qpo.apps.googleusercontent.com
+            - name: BANTER_BUS_CORE_API_USE_AUTH
+              value: "True"
             - name: BANTER_BUS_CORE_API_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   key: latest
                   name: banter-bus-db-password
-            - name: BANTER_BUS_CORE_API_AUTH0_DOMAIN
-              valueFrom:
-                secretKeyRef:
-                  key: latest
-                  name: banter-bus-auth0-domain
           resources:
             limits:
               cpu: 1000m

@@ -72,7 +72,7 @@ async def test_empty_room_joined(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_joined_nickname(client: AsyncClient):
+async def test_room_joined_nickname_in_use(client: AsyncClient):
     future = asyncio.get_running_loop().create_future()
 
     @client.on("ERROR")
