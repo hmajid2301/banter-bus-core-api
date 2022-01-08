@@ -5,18 +5,11 @@ from pytest_mock import MockFixture
 
 from app.player.player_models import NewPlayer, Player
 from app.player.player_service import PlayerService
-from app.room.room_exceptions import (
-    GameNotEnabled,
-    GameNotFound,
-    NicknameExistsException,
-    RoomNotFound,
-)
+from app.room.room_exceptions import NicknameExistsException
 from app.room.room_models import Room, RoomState
 from app.room.room_service import RoomService
-from tests.data.management_api_game import games
 from tests.unit.factories import PlayerFactory, RoomFactory, get_new_player
 from tests.unit.player.fake_player_repository import FakePlayerRepository
-from tests.unit.room.fake_game_api import FakeGameAPI
 from tests.unit.room.fake_room_repository import FakeRoomRepository
 
 
@@ -28,71 +21,23 @@ def mock_beanie_document(mocker: MockFixture):
 @pytest.mark.asyncio
 async def test_create_room():
     room_repository = FakeRoomRepository(rooms=[])
-    management_client = FakeGameAPI(games=games)
     room_service = RoomService(room_repository=room_repository)
 
-    game_name = "quibly"
-
-    room = await room_service.create(game_name=game_name, management_client=management_client)
+    room = await room_service.create()
     assert room.room_id
-    assert room.game_name == game_name
     assert room.room_code
     assert room.state == RoomState.CREATED
 
 
 @pytest.mark.asyncio
-async def test_create_room_disabled_game():
-    room_repository = FakeRoomRepository(rooms=[])
-    management_client = FakeGameAPI(games=games)
-    room_service = RoomService(room_repository=room_repository)
-
-    game_name = "drawlosseum"
-
-    with pytest.raises(GameNotEnabled):
-        await room_service.create(game_name=game_name, management_client=management_client)
-
-
-@pytest.mark.asyncio
-async def test_create_room_game_not_found():
-    room_repository = FakeRoomRepository(rooms=[])
-    management_client = FakeGameAPI(games=games)
-    room_service = RoomService(room_repository=room_repository)
-
-    game_name = "quibly_v2"
-
-    with pytest.raises(GameNotFound):
-        await room_service.create(game_name=game_name, management_client=management_client)
-
-
-@pytest.mark.asyncio
 async def test_get_open_room():
-    room_code = "ABCDE"
+    room_code = "ABCDEabcde12"
     existing_room = RoomFactory.build(room_code=room_code, state=RoomState.CREATED)
     room_repository = FakeRoomRepository(rooms=[existing_room])
     room_service = RoomService(room_repository=room_repository)
 
-    existing_room = await room_service._get_open_room(room_code=room_code)
+    existing_room = await room_service._get_by_room_code(room_code=room_code)
     assert existing_room.room_code == room_code
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "room_state",
-    [
-        RoomState.PLAYING,
-        RoomState.PAUSED,
-        RoomState.ABANDONED,
-        RoomState.FINISHED,
-    ],
-)
-async def test_get_open_room_not_created_status(room_state: RoomState):
-    room_code = "ABCDE"
-    existing_room = RoomFactory.build(room_code=room_code, state=room_state)
-    room_repository = FakeRoomRepository(rooms=[existing_room])
-    room_service = RoomService(room_repository=room_repository)
-
-    with pytest.raises(RoomNotFound):
-        await room_service._get_open_room(room_code=room_code)
 
 
 @pytest.mark.asyncio

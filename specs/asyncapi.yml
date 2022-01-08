@@ -38,8 +38,7 @@ components:
     room_created:
       summary: Room created is a response to `create_room` message.
       description: >-
-        Server responds to `create_room` message. Which includes unique room URL and unique room code for other clients
-        to join the room.
+        Server responds to `create_room` message.
       payload:
         $ref: "#/components/schemas/new_room"
     join_room:
@@ -50,15 +49,15 @@ components:
         $ref: "#/components/schemas/join_room"
       x-response:
         $ref: "#/components/messages/room_joined"
+    room_joined:
+      summary: Response to `join_room` message.
+      description: >-
+        Server responds to `join_room` message.
+      payload:
+        $ref: "#/components/schemas/room_joined"
   schemas:
     create_room:
       type: object
-      properties:
-        game_name:
-          type: string
-          description: Name of the game to create the room for, will fail if game is not enabled
-      required:
-        - game_name
     new_room:
       type: object
       properties:
@@ -90,18 +89,21 @@ components:
     room_joined:
       type: object
       properties:
-        nickname:
+        players:
+          type: array
+          items:
+            nickname:
+              type: string
+              description: The nickname of the player joining the room
+              example: Majiy
+            avatar:
+              type: string
+              format: byte
+            description: Binary representation of the player avatar.
+        host_player_nickname:
           type: string
-          description: The nickname of the player joining the room
+          description: The nickname of the host player
           example: Majiy
-        avatar:
-          type: string
-          format: byte
-          description: Binary representation of the player avatar.
-        is_host:
-          type: boolean
-          description: If the player is the host or not
       required:
         - nickname
         - avatar
-        - is_host

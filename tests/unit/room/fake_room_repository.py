@@ -1,7 +1,7 @@
 from typing import List
 
 from app.room.room_exceptions import RoomExistsException, RoomNotFound
-from app.room.room_models import Room, RoomState
+from app.room.room_models import Room
 from app.room.room_repository import AbstractRoomRepository
 
 
@@ -31,9 +31,9 @@ class FakeRoomRepository(AbstractRoomRepository):
             room_codes.append(room.room_code)
         return room_codes
 
-    async def get_open_room(self, room_code: str) -> Room:
+    async def get_by_room_code(self, room_code: str) -> Room:
         for room in self.rooms:
-            if room.room_code == room_code and room.state == RoomState.CREATED:
+            if room.room_code == room_code:
                 return room
 
         raise RoomNotFound("room not found")

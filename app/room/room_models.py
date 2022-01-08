@@ -20,7 +20,7 @@ class RoomState(Enum):
 
 class Room(Document):
     room_id: Indexed(str, unique=True)  # type: ignore
-    game_name: str
+    game_name: Optional[str] = None
     room_code: str
     host: Optional[str] = None
     state: RoomState

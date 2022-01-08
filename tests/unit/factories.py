@@ -15,8 +15,10 @@ class RoomFactory(factory.Factory):
         model = Room
 
     room_id = factory.Faker("uuid4")
-    game_name = factory.fuzzy.FuzzyChoice(game_names)
-    room_code = factory.Faker("lexify", text="?????", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    game_name = None
+    room_code = factory.Faker(
+        "lexify", text="??????????", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    )
     host = None
     state = factory.fuzzy.FuzzyChoice(RoomState)
     created_at = datetime.now()

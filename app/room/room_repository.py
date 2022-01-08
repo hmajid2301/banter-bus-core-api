@@ -15,7 +15,7 @@ class AbstractRoomRepository(AbstractRepository[Room]):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def get_open_room(self, room_code: str) -> Room:
+    async def get_by_room_code(self, room_code: str) -> Room:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -61,8 +61,8 @@ class RoomRepository(AbstractRoomRepository):
 
         return room_codes
 
-    async def get_open_room(self, room_code: str) -> Room:
-        room = await Room.find_one(Room.room_code == room_code, Room.state == RoomState.CREATED)
+    async def get_by_room_code(self, room_code: str) -> Room:
+        room = await Room.find_one(Room.room_code == room_code)
         if room is None:
             raise RoomNotFound(f"room with {room_code=} not found")
         return room

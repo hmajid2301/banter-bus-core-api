@@ -4,10 +4,13 @@ from pydantic import BaseModel
 
 CREATE_ROOM = "CREATE_ROOM"
 ROOM_CREATED = "ROOM_CREATED"
+ERROR = "ERROR"
+JOIN_ROOM = "JOIN_ROOM"
+ROOM_JOINED = "ROOM_JOINED"
 
 
 class CreateRoom(BaseModel):
-    game_name: str
+    pass
 
 
 class RoomCreated(BaseModel):
