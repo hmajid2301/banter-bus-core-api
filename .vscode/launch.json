@@ -7,7 +7,8 @@
       "request": "launch",
       "module": "uvicorn",
       "args": ["app:app", "--reload", "--port", "8080"],
-      "justMyCode": false
+      "justMyCode": false,
+      "envFile": "${workspaceFolder}/.env"
     },
     {
       "name": "Tests: Unit",
