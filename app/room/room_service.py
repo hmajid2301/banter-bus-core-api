@@ -71,7 +71,7 @@ class RoomService:
 
     @staticmethod
     def _get_room_players(room_host_player_id: str, existing_players: List[Player], new_player: Player):
-        players = [new_player, *existing_players]
+        players = [*existing_players, new_player]
         room_host_player = next(player for player in players if player.player_id == room_host_player_id)
         room_players = RoomPlayers(players=players, host_player_nickname=room_host_player.nickname)
         return room_players

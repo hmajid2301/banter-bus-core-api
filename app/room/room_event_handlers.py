@@ -25,7 +25,7 @@ from app.room.room_factory import get_room_service
 @sio.on(CREATE_ROOM)
 async def create_room(_, *args):
     logger = get_logger()
-    logger.debug("creating room")
+    logger.debug(CREATE_ROOM)
     try:
         room_service = get_room_service()
         created_room = await room_service.create()
@@ -41,7 +41,7 @@ async def create_room(_, *args):
 @sio.on(JOIN_ROOM)
 async def join_room(sid, *args):
     logger = get_logger()
-    logger.debug("joining room", player_id=sid)
+    logger.debug(JOIN_ROOM, player_id=sid)
     try:
         join_room = JoinRoom(**args[0])
         room_service = get_room_service()
