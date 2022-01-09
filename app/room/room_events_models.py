@@ -23,8 +23,10 @@ class JoinRoom(BaseModel):
     room_code: str
 
     @validator("avatar", pre=True)
-    def base64_string_to_bytes(cls, value: str):
-        return value.encode("utf-8")
+    def base64_string_to_bytes(cls, value):
+        if isinstance(value, str):
+            return value.encode()
+        return value
 
 
 class Player(BaseModel):
@@ -32,8 +34,10 @@ class Player(BaseModel):
     nickname: str
 
     @validator("avatar", pre=True)
-    def base64_bytes_to_string(cls, value: bytes):
-        return value.decode("utf-8")
+    def base64_bytes_to_string(cls, value):
+        if isinstance(value, bytes):
+            return value.decode()
+        return value
 
 
 class RoomJoined(BaseModel):

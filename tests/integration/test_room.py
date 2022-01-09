@@ -31,10 +31,9 @@ async def test_empty_room_joined(client: AsyncClient):
     def _(data):
         future.set_result(RoomJoined(**data))
 
+    avatar = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
     join_room = JoinRoom(
-        avatar=base64.b64decode(
-            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
-        ),
+        avatar=avatar,
         nickname="Majiy",
         room_code="ABCDE",
     )
@@ -43,7 +42,7 @@ async def test_empty_room_joined(client: AsyncClient):
     room_joined: RoomJoined = future.result()
     player = room_joined.players[0]
     assert player.nickname == join_room.nickname
-    assert player.avatar == join_room.avatar
+    assert player.avatar == avatar
 
 
 @pytest.mark.asyncio
