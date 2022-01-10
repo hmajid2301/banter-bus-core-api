@@ -4,7 +4,7 @@ import time
 from http import HTTPStatus
 
 import pytest
-from pactman import Consumer, Like, Provider
+from pactman import Consumer, Provider
 
 from app.clients.management_api.api.games_api import AsyncGamesApi
 from app.clients.management_api.exceptions import UnexpectedResponse
@@ -33,11 +33,6 @@ async def test_enabled_game(pact, game_api_client: AsyncGamesApi):
     expected = {
         "enabled": True,
         "name": "fibbing_it",
-        "rules_url": Like("https://gitlab.com/banter-bus/banter-bus-server/-/wikis/docs/rules/fibbing_it"),
-        "description": Like(
-            "Lie your way through the game, hide the fact you are a spy. Whilst everyone else tried to work it out."
-        ),
-        "display_name": Like("Fibbing IT!"),
     }
 
     pact.given("fibbing_it exists and is enabled").upon_receiving("a request for fibbing_it game info").with_request(
@@ -53,11 +48,6 @@ async def test_disabled_game(pact, game_api_client: AsyncGamesApi):
     expected = {
         "enabled": False,
         "name": "quibly",
-        "rules_url": Like("https://gitlab.com/banter-bus/banter-bus-server/-/wikis/docs/rules/fibbing_it"),
-        "description": Like(
-            "Lie your way through the game, hide the fact you are a spy. Whilst everyone else tried to work it out."
-        ),
-        "display_name": Like("Fibbing IT!"),
     }
 
     pact.given("quibly exists and is disabled").upon_receiving("a request for quibly game info").with_request(

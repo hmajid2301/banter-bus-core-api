@@ -12,7 +12,7 @@ class _GamesApi:
     def __init__(self, api_client: "ApiClient"):
         self.api_client = api_client
 
-    def _build_for_disable_game(self, game_name: str) -> Awaitable[m.GameOut]:
+    def _build_for_disabled_game(self, game_name: str) -> Awaitable[m.GameOut]:
         path_params = {"game_name": str(game_name)}
 
         return self.api_client.request(
@@ -56,8 +56,8 @@ class _GamesApi:
 
 
 class AsyncGamesApi(_GamesApi):
-    async def disable_game(self, game_name: str) -> m.GameOut:
-        return await self._build_for_disable_game(game_name=game_name)
+    async def disabled_game(self, game_name: str) -> m.GameOut:
+        return await self._build_for_disabled_game(game_name=game_name)
 
     async def enable_game(self, game_name: str) -> m.GameOut:
         return await self._build_for_enable_game(game_name=game_name)
@@ -70,8 +70,8 @@ class AsyncGamesApi(_GamesApi):
 
 
 class SyncGamesApi(_GamesApi):
-    def disable_game(self, game_name: str) -> m.GameOut:
-        coroutine = self._build_for_disable_game(game_name=game_name)
+    def disabled_game(self, game_name: str) -> m.GameOut:
+        coroutine = self._build_for_disabled_game(game_name=game_name)
         return get_event_loop().run_until_complete(coroutine)
 
     def enable_game(self, game_name: str) -> m.GameOut:

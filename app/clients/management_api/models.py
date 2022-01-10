@@ -27,6 +27,8 @@ class GameOut(BaseModel):
     description: "str" = Field(..., alias="description")
     enabled: "bool" = Field(..., alias="enabled")
     rules_url: "str" = Field(..., alias="rules_url")
+    minimum_players: "int" = Field(..., alias="minimum_players")
+    maximum_players: "int" = Field(..., alias="maximum_players")
 
 
 class HTTPValidationError(BaseModel):

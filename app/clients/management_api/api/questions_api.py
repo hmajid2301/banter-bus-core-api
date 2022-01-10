@@ -2,6 +2,8 @@
 from asyncio import get_event_loop
 from typing import TYPE_CHECKING, Awaitable, List
 
+from fastapi.encoders import jsonable_encoder
+
 from app.clients.management_api import models as m
 
 if TYPE_CHECKING:
@@ -15,7 +17,7 @@ class _QuestionsApi:
     def _build_for_add_question(self, game_name: str, question_in: m.QuestionIn) -> Awaitable[m.QuestionOut]:
         path_params = {"game_name": str(game_name)}
 
-        body = question_in.dict()
+        body = jsonable_encoder(question_in)
 
         return self.api_client.request(
             type_=m.QuestionOut, method="POST", url="/game/{game_name}/question", path_params=path_params, json=body
@@ -30,7 +32,7 @@ class _QuestionsApi:
             "language_code": str(language_code),
         }
 
-        body = question_translation_in.dict()
+        body = jsonable_encoder(question_translation_in)
 
         return self.api_client.request(
             type_=m.QuestionOut,
@@ -49,7 +51,7 @@ class _QuestionsApi:
             "language_code": str(language_code),
         }
 
-        body = question_translation_in.dict()
+        body = jsonable_encoder(question_translation_in)
 
         return self.api_client.request(
             type_=m.QuestionOut,

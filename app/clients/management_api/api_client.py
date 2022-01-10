@@ -4,6 +4,7 @@ from typing import Any, Awaitable, Callable, Dict, Generic, Type, TypeVar, overl
 from httpx import AsyncClient, Request, Response
 from pydantic import ValidationError, parse_obj_as
 
+from app.clients.management_api.api.default_api import AsyncDefaultApi, SyncDefaultApi
 from app.clients.management_api.api.games_api import AsyncGamesApi, SyncGamesApi
 from app.clients.management_api.api.questions_api import (
     AsyncQuestionsApi,
@@ -22,6 +23,7 @@ class AsyncApis(Generic[ClientT]):
     def __init__(self, client: ClientT):
         self.client = client
 
+        self.default_api = AsyncDefaultApi(self.client)
         self.games_api = AsyncGamesApi(self.client)
         self.questions_api = AsyncQuestionsApi(self.client)
         self.stories_api = AsyncStoriesApi(self.client)
@@ -31,6 +33,7 @@ class SyncApis(Generic[ClientT]):
     def __init__(self, client: ClientT):
         self.client = client
 
+        self.default_api = SyncDefaultApi(self.client)
         self.games_api = SyncGamesApi(self.client)
         self.questions_api = SyncQuestionsApi(self.client)
         self.stories_api = SyncStoriesApi(self.client)

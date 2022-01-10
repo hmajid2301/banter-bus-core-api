@@ -44,8 +44,6 @@ spec:
               value: mongodb+srv
             - name: BANTER_BUS_CORE_API_ENVIRONMENT
               value: production
-            - name: BANTER_BUS_CORE_API_CORS
-              value: '["https://banterbus.games"]'
             - name: BANTER_BUS_CORE_API_CLIENT_ID
               value: 78358389381-o5nq31qc9ntq5evfg03n4565cjbf8qpo.apps.googleusercontent.com
             - name: BANTER_BUS_CORE_API_USE_AUTH
