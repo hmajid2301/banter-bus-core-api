@@ -47,7 +47,6 @@ async def join_room(sid, *args):
         room_service = get_room_service()
         player_service = get_player_service()
         new_player = NewPlayer(
-            player_id=sid,
             avatar=join_room.avatar,
             nickname=join_room.nickname,
         )
@@ -55,7 +54,9 @@ async def join_room(sid, *args):
             player_service=player_service, room_code=join_room.room_code, new_player=new_player
         )
         players = parse_obj_as(List[Player], room_players.players)
-        room_joined = RoomJoined(players=players, host_player_nickname=room_players.host_player_nickname)
+        room_joined = RoomJoined(
+            players=players, host_player_nickname=room_players.host_player_nickname, player_id=room_players.player_id
+        )
         sio.enter_room(sid, join_room.room_code)
         await sio.emit(ROOM_JOINED, data=room_joined.dict(), room=join_room.room_code)
         logger.debug(ROOM_JOINED, room_joined=room_joined.dict())

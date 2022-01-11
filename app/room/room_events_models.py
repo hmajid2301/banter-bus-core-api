@@ -42,6 +42,7 @@ class Player(BaseModel):
 
 class RoomJoined(BaseModel):
     host_player_nickname: str
+    player_id: str
     players: List[Player]
 
 

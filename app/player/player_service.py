@@ -1,4 +1,5 @@
 from typing import List
+from uuid import uuid4
 
 from app.player.player_models import NewPlayer, Player
 from app.player.player_repository import AbstractPlayerRepository
@@ -9,8 +10,9 @@ class PlayerService:
         self.player_repository = player_repository
 
     async def create(self, room_id: str, new_player: NewPlayer) -> Player:
+        player_id = str(uuid4())
         player = Player(
-            player_id=new_player.player_id,
+            player_id=player_id,
             avatar=new_player.avatar,
             nickname=new_player.nickname,
             room_id=room_id,

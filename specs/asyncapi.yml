@@ -63,7 +63,7 @@ components:
       properties:
         room_code:
           type: string
-          description: Unique code to join the room.
+          description: Unique code to join the room
           example: ABCDE
       required:
         - room_code
@@ -73,14 +73,14 @@ components:
         avatar:
           type: string
           format: byte
-          description: Binary representation of the player avatar.
+          description: Binary representation of the player avatar
         nickname:
           type: string
           description: The nickname of the player joining the room
           example: Majiy
         room_code:
           type: string
-          description: The unqiue code of the room to join.
+          description: The unqiue code of the room to join
           example: ABCDE
       required:
         - avatar
@@ -99,7 +99,10 @@ components:
             avatar:
               type: string
               format: byte
-            description: Binary representation of the player avatar.
+            description: Binary representation of the player avatar
+        player_id:
+          type: string
+          description: A unique player id
         host_player_nickname:
           type: string
           description: The nickname of the host player

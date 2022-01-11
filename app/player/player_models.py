@@ -5,7 +5,6 @@ from pydantic.main import BaseModel
 
 
 class NewPlayer(BaseModel):
-    player_id: str
     avatar: bytes
     nickname: str
 
@@ -22,4 +21,5 @@ class Player(Document):
 
 class RoomPlayers(BaseModel):
     host_player_nickname: str
+    player_id: str
     players: List[Player]

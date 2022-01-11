@@ -54,7 +54,7 @@ async def test_join_empty_room():
         player_service=player_service, room_code=existing_room.room_code, new_player=new_player
     )
 
-    expected_player = Player(**new_player.dict(), room_id=existing_room.room_id)
+    expected_player = Player(**new_player.dict(), room_id=existing_room.room_id, player_id=room_players.player_id)
     assert room_players.players == [expected_player]
     assert room_players.host_player_nickname == expected_player.nickname
 
@@ -75,7 +75,7 @@ async def test_join_non_empty_room():
         player_service=player_service, room_code=existing_room.room_code, new_player=new_player
     )
 
-    expected_player = Player(**new_player.dict(), room_id=existing_room.room_id)
+    expected_player = Player(**new_player.dict(), room_id=existing_room.room_id, player_id=room_players.player_id)
     expected_players = [expected_player, *existing_players]
     assert _sort_list_by_player_id(room_players.players) == _sort_list_by_player_id(expected_players)
     assert room_players.host_player_nickname != expected_player.nickname
