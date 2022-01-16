@@ -20,6 +20,10 @@ class PlayerService:
         await self.player_repository.add(player)
         return player
 
+    async def get(self, player_id: str) -> Player:
+        player = await self.player_repository.get(id_=player_id)
+        return player
+
     async def get_all_in_room(self, room_id: str) -> List[Player]:
         players = await self.player_repository.get_all_in_room(room_id=room_id)
         return players

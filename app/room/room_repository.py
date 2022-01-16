@@ -31,7 +31,10 @@ class RoomRepository(AbstractRoomRepository):
             raise RoomExistsException(f"player {room.room_id=} already exists")
 
     async def get(self, id_: str) -> Room:
-        return await super().get(id_)
+        room = await Room.find_one(Room.room_id == id_)
+        if room is None:
+            raise RoomNotFound(f"room {id_=} not found")
+        return room
 
     async def remove(self, id_: str):
         return await super().remove(id_)

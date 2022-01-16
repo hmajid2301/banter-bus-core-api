@@ -5,7 +5,13 @@ import re
 import pytest
 from socketio.asyncio_client import AsyncClient
 
-from app.room.room_events_models import Error, JoinRoom, RoomCreated, RoomJoined
+from app.room.room_events_models import (
+    Error,
+    JoinRoom,
+    RejoinRoom,
+    RoomCreated,
+    RoomJoined,
+)
 
 
 @pytest.mark.asyncio
@@ -42,6 +48,26 @@ async def test_empty_room_joined(client: AsyncClient):
     room_joined: RoomJoined = future.result()
     player = room_joined.players[0]
     assert player.nickname == join_room.nickname
+    assert player.avatar == avatar
+
+
+@pytest.mark.asyncio
+async def test_rejoin_room(client: AsyncClient):
+    future = asyncio.get_running_loop().create_future()
+
+    @client.on("ROOM_JOINED")
+    def _(data):
+        future.set_result(RoomJoined(**data))
+
+    join_room = RejoinRoom(player_id="52dcb730-93ad-4364-917a-8760ee50d0f5")
+    await client.emit("REJOIN_ROOM", join_room.dict())
+    await asyncio.wait_for(future, timeout=5.0)
+
+    room_joined: RoomJoined = future.result()
+    avatar = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg"
+    nickname = "Majiy"
+    player = room_joined.players[0]
+    assert player.nickname == nickname
     assert player.avatar == avatar
 
 

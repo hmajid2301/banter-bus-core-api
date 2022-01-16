@@ -4,7 +4,7 @@ from typing import List
 from omnibus.database.repository import AbstractRepository
 from pymongo.errors import DuplicateKeyError
 
-from app.player.player_exceptions import PlayerExistsException
+from app.player.player_exceptions import PlayerExistsException, PlayerNotFound
 from app.player.player_models import Player
 
 
@@ -22,7 +22,11 @@ class PlayerRepository(AbstractPlayerRepository):
             raise PlayerExistsException(f"player {player.player_id=} already exists")
 
     async def get(self, id_: str) -> Player:
-        return await super().get(id_)
+        player = await Player.find_one(Player.player_id == id_)
+        if player is None:
+            raise PlayerNotFound(f"player {id_=} not found")
+
+        return player
 
     async def remove(self, id_: str):
         return await super().remove(id_)

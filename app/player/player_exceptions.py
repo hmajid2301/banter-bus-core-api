@@ -1,7 +1,11 @@
-from app.core.exceptions import ExistsException
+from app.core.exceptions import ExistsException, NotFoundException
 
 
 class PlayerExistsException(ExistsException):
+    pass
+
+
+class PlayerNotFound(NotFoundException):
     pass
 
 

@@ -6,6 +6,7 @@ CREATE_ROOM = "CREATE_ROOM"
 ROOM_CREATED = "ROOM_CREATED"
 ERROR = "ERROR"
 JOIN_ROOM = "JOIN_ROOM"
+REJOIN_ROOM = "REJOIN_ROOM"
 ROOM_JOINED = "ROOM_JOINED"
 
 
@@ -27,6 +28,10 @@ class JoinRoom(BaseModel):
         if isinstance(value, str):
             return value.encode()
         return value
+
+
+class RejoinRoom(BaseModel):
+    player_id: str
 
 
 class Player(BaseModel):

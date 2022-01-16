@@ -21,10 +21,12 @@ channels:
         oneOf:
           - $ref: "#/components/messages/create_room"
           - $ref: "#/components/messages/join_room"
+          - $ref: "#/components/messages/rejoin_room"
     subscribe:
       message:
         oneOf:
           - $ref: "#/components/messages/room_created"
+          - $ref: "#/components/messages/room_joined"
 components:
   messages:
     create_room:
@@ -44,15 +46,23 @@ components:
     join_room:
       summary: When a player has joined a game room.
       description: >-
-        Client can create a new game room.
+        Client can join an existing game room.
       payload:
         $ref: "#/components/schemas/join_room"
       x-response:
         $ref: "#/components/messages/room_joined"
-    room_joined:
-      summary: Response to `join_room` message.
+    rejoin_room:
+      summary: When a player has left a room and wants to re-join it.
       description: >-
-        Server responds to `join_room` message.
+        Client can re-join a game room.
+      payload:
+        $ref: "#/components/schemas/rejoin_room"
+      x-response:
+        $ref: "#/components/messages/room_joined"
+    room_joined:
+      summary: Response to a player joining a room message.
+      description: >-
+        Server responds to `join_room` or `rejoin_room` event.
       payload:
         $ref: "#/components/schemas/room_joined"
   schemas:
@@ -66,6 +76,19 @@ components:
           description: Unique code to join the room
           example: ABCDE
       required:
+        - room_code
+    rejoin_room:
+      type: object
+      properties:
+        player_id:
+          type: string
+          description: Unique ID of the player trying to re-join the room
+        room_code:
+          type: string
+          description: The unqiue code of the room to join
+          example: ABCDE
+      required:
+        - player_id
         - room_code
     join_room:
       type: object
