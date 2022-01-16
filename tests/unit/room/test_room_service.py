@@ -131,12 +131,10 @@ async def test_rejoin_room():
     player_service = PlayerService(player_repository=player_repository)
     first_player_id = existing_players[0].player_id
     existing_room.host = first_player_id
-    first_player_nickname = existing_players[0].nickname
 
     room_players = await room_service.rejoin(player_service=player_service, player_id=first_player_id)
-
+    assert room_players.host_player_nickname == existing_players[0].nickname
     assert _sort_list_by_player_id(room_players.players) == _sort_list_by_player_id(existing_players)
-    assert room_players.host_player_nickname == first_player_nickname
 
 
 @pytest.mark.asyncio
@@ -176,15 +174,14 @@ async def test_get_room_players():
     room_id = "4d18ac45-8034-4f8e-b636-cf730b17e51a"
     existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=room_id)
     existing_players[0].player_id = room_host_player_id
-    new_player = PlayerFactory.build(room_id=room_id)
     room_players = RoomService._get_room_players(
         room_host_player_id=room_host_player_id,
-        existing_players=existing_players,
-        new_player=new_player,
+        players=existing_players,
+        player_id=room_host_player_id,
         room_code="ANCDEFH",
     )
-    assert _sort_list_by_player_id(room_players.players) == _sort_list_by_player_id([*existing_players, new_player])
     assert room_players.host_player_nickname == existing_players[0].nickname
+    assert _sort_list_by_player_id(room_players.players) == _sort_list_by_player_id(existing_players)
 
 
 def _sort_list_by_player_id(players: List[Player]):

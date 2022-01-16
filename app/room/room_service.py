@@ -52,10 +52,11 @@ class RoomService:
         self._check_nickname_is_unique(new_player_nickname=new_player.nickname, existing_players=existing_players)
 
         player = await self._add_new_player(player_service=player_service, new_player=new_player, room=room)
+        players = [*existing_players, player]
         room_players = self._get_room_players(
             room_host_player_id=room.host or "",
-            existing_players=existing_players,
-            new_player=player,
+            players=players,
+            player_id=player.player_id,
             room_code=room.room_code,
         )
         return room_players
@@ -67,8 +68,8 @@ class RoomService:
 
         room_players = self._get_room_players(
             room_host_player_id=room.host or "",
-            existing_players=existing_players,
-            new_player=player,
+            players=existing_players,
+            player_id=player.player_id,
             room_code=room.room_code,
         )
         return room_players
@@ -90,13 +91,17 @@ class RoomService:
         return player
 
     @staticmethod
-    def _get_room_players(room_host_player_id: str, existing_players: List[Player], new_player: Player, room_code: str):
-        players = [*existing_players, new_player]
+    def _get_room_players(
+        room_host_player_id: str,
+        players: List[Player],
+        player_id: str,
+        room_code: str,
+    ) -> RoomPlayers:
         room_host_player = next(player for player in players if player.player_id == room_host_player_id)
         room_players = RoomPlayers(
             players=players,
             host_player_nickname=room_host_player.nickname,
-            player_id=new_player.player_id,
+            player_id=player_id,
             room_code=room_code,
         )
         return room_players
