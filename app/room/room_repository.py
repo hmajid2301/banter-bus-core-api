@@ -33,7 +33,7 @@ class RoomRepository(AbstractRoomRepository):
     async def get(self, id_: str) -> Room:
         room = await Room.find_one(Room.room_id == id_)
         if room is None:
-            raise RoomNotFound(f"room {id_=} not found")
+            raise RoomNotFound(msg="room not found", room_idenitifer=id_)
         return room
 
     async def remove(self, id_: str):
@@ -67,7 +67,7 @@ class RoomRepository(AbstractRoomRepository):
     async def get_by_room_code(self, room_code: str) -> Room:
         room = await Room.find_one(Room.room_code == room_code)
         if room is None:
-            raise RoomNotFound(f"room with {room_code=} not found")
+            raise RoomNotFound(msg="room with not found", room_idenitifer=room_code)
         return room
 
     async def update_host(self, room: Room, player_id: str):

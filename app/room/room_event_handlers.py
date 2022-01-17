@@ -20,7 +20,7 @@ from app.room.room_events_models import (
     RoomCreated,
     RoomJoined,
 )
-from app.room.room_exceptions import NicknameExistsException
+from app.room.room_exceptions import NicknameExistsException, RoomNotFound
 from app.room.room_factory import get_room_service
 
 
@@ -57,8 +57,12 @@ async def join_room(sid, *args):
         )
         room_joined = await _publish_room_joined(sid, join_room.room_code, room_players)
         logger.debug(ROOM_JOINED, room_joined=room_joined.dict())
+    except RoomNotFound as e:
+        logger.exception("room not found", room_code=e.room_idenitifer)
+        error = Error(code="room_join_fail", message="room not found")
+        await sio.emit(ERROR, error.dict())
     except NicknameExistsException as e:
-        logger.exception("nickname already exists", played_id=sid, nickname=e.nickname)
+        logger.exception("nickname already exists", room_code=join_room.room_code, nickname=e.nickname)
         error = Error(code="room_join_fail", message=f"nickname {e.nickname} already exists")
         await sio.emit(ERROR, error.dict())
     except Exception:
@@ -78,6 +82,10 @@ async def rejoin_room(sid, *args):
         room_players = await room_service.rejoin(player_service=player_service, player_id=rejoin_room.player_id)
         room_joined = await _publish_room_joined(sid, room_players.room_code, room_players)
         logger.debug(ROOM_JOINED, room_joined=room_joined.dict())
+    except RoomNotFound as e:
+        logger.exception("room not found", room_code=e.room_idenitifer)
+        error = Error(code="room_join_fail", message="room not found")
+        await sio.emit(ERROR, error.dict())
     except Exception:
         logger.exception("failed to rejoin room", sid=sid)
         error = Error(code="room_join_fail", message="failed to rejoin room")

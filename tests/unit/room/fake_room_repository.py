@@ -20,7 +20,7 @@ class FakeRoomRepository(AbstractRoomRepository):
         for room in self.rooms:
             if room.room_id == id_:
                 return room
-        raise RoomNotFound("room not found")
+        raise RoomNotFound("room not found", room_idenitifer=id_)
 
     async def remove(self, id_: str):
         return await super().remove(id_)
@@ -36,7 +36,7 @@ class FakeRoomRepository(AbstractRoomRepository):
             if room.room_code == room_code:
                 return room
 
-        raise RoomNotFound("room not found")
+        raise RoomNotFound("room not found", room_idenitifer=room_code)
 
     async def update_host(self, room: Room, player_id: str):
         for r in self.rooms:

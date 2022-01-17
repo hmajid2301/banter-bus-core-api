@@ -20,7 +20,9 @@ class GameNotEnabled(Exception):
 
 
 class RoomNotFound(NotFoundException):
-    pass
+    def __init__(self, msg: str, room_idenitifer: str) -> None:
+        self.msg = msg
+        self.room_idenitifer = room_idenitifer
 
 
 class RoomNotJoinableError(Exception):
