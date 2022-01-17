@@ -2,6 +2,7 @@ from typing import Optional
 
 from app.clients.management_api.exceptions import UnexpectedResponse
 from app.core.exceptions import ExistsException, NotFoundException
+from app.room.room_models import RoomState
 
 
 class RoomExistsException(ExistsException):
@@ -20,6 +21,19 @@ class GameNotEnabled(Exception):
 
 class RoomNotFound(NotFoundException):
     pass
+
+
+class RoomNotJoinableError(Exception):
+    def __init__(self, msg: str, room_id: str, room_state: RoomState) -> None:
+        self.msg = msg
+        self.room_id = room_id
+        self.room_state = room_state
+
+
+class RoomHasNoHostError(Exception):
+    def __init__(self, msg: str, room_id: str) -> None:
+        self.msg = msg
+        self.room_id = room_id
 
 
 class NicknameExistsException(ExistsException):

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime
 from enum import Enum
 from typing import List, Optional
@@ -16,6 +18,10 @@ class RoomState(Enum):
     PAUSED = "PAUSED"
     FINISHED = "FINISHED"
     ABANDONED = "ABANDONED"
+
+    @property
+    def is_room_joinable(self) -> bool:
+        return self in [self.CREATED, self.PLAYING, self.PAUSED]
 
 
 class Room(Document):

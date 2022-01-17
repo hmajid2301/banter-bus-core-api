@@ -6,7 +6,12 @@ from pytest_mock import MockFixture
 from app.player.player_exceptions import PlayerNotFound
 from app.player.player_models import NewPlayer, Player
 from app.player.player_service import PlayerService
-from app.room.room_exceptions import NicknameExistsException, RoomNotFound
+from app.room.room_exceptions import (
+    NicknameExistsException,
+    RoomHasNoHostError,
+    RoomNotFound,
+    RoomNotJoinableError,
+)
 from app.room.room_models import Room, RoomState
 from app.room.room_service import RoomService
 from tests.unit.factories import PlayerFactory, RoomFactory, get_new_player
@@ -33,10 +38,7 @@ async def test_create_room():
 @pytest.mark.asyncio
 async def test_get_open_room():
     room_code = "ABCDEabcde12"
-    existing_room = RoomFactory.build(room_code=room_code, state=RoomState.CREATED)
-    room_repository = FakeRoomRepository(rooms=[existing_room])
-    room_service = RoomService(room_repository=room_repository)
-
+    room_service = get_room_service(room_code=room_code, state=RoomState.CREATED)
     existing_room = await room_service._get_by_room_code(room_code=room_code)
     assert existing_room.room_code == room_code
 
@@ -44,8 +46,7 @@ async def test_get_open_room():
 @pytest.mark.asyncio
 async def test_get_room():
     existing_room: Room = RoomFactory.build()
-    room_repository = FakeRoomRepository(rooms=[existing_room])
-    room_service = RoomService(room_repository=room_repository)
+    room_service = get_room_service(rooms=[existing_room])
 
     room = await room_service.get(room_id=existing_room.room_id)
     assert room == existing_room
@@ -53,24 +54,18 @@ async def test_get_room():
 
 @pytest.mark.asyncio
 async def test_get_room_not_found():
-    existing_room: Room = RoomFactory.build()
-    room_repository = FakeRoomRepository(rooms=[existing_room])
-    room_service = RoomService(room_repository=room_repository)
-
+    room_service = get_room_service()
     with pytest.raises(RoomNotFound):
         await room_service.get(room_id="unkown-room-id")
 
 
 @pytest.mark.asyncio
 async def test_join_empty_room():
-    player_repository = FakePlayerRepository(players=[])
-    player_service = PlayerService(player_repository=player_repository)
-
     existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
-    room_repository = FakeRoomRepository(rooms=[existing_room])
-    room_service = RoomService(room_repository=room_repository)
+    room_service = get_room_service(rooms=[existing_room])
 
     new_player = get_new_player()
+    player_service = get_player_service()
     room_players = await room_service.join(
         player_service=player_service, room_code=existing_room.room_code, new_player=new_player
     )
@@ -81,14 +76,24 @@ async def test_join_empty_room():
 
 
 @pytest.mark.asyncio
+async def test_join_finished_room():
+    existing_room: Room = RoomFactory.build(state=RoomState.FINISHED)
+    room_service = get_room_service(rooms=[existing_room])
+
+    new_player = get_new_player()
+    player_service = get_player_service()
+
+    with pytest.raises(RoomNotJoinableError):
+        await room_service.join(player_service=player_service, room_code=existing_room.room_code, new_player=new_player)
+
+
+@pytest.mark.asyncio
 async def test_join_non_empty_room():
     existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
-    room_repository = FakeRoomRepository(rooms=[existing_room])
-    room_service = RoomService(room_repository=room_repository)
+    room_service = get_room_service(rooms=[existing_room])
 
     existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
-    player_repository = FakePlayerRepository(players=[*existing_players])
-    player_service = PlayerService(player_repository=player_repository)
+    player_service = get_player_service(players=existing_players, nickname="majiy")
     existing_room.host = existing_players[0].player_id
 
     new_player = get_new_player()
@@ -105,12 +110,10 @@ async def test_join_non_empty_room():
 @pytest.mark.asyncio
 async def test_join_nickname_exists():
     existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
-    room_repository = FakeRoomRepository(rooms=[existing_room])
-    room_service = RoomService(room_repository=room_repository)
+    room_service = get_room_service(rooms=[existing_room])
 
     existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
-    player_repository = FakePlayerRepository(players=existing_players)
-    player_service = PlayerService(player_repository=player_repository)
+    player_service = get_player_service(players=existing_players)
     existing_room.host = existing_players[0].player_id
 
     player: Player = PlayerFactory.build(nickname=existing_players[0].nickname)
@@ -123,12 +126,10 @@ async def test_join_nickname_exists():
 @pytest.mark.asyncio
 async def test_rejoin_room():
     existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
-    room_repository = FakeRoomRepository(rooms=[existing_room])
-    room_service = RoomService(room_repository=room_repository)
+    room_service = get_room_service(rooms=[existing_room])
 
     existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
-    player_repository = FakePlayerRepository(players=existing_players)
-    player_service = PlayerService(player_repository=player_repository)
+    player_service = get_player_service(players=existing_players)
     first_player_id = existing_players[0].player_id
     existing_room.host = first_player_id
 
@@ -138,14 +139,26 @@ async def test_rejoin_room():
 
 
 @pytest.mark.asyncio
-async def test_rejoin_room_player_not_found():
-    existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
-    room_repository = FakeRoomRepository(rooms=[existing_room])
-    room_service = RoomService(room_repository=room_repository)
+async def test_rejoin_finished_room():
+    existing_room: Room = RoomFactory.build(state=RoomState.FINISHED)
+    room_service = get_room_service(rooms=[existing_room])
 
     existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
-    player_repository = FakePlayerRepository(players=[*existing_players])
-    player_service = PlayerService(player_repository=player_repository)
+    player_service = get_player_service(players=existing_players)
+    first_player_id = existing_players[0].player_id
+    existing_room.host = first_player_id
+
+    with pytest.raises(RoomNotJoinableError):
+        await room_service.rejoin(player_service=player_service, player_id=first_player_id)
+
+
+@pytest.mark.asyncio
+async def test_rejoin_room_player_not_found():
+    existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
+    room_service = get_room_service(rooms=[existing_room])
+
+    existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
+    player_service = get_player_service(players=existing_players)
     existing_room.host = existing_players[0].player_id
 
     with pytest.raises(PlayerNotFound):
@@ -153,14 +166,25 @@ async def test_rejoin_room_player_not_found():
 
 
 @pytest.mark.asyncio
+async def test_rejoin_room_no_host():
+    existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
+    room_service = get_room_service(rooms=[existing_room])
+
+    existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
+    player_service = get_player_service(players=existing_players)
+    first_player_id = existing_players[0].player_id
+
+    with pytest.raises(RoomHasNoHostError):
+        await room_service.rejoin(player_service=player_service, player_id=first_player_id)
+
+
+@pytest.mark.asyncio
 async def test_rejoin_room_not_found():
     existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
-    room_repository = FakeRoomRepository(rooms=[existing_room])
-    room_service = RoomService(room_repository=room_repository)
+    room_service = get_room_service(rooms=[existing_room])
 
     existing_players: List[Player] = PlayerFactory.build_batch(3, room_id="unknown-room-id")
-    player_repository = FakePlayerRepository(players=[*existing_players])
-    player_service = PlayerService(player_repository=player_repository)
+    player_service = get_player_service(players=existing_players)
     existing_room.host = existing_players[0].player_id
 
     first_player_id = existing_players[0].player_id
@@ -186,3 +210,29 @@ async def test_get_room_players():
 
 def _sort_list_by_player_id(players: List[Player]):
     players.sort(key=lambda p: p.player_id, reverse=True)
+
+
+def get_room_service(rooms: List[Room] = [], num: int = 1, **kwargs) -> RoomService:
+    if rooms:
+        existing_room = rooms
+    elif num:
+        existing_room = RoomFactory.build_batch(num, **kwargs)
+    else:
+        existing_room = []
+
+    room_repository = FakeRoomRepository(rooms=existing_room)
+    room_service = RoomService(room_repository=room_repository)
+    return room_service
+
+
+def get_player_service(players: List[Player] = [], num: int = 1, **kwargs) -> PlayerService:
+    if players:
+        existing_players = players
+    elif num:
+        existing_players = PlayerFactory.build_batch(num, **kwargs)
+    else:
+        existing_players = []
+
+    player_repository = FakePlayerRepository(players=existing_players)
+    player_service = PlayerService(player_repository=player_repository)
+    return player_service
