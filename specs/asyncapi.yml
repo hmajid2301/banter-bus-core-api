@@ -22,11 +22,13 @@ channels:
           - $ref: "#/components/messages/create_room"
           - $ref: "#/components/messages/join_room"
           - $ref: "#/components/messages/rejoin_room"
+          - $ref: "#/components/messages/kick_player"
     subscribe:
       message:
         oneOf:
           - $ref: "#/components/messages/room_created"
           - $ref: "#/components/messages/room_joined"
+          - $ref: "#/components/messages/player_kicked"
 components:
   messages:
     create_room:
@@ -65,6 +67,20 @@ components:
         Server responds to `join_room` or `rejoin_room` event.
       payload:
         $ref: "#/components/schemas/room_joined"
+    kick_player:
+      summary: The host player can remove a player from the game room
+      description: >-
+        Client can try to kick a player from the game room
+      payload:
+        $ref: "#/components/schemas/kick_player"
+      x-response:
+        $ref: "#/components/messages/player_kicked"
+    player_kicked:
+      summary: Response to a player being kicked from a game room
+      description: >-
+        Server responds to `kick_player` event.
+      payload:
+        $ref: "#/components/schemas/player_kicked"
   schemas:
     create_room:
       type: object
@@ -133,3 +149,30 @@ components:
       required:
         - nickname
         - avatar
+    kick_player:
+      type: object
+      properties:
+        player_id:
+          type: string
+          description: unique player id of the player trying to kick, this player must be host
+        room_code:
+          type: string
+          format: byte
+          description: unique code of the room, from where wthe player will be kicked
+        kick_player_nickname:
+          type: string
+          description: the nickname of the player to kick from the room
+          example: Majiy
+      required:
+        - player_id
+        - room_code
+        - kick_player_nickname
+    player_kicked:
+      type: object
+      properties:
+        nickname:
+          type: string
+          description: the nickname of the player kicked from the room
+          example: Majiy
+      required:
+        - nickname

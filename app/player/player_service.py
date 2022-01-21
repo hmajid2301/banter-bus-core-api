@@ -27,3 +27,8 @@ class PlayerService:
     async def get_all_in_room(self, room_id: str) -> List[Player]:
         players = await self.player_repository.get_all_in_room(room_id=room_id)
         return players
+
+    async def remove_room(self, nickname: str, room_id: str) -> Player:
+        player = await self.player_repository.get_by_nickname(nickname=nickname, room_id=room_id)
+        await self.player_repository.remove_room(player=player)
+        return player

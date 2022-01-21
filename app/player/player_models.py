@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from beanie import Document, Indexed
 from pydantic.main import BaseModel
@@ -13,7 +13,7 @@ class Player(Document):
     player_id: Indexed(str, unique=True)  # type: ignore
     avatar: bytes
     nickname: str
-    room_id: str
+    room_id: Optional[str] = None
 
     class Collection:
         name = "player"

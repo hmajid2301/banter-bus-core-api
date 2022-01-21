@@ -4,23 +4,32 @@ from omnibus.log.logger import get_logger
 from pydantic import parse_obj_as
 
 from app.main import sio
+from app.player.player_exceptions import PlayerNotHostError
 from app.player.player_factory import get_player_service
 from app.player.player_models import NewPlayer, RoomPlayers
 from app.room.room_events_models import (
     CREATE_ROOM,
     ERROR,
     JOIN_ROOM,
+    KICK_PLAYER,
+    PLAYER_KICKED,
     REJOIN_ROOM,
     ROOM_CREATED,
     ROOM_JOINED,
     Error,
     JoinRoom,
+    KickPlayer,
     Player,
+    PlayerKicked,
     RejoinRoom,
     RoomCreated,
     RoomJoined,
 )
-from app.room.room_exceptions import NicknameExistsException, RoomNotFound
+from app.room.room_exceptions import (
+    NicknameExistsException,
+    RoomInInvalidState,
+    RoomNotFound,
+)
 from app.room.room_factory import get_room_service
 
 
@@ -100,3 +109,39 @@ async def _publish_room_joined(sid: str, room_code: str, room_players: RoomPlaye
     sio.enter_room(sid, room_code)
     await sio.emit(ROOM_JOINED, data=room_joined.dict(), room=room_code)
     return room_joined
+
+
+@sio.on(KICK_PLAYER)
+async def kick_player(sid, *args):
+    logger = get_logger()
+    logger.debug(KICK_PLAYER, player_id=sid)
+    try:
+        kick_player = KickPlayer(**args[0])
+        room_service = get_room_service()
+        player_service = get_player_service()
+
+        player_kicked_nickname = await room_service.kick_player(
+            player_service=player_service,
+            player_to_kick_nickname=kick_player.kick_player_nickname,
+            player_attempting_kick=kick_player.player_id,
+            room_code=kick_player.room_code,
+        )
+        player_kicked = PlayerKicked(nickname=player_kicked_nickname)
+        logger.debug(PLAYER_KICKED, player_kicked=player_kicked.dict())
+        await sio.emit(PLAYER_KICKED, data=player_kicked.dict(), room=kick_player.room_code)
+    except RoomInInvalidState as e:
+        logger.exception("Game has started playing cannot kick players", room_state=e.room_state)
+        error = Error(code="kick_player_fail", message="The game has started playing, so cannot kick player")
+        await sio.emit(ERROR, error.dict())
+    except PlayerNotHostError as e:
+        logger.exception("player is not host so cannot kick", player_id=e.player_id, host_player_id=e.host_player_id)
+        error = Error(code="kick_player_fail", message="You are not host, so cannot kick another player")
+        await sio.emit(ERROR, error.dict())
+    except RoomNotFound as e:
+        logger.exception("room not found", room_code=e.room_idenitifer)
+        error = Error(code="kick_player_fail", message="Room not found")
+        await sio.emit(ERROR, error.dict())
+    except Exception:
+        logger.exception("failed to kick player", kick_player=kick_player)
+        error = Error(code="kick_player_fail", message="Failed to kick player")
+        await sio.emit(ERROR, error.dict())

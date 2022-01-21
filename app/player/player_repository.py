@@ -13,6 +13,14 @@ class AbstractPlayerRepository(AbstractRepository[Player]):
     async def get_all_in_room(self, room_id: str) -> List[Player]:
         raise NotImplementedError
 
+    @abc.abstractmethod
+    async def remove_room(self, player: Player) -> Player:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def get_by_nickname(self, room_id: str, nickname: str) -> Player:
+        raise NotImplementedError
+
 
 class PlayerRepository(AbstractPlayerRepository):
     async def add(self, player: Player):
@@ -34,3 +42,14 @@ class PlayerRepository(AbstractPlayerRepository):
     async def get_all_in_room(self, room_id: str) -> List[Player]:
         players = await Player.find(Player.room_id == room_id).to_list()
         return players
+
+    async def remove_room(self, player: Player) -> Player:
+        player.room_id = None
+        await player.save()
+        return player
+
+    async def get_by_nickname(self, room_id: str, nickname: str) -> Player:
+        player = await Player.find_one(Player.nickname == nickname, Player.room_id == room_id)
+        if player is None:
+            raise PlayerNotFound(f"player {nickname=} and {room_id=} not found")
+        return player

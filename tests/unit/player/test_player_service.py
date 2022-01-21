@@ -69,3 +69,23 @@ async def test_get_all_in_room_no_players():
 
     players = await player_service.get_all_in_room(room_id=room_id)
     assert players == []
+
+
+@pytest.mark.asyncio
+async def test_remove_room():
+    existing_players: List[Player] = PlayerFactory.build_batch(3)
+    player_repository = FakePlayerRepository(players=existing_players)
+    player_service = PlayerService(player_repository=player_repository)
+
+    first_player = existing_players[0]
+    player = await player_service.remove_room(nickname=first_player.nickname, room_id=first_player.room_id or "")
+    assert player.room_id is None
+
+
+@pytest.mark.asyncio
+async def test_remove_room_player_not_found():
+    player_repository = FakePlayerRepository(players=[])
+    player_service = PlayerService(player_repository=player_repository)
+
+    with pytest.raises(PlayerNotFound):
+        await player_service.remove_room(nickname="random_nickname", room_id="not_found")

@@ -8,6 +8,8 @@ from socketio.asyncio_client import AsyncClient
 from app.room.room_events_models import (
     Error,
     JoinRoom,
+    KickPlayer,
+    PlayerKicked,
     RejoinRoom,
     RoomCreated,
     RoomJoined,
@@ -91,3 +93,44 @@ async def test_room_joined_nickname_in_use(client: AsyncClient):
     error: Error = future.result()
     assert error.code == "room_join_fail"
     assert error.message == "nickname Majiy already exists"
+
+
+@pytest.mark.asyncio
+async def test_kick_room(client: AsyncClient):
+    future = asyncio.get_running_loop().create_future()
+
+    @client.on("PLAYER_KICKED")
+    def _(data):
+        future.set_result(PlayerKicked(**data))
+
+    player_to_kick_nickname = "CanIHaseeburger"
+    kick_player = KickPlayer(
+        kick_player_nickname=player_to_kick_nickname,
+        player_id="52dcb730-93ad-4364-917a-8760ee50d0f5",
+        room_code="BCDEF",
+    )
+    await client.emit("KICK_PLAYER", kick_player.dict())
+    await asyncio.wait_for(future, timeout=5.0)
+    player_kicked: PlayerKicked = future.result()
+    assert player_kicked.nickname == player_to_kick_nickname
+
+
+@pytest.mark.asyncio
+async def test_kick_room_not_host(client: AsyncClient):
+    future = asyncio.get_running_loop().create_future()
+
+    @client.on("ERROR")
+    def _(data):
+        future.set_result(Error(**data))
+
+    player_to_kick_nickname = "Majiy"
+    kick_player = KickPlayer(
+        kick_player_nickname=player_to_kick_nickname,
+        player_id="66dcb730-93de-4364-917a-8760ee50d0ff",
+        room_code="BCDEF",
+    )
+    await client.emit("KICK_PLAYER", kick_player.dict())
+    await asyncio.wait_for(future, timeout=5.0)
+    error: Error = future.result()
+    assert error.code == "kick_player_fail"
+    assert error.message == "You are not host, so cannot kick another player"

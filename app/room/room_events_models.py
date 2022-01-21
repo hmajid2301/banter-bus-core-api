@@ -8,6 +8,8 @@ ERROR = "ERROR"
 JOIN_ROOM = "JOIN_ROOM"
 REJOIN_ROOM = "REJOIN_ROOM"
 ROOM_JOINED = "ROOM_JOINED"
+KICK_PLAYER = "KICK_PLAYER"
+PLAYER_KICKED = "PLAYER_KICKED"
 
 
 class CreateRoom(BaseModel):
@@ -49,6 +51,16 @@ class RoomJoined(BaseModel):
     host_player_nickname: str
     player_id: str
     players: List[Player]
+
+
+class KickPlayer(BaseModel):
+    kick_player_nickname: str
+    player_id: str
+    room_code: str
+
+
+class PlayerKicked(BaseModel):
+    nickname: str
 
 
 class Error(BaseModel):

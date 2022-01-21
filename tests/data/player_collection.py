@@ -13,6 +13,14 @@ players: List[Player] = [
     ),
     Player(
         **{
+            "room_id": "5a18ac45-9876-4f8e-b636-cf730b17e59l",
+            "player_id": "66dcb730-93de-4364-917a-8760ee50d0ff",
+            "nickname": "CanIHaseeburger",
+            "avatar": b"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg",
+        },
+    ),
+    Player(
+        **{
             "room_id": "a4ffd1c8-93c5-4f4c-8ace-71996edcbcb7",
             "player_id": "aacd1fa2-404b-4dfc-ac06-7355e99b5117",
             "nickname": "xoxoProSniperzxoxo",

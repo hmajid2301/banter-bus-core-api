@@ -33,3 +33,14 @@ class FakePlayerRepository(AbstractPlayerRepository):
                 players.append(player)
 
         return players
+
+    async def remove_room(self, player: Player) -> Player:
+        player.room_id = None
+        return player
+
+    async def get_by_nickname(self, room_id: str, nickname: str) -> Player:
+        for player in self.players:
+            if player.room_id == room_id and player.nickname == nickname:
+                return player
+
+        raise PlayerNotFound("player not found")

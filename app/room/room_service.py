@@ -4,11 +4,13 @@ from datetime import datetime
 from typing import List
 from uuid import uuid4
 
+from app.player.player_exceptions import PlayerHasNoRoomError, PlayerNotHostError
 from app.player.player_models import NewPlayer, Player, RoomPlayers
 from app.player.player_service import PlayerService
 from app.room.room_exceptions import (
     NicknameExistsException,
     RoomHasNoHostError,
+    RoomInInvalidState,
     RoomNotJoinableError,
 )
 from app.room.room_models import Room, RoomState
@@ -73,6 +75,10 @@ class RoomService:
 
     async def rejoin(self, player_service: PlayerService, player_id: str) -> RoomPlayers:
         player = await player_service.get(player_id=player_id)
+
+        if not player.room_id:
+            raise PlayerHasNoRoomError("player has no room id")
+
         room = await self.room_repository.get(id_=player.room_id)
         existing_players = await player_service.get_all_in_room(room_id=player.room_id)
 
@@ -120,3 +126,17 @@ class RoomService:
             room_code=room_code,
         )
         return room_players
+
+    async def kick_player(
+        self, player_service: PlayerService, player_to_kick_nickname: str, player_attempting_kick: str, room_code: str
+    ) -> str:
+        room = await self.room_repository.get_by_room_code(room_code=room_code)
+        if room.host != player_attempting_kick:
+            raise PlayerNotHostError(
+                msg="player is not host cannot kick player", player_id=player_attempting_kick, host_player_id=room.host
+            )
+        elif room.state != RoomState.CREATED:
+            raise RoomInInvalidState(msg=f"expected room state {RoomState.CREATED}", room_state=room.state)
+
+        await player_service.remove_room(nickname=player_to_kick_nickname, room_id=room.room_id)
+        return player_to_kick_nickname

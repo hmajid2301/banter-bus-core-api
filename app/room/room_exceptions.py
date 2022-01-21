@@ -25,6 +25,12 @@ class RoomNotFound(NotFoundException):
         self.room_idenitifer = room_idenitifer
 
 
+class RoomInInvalidState(Exception):
+    def __init__(self, msg: str, room_state: RoomState) -> None:
+        self.msg = msg
+        self.room_state = room_state
+
+
 class RoomNotJoinableError(Exception):
     def __init__(self, msg: str, room_id: str, room_state: RoomState) -> None:
         self.msg = msg
