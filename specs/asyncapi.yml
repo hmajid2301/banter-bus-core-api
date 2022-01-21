@@ -28,6 +28,7 @@ channels:
         oneOf:
           - $ref: "#/components/messages/room_created"
           - $ref: "#/components/messages/room_joined"
+          - $ref: "#/components/messages/new_room_joined"
           - $ref: "#/components/messages/player_kicked"
 components:
   messages:
@@ -53,6 +54,8 @@ components:
         $ref: "#/components/schemas/join_room"
       x-response:
         $ref: "#/components/messages/room_joined"
+      x-response2:
+        $ref: "#/components/messages/new_room_joined"
     rejoin_room:
       summary: When a player has left a room and wants to re-join it.
       description: >-
@@ -125,6 +128,14 @@ components:
         - avatar
         - nickname
         - room_code
+    new_room_joined:
+      type: object
+      properties:
+        player_id:
+          type: string
+          description: Unique ID of the player
+      required:
+        - player_id
     room_joined:
       type: object
       properties:
@@ -139,9 +150,6 @@ components:
               type: string
               format: byte
             description: Binary representation of the player avatar
-        player_id:
-          type: string
-          description: A unique player id
         host_player_nickname:
           type: string
           description: The nickname of the host player

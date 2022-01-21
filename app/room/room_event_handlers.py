@@ -12,6 +12,7 @@ from app.room.room_events_models import (
     ERROR,
     JOIN_ROOM,
     KICK_PLAYER,
+    NEW_ROOM_JOINED,
     PLAYER_KICKED,
     REJOIN_ROOM,
     ROOM_CREATED,
@@ -19,6 +20,7 @@ from app.room.room_events_models import (
     Error,
     JoinRoom,
     KickPlayer,
+    NewRoomJoined,
     Player,
     PlayerKicked,
     RejoinRoom,
@@ -65,6 +67,8 @@ async def join_room(sid, *args):
             player_service=player_service, room_code=join_room.room_code, new_player=new_player
         )
         room_joined = await _publish_room_joined(sid, join_room.room_code, room_players)
+        new_room_joined = NewRoomJoined(player_id=room_players.player_id)
+        await sio.emit(NEW_ROOM_JOINED, new_room_joined.dict())
         logger.debug(ROOM_JOINED, room_joined=room_joined.dict())
     except RoomNotFound as e:
         logger.exception("room not found", room_code=e.room_idenitifer)
@@ -103,9 +107,7 @@ async def rejoin_room(sid, *args):
 
 async def _publish_room_joined(sid: str, room_code: str, room_players: RoomPlayers) -> RoomJoined:
     players = parse_obj_as(List[Player], room_players.players)
-    room_joined = RoomJoined(
-        players=players, host_player_nickname=room_players.host_player_nickname, player_id=room_players.player_id
-    )
+    room_joined = RoomJoined(players=players, host_player_nickname=room_players.host_player_nickname)
     sio.enter_room(sid, room_code)
     await sio.emit(ROOM_JOINED, data=room_joined.dict(), room=room_code)
     return room_joined
