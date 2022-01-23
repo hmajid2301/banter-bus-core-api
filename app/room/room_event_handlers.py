@@ -36,7 +36,7 @@ from app.room.room_factory import get_room_service
 
 
 @sio.on(CREATE_ROOM)
-async def create_room(_, *args):
+async def create_room(sid, *args):
     logger = get_logger()
     logger.debug(CREATE_ROOM)
     try:
@@ -44,7 +44,7 @@ async def create_room(_, *args):
         created_room = await room_service.create()
         room_created = RoomCreated(**created_room.dict())
         await sio.emit(ROOM_CREATED, room_created.dict())
-        logger.debug("room created", room_created=room_created.dict())
+        logger.debug("room created", room_created=room_created.dict(), room=sid)
     except Exception:
         logger.exception("failed to create room")
         error = Error(code="room_create_fail", message="failed to create room")
@@ -68,7 +68,7 @@ async def join_room(sid, *args):
         )
         room_joined = await _publish_room_joined(sid, join_room.room_code, room_players)
         new_room_joined = NewRoomJoined(player_id=room_players.player_id)
-        await sio.emit(NEW_ROOM_JOINED, new_room_joined.dict())
+        await sio.emit(NEW_ROOM_JOINED, new_room_joined.dict(), room=sid)
         logger.debug(ROOM_JOINED, room_joined=room_joined.dict())
     except RoomNotFound as e:
         logger.exception("room not found", room_code=e.room_idenitifer)

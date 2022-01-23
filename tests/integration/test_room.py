@@ -9,6 +9,7 @@ from app.room.room_events_models import (
     Error,
     JoinRoom,
     KickPlayer,
+    NewRoomJoined,
     PlayerKicked,
     RejoinRoom,
     RoomCreated,
@@ -51,6 +52,26 @@ async def test_empty_room_joined(client: AsyncClient):
     player = room_joined.players[0]
     assert player.nickname == join_room.nickname
     assert player.avatar == avatar
+
+
+@pytest.mark.asyncio
+async def test_empty_room_joined_new_room_event(client: AsyncClient):
+    future = asyncio.get_running_loop().create_future()
+
+    @client.on("NEW_ROOM_JOINED")
+    def _(data):
+        future.set_result(NewRoomJoined(**data))
+
+    avatar = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+    join_room = JoinRoom(
+        avatar=avatar,
+        nickname="Majiy",
+        room_code="ABCDE",
+    )
+    await client.emit("JOIN_ROOM", join_room.dict())
+    await asyncio.wait_for(future, timeout=5.0)
+    new_room_joined: NewRoomJoined = future.result()
+    assert new_room_joined.player_id is not None
 
 
 @pytest.mark.asyncio
