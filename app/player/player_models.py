@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional
 
 from beanie import Document, Indexed
@@ -7,6 +8,7 @@ from pydantic.main import BaseModel
 class NewPlayer(BaseModel):
     avatar: bytes
     nickname: str
+    latest_sid: str
 
 
 class Player(Document):
@@ -14,6 +16,8 @@ class Player(Document):
     avatar: bytes
     nickname: str
     room_id: Optional[str] = None
+    disconnected_at: Optional[datetime] = None
+    latest_sid: str
 
     class Collection:
         name = "player"

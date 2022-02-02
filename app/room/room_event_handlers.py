@@ -35,6 +35,12 @@ from app.room.room_exceptions import (
 from app.room.room_factory import get_room_service
 
 
+@sio.disconnect
+async def disconnect(sid):
+    player_service = get_player_service()
+    await player_service.update_disconnected_time(sid=sid)
+
+
 @sio.on(CREATE_ROOM)
 async def create_room(sid, *args):
     logger = get_logger()
@@ -62,6 +68,7 @@ async def join_room(sid, *args):
         new_player = NewPlayer(
             avatar=join_room.avatar,
             nickname=join_room.nickname,
+            latest_sid=sid,
         )
         room_players = await room_service.join(
             player_service=player_service, room_code=join_room.room_code, new_player=new_player
@@ -92,7 +99,9 @@ async def rejoin_room(sid, *args):
         rejoin_room = RejoinRoom(**args[0])
         room_service = get_room_service()
         player_service = get_player_service()
-        room_players = await room_service.rejoin(player_service=player_service, player_id=rejoin_room.player_id)
+        room_players = await room_service.rejoin(
+            player_service=player_service, player_id=rejoin_room.player_id, latest_sid=sid
+        )
         room_joined = await _publish_room_joined(sid, room_players.room_code, room_players)
         logger.debug(ROOM_JOINED, room_joined=room_joined.dict())
     except RoomNotFound as e:

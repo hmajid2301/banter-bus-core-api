@@ -73,8 +73,9 @@ class RoomService:
         )
         return room_players
 
-    async def rejoin(self, player_service: PlayerService, player_id: str) -> RoomPlayers:
+    async def rejoin(self, player_service: PlayerService, player_id: str, latest_sid: str) -> RoomPlayers:
         player = await player_service.get(player_id=player_id)
+        player = await player_service.update_latest_sid(player=player, latest_sid=latest_sid)
 
         if not player.room_id:
             raise PlayerHasNoRoomError("player has no room id")
@@ -138,5 +139,5 @@ class RoomService:
         elif room.state != RoomState.CREATED:
             raise RoomInInvalidState(msg=f"expected room state {RoomState.CREATED}", room_state=room.state)
 
-        await player_service.remove_room(nickname=player_to_kick_nickname, room_id=room.room_id)
+        await player_service.remove_from_room(nickname=player_to_kick_nickname, room_id=room.room_id)
         return player_to_kick_nickname

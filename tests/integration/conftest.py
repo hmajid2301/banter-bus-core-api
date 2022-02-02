@@ -3,6 +3,8 @@ from typing import AsyncIterator
 
 import pytest
 import socketio
+from asgi_lifespan import LifespanManager
+from httpx import AsyncClient as HttpXClient
 from omnibus.tests.uvicorn_test_server import UvicornTestServer
 from socketio.asyncio_client import AsyncClient
 
@@ -32,13 +34,20 @@ async def startup_and_shutdown_server():
 @pytest.fixture(scope="session")
 async def client() -> AsyncIterator[AsyncClient]:
     sio = socketio.AsyncClient()
-    await sio.connect(BASE_URL)
+    await sio.connect(BASE_URL, socketio_path="/ws/socket.io")
     yield sio
     await sio.disconnect()
 
 
+@pytest.fixture()
+async def http() -> AsyncIterator[HttpXClient]:
+    async with LifespanManager(app):
+        async with HttpXClient(app=app, base_url="http://localhost") as client:
+            yield client
+
+
 @pytest.fixture(autouse=True)
-async def setup_and_teardown(startup_and_shutdown_server):
+async def setup_and_teardown(startup_and_shutdown_server, http):
     from app.player.player_models import Player
     from app.room.room_models import Room
     from tests.data.player_collection import players

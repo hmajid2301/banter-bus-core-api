@@ -35,6 +35,10 @@ class PlayerFactory(factory.Factory):
     )
     nickname = factory.Faker("first_name")
     room_id = factory.Faker("uuid4")
+    latest_sid = factory.Faker(
+        "lexify", text="??????????????", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    )
+    disconnected_at = None
 
 
 def get_new_player() -> NewPlayer:

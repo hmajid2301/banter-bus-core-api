@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from typing import List
 
 import pytest
@@ -78,7 +79,7 @@ async def test_remove_room():
     player_service = PlayerService(player_repository=player_repository)
 
     first_player = existing_players[0]
-    player = await player_service.remove_room(nickname=first_player.nickname, room_id=first_player.room_id or "")
+    player = await player_service.remove_from_room(nickname=first_player.nickname, room_id=first_player.room_id or "")
     assert player.room_id is None
 
 
@@ -88,4 +89,38 @@ async def test_remove_room_player_not_found():
     player_service = PlayerService(player_repository=player_repository)
 
     with pytest.raises(PlayerNotFound):
-        await player_service.remove_room(nickname="random_nickname", room_id="not_found")
+        await player_service.remove_from_room(nickname="random_nickname", room_id="not_found")
+
+
+@pytest.mark.asyncio
+async def test_update_disconnected_time():
+    existing_players: List[Player] = PlayerFactory.build_batch(3)
+    player_repository = FakePlayerRepository(players=existing_players)
+    player_service = PlayerService(player_repository=player_repository)
+
+    first_player = existing_players[0]
+    player = await player_service.update_disconnected_time(sid=first_player.latest_sid)
+    assert player.disconnected_at is not None
+
+
+@pytest.mark.asyncio
+async def test_update_latest_sid():
+    existing_players: List[Player] = PlayerFactory.build_batch(3)
+    player_repository = FakePlayerRepository(players=existing_players)
+    player_service = PlayerService(player_repository=player_repository)
+
+    first_player = existing_players[0]
+    new_sid = "123456789"
+    player = await player_service.update_latest_sid(player=first_player, latest_sid=new_sid)
+    assert player.latest_sid == new_sid
+
+
+@pytest.mark.asyncio
+async def test_disconnect_players():
+    ten_minutes_ago = datetime.now() - timedelta(minutes=10)
+    existing_players: List[Player] = PlayerFactory.build_batch(3, disconnected_at=ten_minutes_ago)
+    player_repository = FakePlayerRepository(players=existing_players)
+    player_service = PlayerService(player_repository=player_repository)
+
+    players = await player_service.disconnect_players(disconnect_timer_in_minutes=5)
+    assert len(players) == len(existing_players)

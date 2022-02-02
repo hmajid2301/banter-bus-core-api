@@ -132,9 +132,12 @@ async def test_rejoin_room():
     existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
     player_service = _get_player_service(players=existing_players)
     first_player_id = existing_players[0].player_id
+    first_player_sid = existing_players[0].latest_sid
     existing_room.host = first_player_id
 
-    room_players = await room_service.rejoin(player_service=player_service, player_id=first_player_id)
+    room_players = await room_service.rejoin(
+        player_service=player_service, player_id=first_player_id, latest_sid=first_player_sid
+    )
     assert room_players.host_player_nickname == existing_players[0].nickname
     assert _sort_list_by_player_id(room_players.players) == _sort_list_by_player_id(existing_players)
 
@@ -147,10 +150,11 @@ async def test_rejoin_finished_room():
     existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
     player_service = _get_player_service(players=existing_players)
     first_player_id = existing_players[0].player_id
+    first_player_sid = existing_players[0].latest_sid
     existing_room.host = first_player_id
 
     with pytest.raises(RoomNotJoinableError):
-        await room_service.rejoin(player_service=player_service, player_id=first_player_id)
+        await room_service.rejoin(player_service=player_service, player_id=first_player_id, latest_sid=first_player_sid)
 
 
 @pytest.mark.asyncio
@@ -160,10 +164,13 @@ async def test_rejoin_room_player_not_found():
 
     existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
     player_service = _get_player_service(players=existing_players)
+    first_player_sid = existing_players[0].latest_sid
     existing_room.host = existing_players[0].player_id
 
     with pytest.raises(PlayerNotFound):
-        await room_service.rejoin(player_service=player_service, player_id="player-id-unknown")
+        await room_service.rejoin(
+            player_service=player_service, player_id="player-id-unknown", latest_sid=first_player_sid
+        )
 
 
 @pytest.mark.asyncio
@@ -174,9 +181,10 @@ async def test_rejoin_room_no_host():
     existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
     player_service = _get_player_service(players=existing_players)
     first_player_id = existing_players[0].player_id
+    first_player_sid = existing_players[0].latest_sid
 
     with pytest.raises(RoomHasNoHostError):
-        await room_service.rejoin(player_service=player_service, player_id=first_player_id)
+        await room_service.rejoin(player_service=player_service, player_id=first_player_id, latest_sid=first_player_sid)
 
 
 @pytest.mark.asyncio
@@ -189,8 +197,10 @@ async def test_rejoin_room_not_found():
     existing_room.host = existing_players[0].player_id
 
     first_player_id = existing_players[0].player_id
+    first_player_sid = existing_players[0].latest_sid
+
     with pytest.raises(RoomNotFound):
-        await room_service.rejoin(player_service=player_service, player_id=first_player_id)
+        await room_service.rejoin(player_service=player_service, player_id=first_player_id, latest_sid=first_player_sid)
 
 
 @pytest.mark.asyncio
