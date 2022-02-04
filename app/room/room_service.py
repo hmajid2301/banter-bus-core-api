@@ -1,5 +1,3 @@
-import random
-import string
 from datetime import datetime
 from typing import List
 from uuid import uuid4
@@ -23,11 +21,9 @@ class RoomService:
 
     async def create(self) -> Room:
         room_id = uuid4()
-        room_code = await self._get_room_code()
 
         room = Room(
             room_id=str(room_id),
-            room_code=room_code,
             state=RoomState.CREATED,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -35,25 +31,12 @@ class RoomService:
         await self.room_repository.add(room)
         return room
 
-    async def _get_room_code(self) -> str:
-        available_chars = string.ascii_uppercase + string.ascii_lowercase + string.digits
-        used_room_codes = await self.room_repository.get_all_room_codes()
-
-        room_code = ""
-        while not room_code:
-            possible_room_code = "".join(random.choice(available_chars) for _ in range(12))
-
-            if possible_room_code not in used_room_codes:
-                room_code = possible_room_code
-
-        return room_code
-
     async def get(self, room_id: str) -> Room:
         room = await self.room_repository.get(id_=room_id)
         return room
 
-    async def join(self, player_service: PlayerService, room_code: str, new_player: NewPlayer) -> RoomPlayers:
-        room = await self._get_by_room_code(room_code=room_code)
+    async def join(self, player_service: PlayerService, room_id: str, new_player: NewPlayer) -> RoomPlayers:
+        room = await self.room_repository.get(id_=room_id)
         existing_players = await player_service.get_all_in_room(room_id=room.room_id)
         self._check_nickname_is_unique(new_player_nickname=new_player.nickname, existing_players=existing_players)
 
@@ -69,7 +52,7 @@ class RoomService:
             room_host_player_id=room.host,
             players=players,
             player_id=player.player_id,
-            room_code=room.room_code,
+            room_code=room.room_id,
         )
         return room_players
 
@@ -92,13 +75,9 @@ class RoomService:
             room_host_player_id=room.host,
             players=existing_players,
             player_id=player.player_id,
-            room_code=room.room_code,
+            room_code=room.room_id,
         )
         return room_players
-
-    async def _get_by_room_code(self, room_code: str) -> Room:
-        room = await self.room_repository.get_by_room_code(room_code=room_code)
-        return room
 
     @staticmethod
     def _check_nickname_is_unique(new_player_nickname: str, existing_players: List[Player]):
@@ -129,9 +108,9 @@ class RoomService:
         return room_players
 
     async def kick_player(
-        self, player_service: PlayerService, player_to_kick_nickname: str, player_attempting_kick: str, room_code: str
+        self, player_service: PlayerService, player_to_kick_nickname: str, player_attempting_kick: str, room_id: str
     ) -> str:
-        room = await self.room_repository.get_by_room_code(room_code=room_code)
+        room = await self.room_repository.get(id_=room_id)
         if room.host != player_attempting_kick:
             raise PlayerNotHostError(
                 msg="player is not host cannot kick player", player_id=player_attempting_kick, host_player_id=room.host

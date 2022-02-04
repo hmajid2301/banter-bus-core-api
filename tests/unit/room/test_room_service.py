@@ -32,16 +32,7 @@ async def test_create_room():
 
     room = await room_service.create()
     assert room.room_id
-    assert room.room_code
     assert room.state == RoomState.CREATED
-
-
-@pytest.mark.asyncio
-async def test_get_open_room():
-    room_code = "ABCDEabcde12"
-    room_service = _get_room_service(room_code=room_code, state=RoomState.CREATED)
-    existing_room = await room_service._get_by_room_code(room_code=room_code)
-    assert existing_room.room_code == room_code
 
 
 @pytest.mark.asyncio
@@ -68,7 +59,7 @@ async def test_join_empty_room():
     new_player = get_new_player()
     player_service = _get_player_service()
     room_players = await room_service.join(
-        player_service=player_service, room_code=existing_room.room_code, new_player=new_player
+        player_service=player_service, room_id=existing_room.room_id, new_player=new_player
     )
 
     expected_player = Player(**new_player.dict(), room_id=existing_room.room_id, player_id=room_players.player_id)
@@ -85,7 +76,7 @@ async def test_join_finished_room():
     player_service = _get_player_service()
 
     with pytest.raises(RoomNotJoinableError):
-        await room_service.join(player_service=player_service, room_code=existing_room.room_code, new_player=new_player)
+        await room_service.join(player_service=player_service, room_id=existing_room.room_id, new_player=new_player)
 
 
 @pytest.mark.asyncio
@@ -99,7 +90,7 @@ async def test_join_non_empty_room():
 
     new_player = get_new_player()
     room_players = await room_service.join(
-        player_service=player_service, room_code=existing_room.room_code, new_player=new_player
+        player_service=player_service, room_id=existing_room.room_id, new_player=new_player
     )
 
     expected_player = Player(**new_player.dict(), room_id=existing_room.room_id, player_id=room_players.player_id)
@@ -121,7 +112,7 @@ async def test_join_nickname_exists():
     new_player = NewPlayer(**player.dict())
 
     with pytest.raises(NicknameExistsException):
-        await room_service.join(player_service=player_service, room_code=existing_room.room_code, new_player=new_player)
+        await room_service.join(player_service=player_service, room_id=existing_room.room_id, new_player=new_player)
 
 
 @pytest.mark.asyncio
@@ -236,7 +227,7 @@ async def test_kick_player():
         player_service=player_service,
         player_to_kick_nickname=player_to_kick.nickname,
         player_attempting_kick=room_host_player_id,
-        room_code=existing_room.room_code,
+        room_id=existing_room.room_id,
     )
     assert player_kicked_nickname == player_to_kick.nickname
 
@@ -259,7 +250,7 @@ async def test_kick_player_player_not_host():
             player_service=player_service,
             player_to_kick_nickname=player_to_kick.nickname,
             player_attempting_kick=existing_players[2].player_id,
-            room_code=existing_room.room_code,
+            room_id=existing_room.room_id,
         )
 
 
@@ -281,7 +272,7 @@ async def test_kick_player_room_not_found():
             player_service=player_service,
             player_to_kick_nickname=player_to_kick.nickname,
             player_attempting_kick=room_host_player_id,
-            room_code="BADROOM",
+            room_id="BADROOM",
         )
 
 
@@ -303,7 +294,7 @@ async def test_kick_player_invalid_room_state():
             player_service=player_service,
             player_to_kick_nickname=player_to_kick.nickname,
             player_attempting_kick=room_host_player_id,
-            room_code=existing_room.room_code,
+            room_id=existing_room.room_id,
         )
 
 

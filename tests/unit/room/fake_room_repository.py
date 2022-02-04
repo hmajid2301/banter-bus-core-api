@@ -25,19 +25,6 @@ class FakeRoomRepository(AbstractRoomRepository):
     async def remove(self, id_: str):
         return await super().remove(id_)
 
-    async def get_all_room_codes(self) -> List[str]:
-        room_codes: List[str] = []
-        for room in self.rooms:
-            room_codes.append(room.room_code)
-        return room_codes
-
-    async def get_by_room_code(self, room_code: str) -> Room:
-        for room in self.rooms:
-            if room.room_code == room_code:
-                return room
-
-        raise RoomNotFound("room not found", room_idenitifer=room_code)
-
     async def update_host(self, room: Room, player_id: str):
         for r in self.rooms:
             if r.room_id == room.room_id:

@@ -13,6 +13,7 @@ from app.room.room_events_models import (
     JOIN_ROOM,
     KICK_PLAYER,
     NEW_ROOM_JOINED,
+    PLAYER_DISCONNECTED,
     PLAYER_KICKED,
     REJOIN_ROOM,
     ROOM_CREATED,
@@ -22,6 +23,7 @@ from app.room.room_events_models import (
     KickPlayer,
     NewRoomJoined,
     Player,
+    PlayerDisconnected,
     PlayerKicked,
     RejoinRoom,
     RoomCreated,
@@ -38,7 +40,13 @@ from app.room.room_factory import get_room_service
 @sio.disconnect
 async def disconnect(sid):
     player_service = get_player_service()
-    await player_service.update_disconnected_time(sid=sid)
+    player = await player_service.update_disconnected_time(sid=sid)
+
+    if player.room_id:
+        player_disconnected = PlayerDisconnected(nickname=player.nickname)
+        room_service = get_room_service()
+        room = await room_service.get(room_id=player.room_id)
+        await sio.emit(PLAYER_DISCONNECTED, player_disconnected.dict(), room=room.room_id)
 
 
 @sio.on(CREATE_ROOM)
@@ -48,7 +56,7 @@ async def create_room(sid, *args):
     try:
         room_service = get_room_service()
         created_room = await room_service.create()
-        room_created = RoomCreated(**created_room.dict())
+        room_created = RoomCreated(room_code=created_room.room_id)
         await sio.emit(ROOM_CREATED, room_created.dict())
         logger.debug("room created", room_created=room_created.dict(), room=sid)
     except Exception:
@@ -71,7 +79,7 @@ async def join_room(sid, *args):
             latest_sid=sid,
         )
         room_players = await room_service.join(
-            player_service=player_service, room_code=join_room.room_code, new_player=new_player
+            player_service=player_service, room_id=join_room.room_code, new_player=new_player
         )
         room_joined = await _publish_room_joined(sid, join_room.room_code, room_players)
         new_room_joined = NewRoomJoined(player_id=room_players.player_id)
@@ -135,7 +143,7 @@ async def kick_player(sid, *args):
             player_service=player_service,
             player_to_kick_nickname=kick_player.kick_player_nickname,
             player_attempting_kick=kick_player.player_id,
-            room_code=kick_player.room_code,
+            room_id=kick_player.room_code,
         )
         player_kicked = PlayerKicked(nickname=player_kicked_nickname)
         logger.debug(PLAYER_KICKED, player_kicked=player_kicked.dict())

@@ -1,6 +1,5 @@
 import asyncio
 import base64
-import re
 
 import pytest
 from socketio.asyncio_client import AsyncClient
@@ -28,8 +27,7 @@ async def test_room_created(client: AsyncClient):
     await client.emit("CREATE_ROOM", {})
     await asyncio.wait_for(future, timeout=5.0)
     room_created: RoomCreated = future.result()
-    assert len(room_created.room_code) == 12
-    assert re.match(r"^[A-Za-z0-9]{0,12}$", room_created.room_code)
+    assert room_created.room_code
 
 
 @pytest.mark.asyncio
@@ -44,7 +42,7 @@ async def test_empty_room_joined(client: AsyncClient):
     join_room = JoinRoom(
         avatar=avatar,
         nickname="Majiy",
-        room_code="ABCDE",
+        room_code="4d18ac45-8034-4f8e-b636-cf730b17e51a",
     )
     await client.emit("JOIN_ROOM", join_room.dict())
     await asyncio.wait_for(future, timeout=5.0)
@@ -66,7 +64,7 @@ async def test_empty_room_joined_new_room_event(client: AsyncClient):
     join_room = JoinRoom(
         avatar=avatar,
         nickname="Majiy",
-        room_code="ABCDE",
+        room_code="4d18ac45-8034-4f8e-b636-cf730b17e51a",
     )
     await client.emit("JOIN_ROOM", join_room.dict())
     await asyncio.wait_for(future, timeout=5.0)
@@ -107,7 +105,7 @@ async def test_room_joined_nickname_in_use(client: AsyncClient):
             "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
         ),
         nickname="Majiy",
-        room_code="BCDEF",
+        room_code="5a18ac45-9876-4f8e-b636-cf730b17e59l",
     )
     await client.emit("JOIN_ROOM", join_room.dict())
     await asyncio.wait_for(future, timeout=5.0)
@@ -128,7 +126,7 @@ async def test_kick_room(client: AsyncClient):
     kick_player = KickPlayer(
         kick_player_nickname=player_to_kick_nickname,
         player_id="52dcb730-93ad-4364-917a-8760ee50d0f5",
-        room_code="BCDEF",
+        room_code="5a18ac45-9876-4f8e-b636-cf730b17e59l",
     )
     await client.emit("KICK_PLAYER", kick_player.dict())
     await asyncio.wait_for(future, timeout=5.0)
@@ -148,7 +146,7 @@ async def test_kick_room_not_host(client: AsyncClient):
     kick_player = KickPlayer(
         kick_player_nickname=player_to_kick_nickname,
         player_id="66dcb730-93de-4364-917a-8760ee50d0ff",
-        room_code="BCDEF",
+        room_code="5a18ac45-9876-4f8e-b636-cf730b17e59l",
     )
     await client.emit("KICK_PLAYER", kick_player.dict())
     await asyncio.wait_for(future, timeout=5.0)

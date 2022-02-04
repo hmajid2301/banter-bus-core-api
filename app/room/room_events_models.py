@@ -11,6 +11,7 @@ ROOM_JOINED = "ROOM_JOINED"
 NEW_ROOM_JOINED = "NEW_ROOM_JOINED"
 KICK_PLAYER = "KICK_PLAYER"
 PLAYER_KICKED = "PLAYER_KICKED"
+PLAYER_DISCONNECTED = "PLAYER_DISCONNECTED"
 
 
 class CreateRoom(BaseModel):
@@ -64,6 +65,10 @@ class KickPlayer(BaseModel):
 
 
 class PlayerKicked(BaseModel):
+    nickname: str
+
+
+class PlayerDisconnected(BaseModel):
     nickname: str
 
 
