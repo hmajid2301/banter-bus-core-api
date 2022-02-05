@@ -39,8 +39,11 @@ from app.room.room_factory import get_room_service
 
 @sio.disconnect
 async def disconnect(sid):
+    logger = get_logger()
+    logger.debug("Player disconnected", sid=sid)
     player_service = get_player_service()
     player = await player_service.update_disconnected_time(sid=sid)
+    logger.debug("Player found", player=player)
 
     if player.room_id:
         player_disconnected = PlayerDisconnected(nickname=player.nickname, avatar=player.avatar)
