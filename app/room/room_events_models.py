@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 
 from pydantic import BaseModel, validator
 
@@ -23,8 +23,8 @@ class RoomCreated(BaseModel):
 
 
 class JoinRoom(BaseModel):
-    avatar: bytes
     nickname: str
+    avatar: Union[str, bytes]
     room_code: str
 
     @validator("avatar", pre=True)
@@ -39,8 +39,8 @@ class RejoinRoom(BaseModel):
 
 
 class Player(BaseModel):
-    avatar: str
     nickname: str
+    avatar: Union[str, bytes]
 
     @validator("avatar", pre=True)
     def base64_bytes_to_string(cls, value):
@@ -70,6 +70,13 @@ class PlayerKicked(BaseModel):
 
 class PlayerDisconnected(BaseModel):
     nickname: str
+    avatar: Union[str, bytes]
+
+    @validator("avatar", pre=True)
+    def base64_bytes_to_string(cls, value):
+        if isinstance(value, bytes):
+            return value.decode()
+        return value
 
 
 class Error(BaseModel):

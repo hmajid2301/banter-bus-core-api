@@ -43,7 +43,7 @@ async def disconnect(sid):
     player = await player_service.update_disconnected_time(sid=sid)
 
     if player.room_id:
-        player_disconnected = PlayerDisconnected(nickname=player.nickname)
+        player_disconnected = PlayerDisconnected(nickname=player.nickname, avatar=player.avatar)
         room_service = get_room_service()
         room = await room_service.get(room_id=player.room_id)
         await sio.emit(PLAYER_DISCONNECTED, player_disconnected.dict(), room=room.room_id)
