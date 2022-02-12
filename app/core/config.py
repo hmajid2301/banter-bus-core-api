@@ -8,8 +8,6 @@ class Settings(OmnibusSettings):
     MANAGEMENT_API_URL: str
     MANAGEMENT_API_PORT: Optional[int]
 
-    DISCONNECT_TIMER_IN_MINUTES: int = 5
-
     class Config:
         env_prefix = "BANTER_BUS_CORE_API_"
         env_file = ".env"

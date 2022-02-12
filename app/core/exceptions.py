@@ -12,3 +12,7 @@ class ExistsException(Exception):
 
 class IncorrectFormatException(Exception):
     pass
+
+
+class NoOtherHostError(Exception):
+    pass

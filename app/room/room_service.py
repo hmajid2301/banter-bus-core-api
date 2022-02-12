@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import List
 from uuid import uuid4
 
+from app.core.exceptions import NoOtherHostError
 from app.player.player_exceptions import PlayerHasNoRoomError, PlayerNotHostError
 from app.player.player_models import NewPlayer, Player, RoomPlayers
 from app.player.player_service import PlayerService
@@ -109,7 +110,7 @@ class RoomService:
 
     async def kick_player(
         self, player_service: PlayerService, player_to_kick_nickname: str, player_attempting_kick: str, room_id: str
-    ) -> str:
+    ) -> Player:
         room = await self.room_repository.get(id_=room_id)
         if room.host != player_attempting_kick:
             raise PlayerNotHostError(
@@ -118,5 +119,16 @@ class RoomService:
         elif room.state != RoomState.CREATED:
             raise RoomInInvalidState(msg=f"expected room state {RoomState.CREATED}", room_state=room.state)
 
-        await player_service.remove_from_room(nickname=player_to_kick_nickname, room_id=room.room_id)
-        return player_to_kick_nickname
+        player = await player_service.remove_from_room(nickname=player_to_kick_nickname, room_id=room.room_id)
+        return player
+
+    async def update_host(self, player_service: PlayerService, room: Room, old_host_id: str) -> Player:
+        players = await player_service.get_all_in_room(room_id=room.room_id)
+
+        for player in players:
+            if not player.player_id == old_host_id:
+                await self.room_repository.update_host(room=room, player_id=player.player_id)
+
+                return player
+
+        raise NoOtherHostError(f"no other host found for room {room.room_id=}")

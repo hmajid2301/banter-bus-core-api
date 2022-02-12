@@ -32,7 +32,7 @@ class PlayerService:
 
     async def remove_from_room(self, nickname: str, room_id: str) -> Player:
         player = await self.player_repository.get_by_nickname(nickname=nickname, room_id=room_id)
-        await self.player_repository.remove_room(player=player)
+        await self.player_repository.remove_from_room(player=player)
         return player
 
     async def update_disconnected_time(self, sid: str) -> Player:
@@ -44,16 +44,14 @@ class PlayerService:
         player = await self.player_repository.update_sid(player=player, sid=latest_sid)
         return player
 
-    async def disconnect_players(self, disconnect_timer_in_minutes) -> List[Player]:
-        players = await self.player_repository.get_disconnect()
-        disconnected_player: List[Player] = []
+    async def disconnect_player(self, nickname: str, room_id: str) -> Player:
+        player = await self.player_repository.get_by_nickname(room_id=room_id, nickname=nickname)
 
-        wait_time = timedelta(minutes=disconnect_timer_in_minutes)
-        now = datetime.now()
+        if player.disconnected_at and player.room_id:
+            now = datetime.now()
+            disconnect_at = player.disconnected_at + timedelta(minutes=5)
 
-        for player in players:
-            if (player.disconnected_at) and (player.room_id) and (now - wait_time > player.disconnected_at):
+            if disconnect_at <= now:
                 await self.remove_from_room(nickname=player.nickname, room_id=player.room_id)
-                disconnected_player.append(player)
 
-        return disconnected_player
+        return player

@@ -15,7 +15,7 @@ class AbstractPlayerRepository(AbstractRepository[Player]):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def remove_room(self, player: Player) -> Player:
+    async def remove_from_room(self, player: Player) -> Player:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -76,7 +76,7 @@ class PlayerRepository(AbstractPlayerRepository):
     async def remove(self, id_: str):
         return await super().remove(id_)
 
-    async def remove_room(self, player: Player) -> Player:
+    async def remove_from_room(self, player: Player) -> Player:
         player.room_id = None
         await player.save()
         return player

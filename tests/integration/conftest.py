@@ -39,6 +39,15 @@ async def client() -> AsyncIterator[AsyncClient]:
     await sio.disconnect()
 
 
+# TODO: refactor repeated code
+@pytest.fixture(scope="session")
+async def client_two() -> AsyncIterator[AsyncClient]:
+    sio = socketio.AsyncClient()
+    await sio.connect(BASE_URL, socketio_path="/ws/socket.io")
+    yield sio
+    await sio.disconnect()
+
+
 @pytest.fixture()
 async def http() -> AsyncIterator[HttpXClient]:
     async with LifespanManager(app):
@@ -46,7 +55,7 @@ async def http() -> AsyncIterator[HttpXClient]:
             yield client
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True, scope="function")
 async def setup_and_teardown(startup_and_shutdown_server, http):
     from app.player.player_models import Player
     from app.room.room_models import Room

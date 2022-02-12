@@ -12,6 +12,9 @@ NEW_ROOM_JOINED = "NEW_ROOM_JOINED"
 KICK_PLAYER = "KICK_PLAYER"
 PLAYER_KICKED = "PLAYER_KICKED"
 PLAYER_DISCONNECTED = "PLAYER_DISCONNECTED"
+HOST_DISCONNECTED = "HOST_DISCONNECTED"
+PERMANENTLY_DISCONNECT_PLAYER = "PERMANENTLY_DISCONNECT_PLAYER"
+PERMANENTLY_DISCONNECTED_PLAYER = "PERMANENTLY_DISCONNECTED_PLAYER"
 
 
 class CreateRoom(BaseModel):
@@ -77,6 +80,19 @@ class PlayerDisconnected(BaseModel):
         if isinstance(value, bytes):
             return value.decode()
         return value
+
+
+class HostDisconnected(BaseModel):
+    new_host_nickname: str
+
+
+class PermanentlyDisconnectPlayer(BaseModel):
+    nickname: str
+    room_code: str
+
+
+class PermanentlyDisconnectedPlayer(BaseModel):
+    nickname: str
 
 
 class Error(BaseModel):

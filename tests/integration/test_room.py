@@ -4,16 +4,21 @@ import base64
 import pytest
 from socketio.asyncio_client import AsyncClient
 
+from app.main import sio
+from app.player.player_factory import get_player_service
 from app.room.room_events_models import (
     Error,
+    HostDisconnected,
     JoinRoom,
     KickPlayer,
     NewRoomJoined,
+    PlayerDisconnected,
     PlayerKicked,
     RejoinRoom,
     RoomCreated,
     RoomJoined,
 )
+from tests.integration.conftest import BASE_URL
 
 
 @pytest.mark.asyncio
@@ -153,3 +158,47 @@ async def test_kick_room_not_host(client: AsyncClient):
     error: Error = future.result()
     assert error.code == "kick_player_fail"
     assert error.message == "You are not host, so cannot kick another player"
+
+
+@pytest.mark.asyncio
+async def test_disconnect(client: AsyncClient, client_two: AsyncClient):
+    future = asyncio.get_running_loop().create_future()
+    player_service = get_player_service()
+    player = await player_service.get(player_id="778cb730-93de-4364-917a-8760ee50d0ff")
+    sio.enter_room(client_two.get_sid(), room=player.room_id)
+    await player_service.update_latest_sid(player=player, latest_sid=client.get_sid())
+
+    @client_two.on("PLAYER_DISCONNECTED")
+    def _(data):
+        future.set_result(PlayerDisconnected(**data))
+
+    await client.disconnect()
+    await asyncio.wait_for(future, timeout=5.0)
+
+    player_disconnected_nickname = player.nickname
+    player_disconnected: PlayerDisconnected = future.result()
+    assert player_disconnected.nickname == player_disconnected_nickname
+    sio.leave_room(client_two.get_sid(), room=player.room_id)
+    await client.connect(BASE_URL, socketio_path="/ws/socket.io")
+
+
+@pytest.mark.asyncio
+async def test_disconnect_host(client: AsyncClient, client_two: AsyncClient):
+    future = asyncio.get_running_loop().create_future()
+    player_service = get_player_service()
+    player = await player_service.get(player_id="52dcb730-93ad-4364-917a-8760ee50d0f5")
+    sio.enter_room(client_two.get_sid(), room=player.room_id)
+    await player_service.update_latest_sid(player=player, latest_sid=client.get_sid())
+
+    @client_two.on("HOST_DISCONNECTED")
+    def _(data):
+        future.set_result(HostDisconnected(**data))
+
+    await client.disconnect()
+    await asyncio.wait_for(future, timeout=5.0)
+
+    new_host_nickname = "CanIHaseeburger"
+    host_disconnected: HostDisconnected = future.result()
+    assert host_disconnected.new_host_nickname == new_host_nickname
+    sio.leave_room(client_two.get_sid(), room=player.room_id)
+    await client.connect(BASE_URL, socketio_path="/ws/socket.io")

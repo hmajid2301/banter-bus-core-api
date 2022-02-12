@@ -223,13 +223,13 @@ async def test_kick_player():
     player_service = _get_player_service(existing_players)
     room_service = _get_room_service(rooms=[existing_room])
 
-    player_kicked_nickname = await room_service.kick_player(
+    player_kicked = await room_service.kick_player(
         player_service=player_service,
         player_to_kick_nickname=player_to_kick.nickname,
         player_attempting_kick=room_host_player_id,
         room_id=existing_room.room_id,
     )
-    assert player_kicked_nickname == player_to_kick.nickname
+    assert player_kicked.nickname == player_to_kick.nickname
 
 
 @pytest.mark.asyncio
@@ -296,6 +296,27 @@ async def test_kick_player_invalid_room_state():
             player_attempting_kick=room_host_player_id,
             room_id=existing_room.room_id,
         )
+
+
+@pytest.mark.asyncio
+async def test_update_host():
+    room_id = "4d18ac45-8034-4f8e-b636-cf730b17e51a"
+    room_host_player_id = "5a18ac45-9876-4f8e-b636-cf730b17e59l"
+
+    existing_room: Room = RoomFactory.build(state=RoomState.CREATED, room_id=room_id, host=room_host_player_id)
+    existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=room_id)
+    existing_players[0].player_id = room_host_player_id
+    player_disconnected = existing_players[1]
+
+    player_service = _get_player_service(existing_players)
+    room_service = _get_room_service(rooms=[existing_room])
+
+    await room_service.update_host(
+        player_service=player_service, room=existing_room, old_host_id=player_disconnected.player_id
+    )
+
+    room = await room_service.get(room_id=existing_room.room_id)
+    assert not room.host == player_disconnected.player_id
 
 
 def _sort_list_by_player_id(players: List[Player]):

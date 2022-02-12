@@ -56,7 +56,7 @@ class FakePlayerRepository(AbstractPlayerRepository):
     async def remove(self, id_: str):
         return await super().remove(id_)
 
-    async def remove_room(self, player: Player) -> Player:
+    async def remove_from_room(self, player: Player) -> Player:
         player.room_id = None
         return player
 

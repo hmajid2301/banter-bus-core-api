@@ -117,10 +117,34 @@ async def test_update_latest_sid():
 
 @pytest.mark.asyncio
 async def test_disconnect_players():
-    ten_minutes_ago = datetime.now() - timedelta(minutes=10)
-    existing_players: List[Player] = PlayerFactory.build_batch(3, disconnected_at=ten_minutes_ago)
+    existing_players: List[Player] = PlayerFactory.build_batch(3)
     player_repository = FakePlayerRepository(players=existing_players)
     player_service = PlayerService(player_repository=player_repository)
 
-    players = await player_service.disconnect_players(disconnect_timer_in_minutes=5)
-    assert len(players) == len(existing_players)
+    first_player = existing_players[0]
+    first_player.disconnected_at = datetime.now() - timedelta(minutes=5)
+    player = await player_service.disconnect_player(nickname=first_player.nickname, room_id=first_player.room_id)
+    assert player.room_id is None
+
+
+@pytest.mark.asyncio
+async def test_disconnect_players_less_than_5_mins():
+    existing_players: List[Player] = PlayerFactory.build_batch(3)
+    player_repository = FakePlayerRepository(players=existing_players)
+    player_service = PlayerService(player_repository=player_repository)
+
+    first_player = existing_players[0]
+    first_player.disconnected_at = datetime.now() - timedelta(minutes=3)
+    player = await player_service.disconnect_player(nickname=first_player.nickname, room_id=first_player.room_id)
+    assert player.room_id is not None
+
+
+@pytest.mark.asyncio
+async def test_disconnect_players_not_found():
+    existing_players: List[Player] = PlayerFactory.build_batch(3)
+    player_repository = FakePlayerRepository(players=existing_players)
+    player_service = PlayerService(player_repository=player_repository)
+
+    first_player = existing_players[0]
+    with pytest.raises(PlayerNotFound):
+        await player_service.disconnect_player(nickname=first_player.nickname, room_id="room-id_not_found")
