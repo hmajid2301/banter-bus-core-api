@@ -8,6 +8,7 @@ authors = ["Haseeb Majid <hello@haseebmajid.dev>"]
 python = ">=3.9,<4.0"
 httpx = "^0.21.1"
 omnibus = { git = "https://gitlab.com/banter-bus/omnibus.git", tag = "0.2.3" }
+python-socketio = "^5.5.1"
 
 [tool.poetry.dev-dependencies]
 black = "^20.8b1"

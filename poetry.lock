@@ -345,21 +345,6 @@ python-versions = ">=3.6.1,<4.0.0"
 fastapi = ">=0.63.0"
 
 [[package]]
-name = "fastapi-socketio"
-version = "0.0.9"
-description = "Easly integrate socket.io with your FastAPI app."
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-fastapi = ">=0.61.1"
-python-socketio = ">=4.6.0"
-
-[package.extras]
-test = ["pytest"]
-
-[[package]]
 name = "filelock"
 version = "3.4.2"
 description = "A platform independent file lock."
@@ -1343,7 +1328,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<4.0"
-content-hash = "581590602a029d01d9c1f730bc7c6d35a4c2ee446e443932e92a18481bb8bd38"
+content-hash = "ab9a485fedd490e25a72e8307fdb0c436d836186235c062b71256d3ff27686b3"
 
 [metadata.files]
 aiohttp = [
@@ -1569,10 +1554,6 @@ fastapi = [
 fastapi-health = [
     {file = "fastapi-health-0.4.0.tar.gz", hash = "sha256:a0781b2359732d50cddda1195784f78950265c6b3689d7a1e6e65a21aed4d6a5"},
     {file = "fastapi_health-0.4.0-py3-none-any.whl", hash = "sha256:d6c1795f7596009cffa7a84d5a67a6b66bbf9d6ce79b040fd50601ed5392089f"},
-]
-fastapi-socketio = [
-    {file = "fastapi-socketio-0.0.9.tar.gz", hash = "sha256:8c73aa94fe1bf1c9964ff89233a6ba52eeeec3ac8b9de0024d9d82b11e46bde5"},
-    {file = "fastapi_socketio-0.0.9-py3-none-any.whl", hash = "sha256:30b86938f2216630a49f7706060870254126b027668b2434b42cfaf53c05223b"},
 ]
 filelock = [
     {file = "filelock-3.4.2-py3-none-any.whl", hash = "sha256:cf0fc6a2f8d26bd900f19bf33915ca70ba4dd8c56903eeb14e1e7a2fd7590146"},
