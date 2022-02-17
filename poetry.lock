@@ -622,7 +622,7 @@ python-versions = "*"
 
 [[package]]
 name = "omnibus"
-version = "0.2.5"
+version = "0.2.6"
 description = "A library containing core code between FastAPI webservices for the Banter Bus application."
 category = "main"
 optional = false
@@ -645,8 +645,8 @@ uvicorn = {version = "^0.17.4", extras = ["standard"]}
 [package.source]
 type = "git"
 url = "https://gitlab.com/banter-bus/omnibus.git"
-reference = "0.2.5"
-resolved_reference = "f2f0f51288af51c609c8a1a5924511e71dd12e46"
+reference = "0.2.6"
+resolved_reference = "99de78329c28e99bcfefd523640f4fdd377bf8d4"
 
 [[package]]
 name = "packaging"
@@ -1224,7 +1224,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
 name = "uvicorn"
-version = "0.17.4"
+version = "0.17.5"
 description = "The lightning-fast ASGI server."
 category = "main"
 optional = false
@@ -1328,7 +1328,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<4.0"
-content-hash = "f113a039fcacc1baf363345164c1ea12d368a60cad264be1bbcb872e973a14f8"
+content-hash = "e7d06d7727fb02c8ac401565e1b4c6de14ed423a703edd25f6ed1f6178974e52"
 
 [metadata.files]
 aiohttp = [
@@ -2306,8 +2306,8 @@ urllib3 = [
     {file = "urllib3-1.26.8.tar.gz", hash = "sha256:0e7c33d9a63e7ddfcb86780aac87befc2fbddf46c58dbb487e0855f7ceec283c"},
 ]
 uvicorn = [
-    {file = "uvicorn-0.17.4-py3-none-any.whl", hash = "sha256:e85872d84fb651cccc4c5d2a71cf7ead055b8fb4d8f1e78e36092282c0cf2aec"},
-    {file = "uvicorn-0.17.4.tar.gz", hash = "sha256:25850bbc86195a71a6477b3e4b3b7b4c861fb687fb96912972ce5324472b1011"},
+    {file = "uvicorn-0.17.5-py3-none-any.whl", hash = "sha256:8adddf629b79857b48b999ae1b14d6c92c95d4d7840bd86461f09bee75f1653e"},
+    {file = "uvicorn-0.17.5.tar.gz", hash = "sha256:c04a9c069111489c324f427501b3840d306c6b91a77b00affc136a840a3f45f1"},
 ]
 uvloop = [
     {file = "uvloop-0.16.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:6224f1401025b748ffecb7a6e2652b17768f30b1a6a3f7b44660e5b5b690b12d"},
