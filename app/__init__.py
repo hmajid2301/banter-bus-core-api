@@ -1,6 +1,6 @@
 import uvicorn
 
-import app.room.room_event_handlers  # noqa
+import app.room.room_events  # noqa
 from app.core.config import get_settings
 from app.main import app as application
 
