@@ -44,12 +44,12 @@ class PlayerService:
         player = await self.player_repository.update_sid(player=player, sid=latest_sid)
         return player
 
-    async def disconnect_player(self, nickname: str, room_id: str) -> Player:
+    async def disconnect_player(self, nickname: str, room_id: str, disconnect_timer_in_seconds: int) -> Player:
         player = await self.player_repository.get_by_nickname(room_id=room_id, nickname=nickname)
 
         if player.disconnected_at and player.room_id:
             now = datetime.now()
-            disconnect_at = player.disconnected_at + timedelta(minutes=5)
+            disconnect_at = player.disconnected_at + timedelta(seconds=disconnect_timer_in_seconds)
 
             if disconnect_at <= now:
                 await self.remove_from_room(nickname=player.nickname, room_id=player.room_id)

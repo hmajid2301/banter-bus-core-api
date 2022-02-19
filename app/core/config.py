@@ -7,6 +7,7 @@ from omnibus.config.settings import OmnibusSettings
 class Settings(OmnibusSettings):
     MANAGEMENT_API_URL: str
     MANAGEMENT_API_PORT: Optional[int]
+    DISCONNECT_TIMER_IN_SECONDS: int = 300
 
     class Config:
         env_prefix = "BANTER_BUS_CORE_API_"

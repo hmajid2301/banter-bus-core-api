@@ -123,7 +123,9 @@ async def test_disconnect_players():
 
     first_player = existing_players[0]
     first_player.disconnected_at = datetime.now() - timedelta(minutes=5)
-    player = await player_service.disconnect_player(nickname=first_player.nickname, room_id=first_player.room_id)
+    player = await player_service.disconnect_player(
+        nickname=first_player.nickname, room_id=first_player.room_id, disconnect_timer_in_seconds=300
+    )
     assert player.room_id is None
 
 
@@ -135,7 +137,9 @@ async def test_disconnect_players_less_than_5_mins():
 
     first_player = existing_players[0]
     first_player.disconnected_at = datetime.now() - timedelta(minutes=3)
-    player = await player_service.disconnect_player(nickname=first_player.nickname, room_id=first_player.room_id)
+    player = await player_service.disconnect_player(
+        nickname=first_player.nickname, room_id=first_player.room_id, disconnect_timer_in_seconds=300
+    )
     assert player.room_id is not None
 
 
@@ -147,4 +151,6 @@ async def test_disconnect_players_not_found():
 
     first_player = existing_players[0]
     with pytest.raises(PlayerNotFound):
-        await player_service.disconnect_player(nickname=first_player.nickname, room_id="room-id_not_found")
+        await player_service.disconnect_player(
+            nickname=first_player.nickname, room_id="room-id_not_found", disconnect_timer_in_seconds=300
+        )

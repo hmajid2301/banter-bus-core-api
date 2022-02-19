@@ -3,6 +3,7 @@ from typing import List
 from omnibus.log.logger import get_logger
 from pydantic import parse_obj_as
 
+from app.core.config import get_settings
 from app.main import sio
 from app.model_validator import validate
 from app.player.player_exceptions import PlayerNotHostError
@@ -153,9 +154,14 @@ async def kick_player(sid, data: KickPlayer):
 async def permanently_disconnect_player(sid, data: PermanentlyDisconnectPlayer):
     logger = get_logger()
     logger.debug(PERMANENTLY_DISCONNECT_PLAYER, player_id=sid)
+    config = get_settings()
     try:
         player_service = get_player_service()
-        disconnected_player = await player_service.disconnect_player(nickname=data.nickname, room_id=data.room_code)
+        disconnected_player = await player_service.disconnect_player(
+            nickname=data.nickname,
+            room_id=data.room_code,
+            disconnect_timer_in_seconds=config.DISCONNECT_TIMER_IN_SECONDS,
+        )
 
         perm_disconnected_player = PermanentlyDisconnectedPlayer(nickname=data.nickname)
         logger.debug(PERMANENTLY_DISCONNECTED_PLAYER, disconnected_player=perm_disconnected_player.dict())
