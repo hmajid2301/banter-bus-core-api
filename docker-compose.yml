@@ -17,16 +17,19 @@ services:
       BANTER_BUS_CORE_API_MANAGEMENT_API_PORT: 8090
       BANTER_BUS_CORE_API_CLIENT_ID: client_id
       BANTER_BUS_CORE_API_USE_AUTH: "False"
+      BANTER_BUS_CORE_API_MESSAGE_QUEUE_HOST: banter-bus-message-queue
+      BANTER_BUS_CORE_API_MESSAGE_QUEUE_PORT: 6379
     ports:
       - 8080:8080
     volumes:
       - ./:/app
     depends_on:
       - database
-      - management_api
+      - management-api
+      - message-queue
       - database-seed
 
-  management_api:
+  management-api:
     container_name: banter-bus-management-api
     image: registry.gitlab.com/banter-bus/banter-bus-management-api:test
     environment:
@@ -77,9 +80,11 @@ services:
     depends_on:
       - database
 
-  memory-store:
-    container_name: banter-bus-datastore
+  message-queue:
+    container_name: banter-bus-message-queue
     image: redis:6.2.4
+    command: >
+      --requirepass banterbus
     volumes:
       - /data/datastore /data
     ports:

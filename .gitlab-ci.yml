@@ -14,6 +14,8 @@ variables:
   BANTER_BUS_CORE_API_MANAGEMENT_API_PORT: 8090
   BANTER_BUS_CORE_API_CLIENT_ID: client_id
   BANTER_BUS_CORE_API_USE_AUTH: "False"
+  BANTER_BUS_CORE_API_MESSAGE_QUEUE_HOST: banter-bus-message-queue
+  BANTER_BUS_CORE_API_MESSAGE_QUEUE_PORT: 6379
 
 cache:
   key: "${CI_JOB_NAME}"
@@ -25,6 +27,8 @@ cache:
   services:
     - name: mongo:4.4.4
       alias: banter-bus-database
+    - name: redis:6.2.4
+      alias: banter-bus-message-queue
     - name: registry.gitlab.com/banter-bus/banter-bus-management-api:test
       alias: banter-bus-management-api
     - name: registry.gitlab.com/banter-bus/banter-bus-management-api/database-seed:latest

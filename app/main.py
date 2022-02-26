@@ -10,7 +10,7 @@ from app.room.room_models import Room
 from app.socket_manager import SocketManager
 
 app = FastAPI(title="banter-bus-core-api")
-sio = SocketManager(app=app)
+sio = SocketManager(app=app, redis_uri=get_settings().get_redis_uri())
 
 
 @app.on_event("startup")
