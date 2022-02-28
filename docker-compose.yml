@@ -83,8 +83,6 @@ services:
   message-queue:
     container_name: banter-bus-message-queue
     image: redis:6.2.4
-    command: >
-      --requirepass banterbus
     volumes:
       - /data/datastore /data
     ports:

@@ -10,7 +10,6 @@ class Settings(OmnibusSettings):
     DISCONNECT_TIMER_IN_SECONDS: int = 300
 
     MESSAGE_QUEUE_HOST: str
-    MESSAGE_QUEUE_PASSWORD: Optional[str]
     MESSAGE_QUEUE_PORT: Optional[int]
 
     class Config:
@@ -29,8 +28,6 @@ class Settings(OmnibusSettings):
         if self.MESSAGE_QUEUE_PORT:
             uri += f":{self.MESSAGE_QUEUE_PORT}"
 
-        if self.MESSAGE_QUEUE_PASSWORD:
-            uri += f"?password={self.MESSAGE_QUEUE_PASSWORD}"
         return uri
 
 
