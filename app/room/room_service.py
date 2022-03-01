@@ -64,6 +64,8 @@ class RoomService:
         if not player.room_id:
             raise PlayerHasNoRoomError("player has no room id")
 
+        # TODO: use method in player service in future
+        player.disconnected_at = None
         room = await self.room_repository.get(id_=player.room_id)
         existing_players = await player_service.get_all_in_room(room_id=player.room_id)
 

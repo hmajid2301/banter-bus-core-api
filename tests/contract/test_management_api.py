@@ -1,3 +1,4 @@
+import asyncio
 import atexit
 import os
 import time
@@ -9,6 +10,13 @@ from pactman import Consumer, Like, Provider
 from app.clients.management_api.api.games_api import AsyncGamesApi
 from app.clients.management_api.exceptions import UnexpectedResponse
 from app.room.room_factory import get_game_api
+
+
+@pytest.fixture(scope="session")
+def event_loop():
+    loop = asyncio.get_event_loop()
+    yield loop
+    loop.close()
 
 
 @pytest.fixture(scope="session")

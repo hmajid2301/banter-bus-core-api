@@ -117,6 +117,9 @@ test:publish-contract:
   stage: test
   only:
     - main
+  variables:
+    BANTER_BUS_CORE_API_MANAGEMENT_API_URL: http://localhost
+    BANTER_BUS_CORE_API_MANAGEMENT_API_PORT: 1234
   script:
     - make contract_tests
     - |

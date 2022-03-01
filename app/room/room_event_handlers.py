@@ -6,7 +6,7 @@ from pydantic import parse_obj_as
 from app.core.config import get_settings
 from app.main import sio
 from app.model_validator import validate
-from app.player.player_exceptions import PlayerNotHostError
+from app.player.player_exceptions import PlayerHasNoRoomError, PlayerNotHostError
 from app.player.player_factory import get_player_service
 from app.player.player_models import NewPlayer, RoomPlayers
 from app.room.room_events_models import (
@@ -45,7 +45,7 @@ from app.room.room_factory import get_room_service
 async def handle_error(sid, error_code):
     logger = get_logger()
     logger.exception("Failed action", error_code=error_code)
-    error = Error(code=error_code, message="An unexpected error occurred on the save")
+    error = Error(code=error_code, message="An unexpected error occurred on the server")
     await sio.emit(ERROR, error.dict(), room=sid)
 
 
@@ -107,6 +107,10 @@ async def rejoin_room(sid, data: RejoinRoom):
     except RoomNotFound as e:
         logger.exception("room not found", room_code=e.room_idenitifer)
         error = Error(code="room_join_fail", message="room not found")
+        await sio.emit(ERROR, error.dict(), room=sid)
+    except PlayerHasNoRoomError:
+        logger.exception("player has no room, they were likely disconnected from said room", player_id=data.player_id)
+        error = Error(code="room_join_fail", message="disconnected from room, please re-join with a new nickname")
         await sio.emit(ERROR, error.dict(), room=sid)
 
 
