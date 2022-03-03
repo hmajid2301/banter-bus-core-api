@@ -1,7 +1,7 @@
 from typing import List
 
 from app.room.room_exceptions import RoomExistsException, RoomNotFound
-from app.room.room_models import Room
+from app.room.room_models import Room, RoomState
 from app.room.room_repository import AbstractRoomRepository
 
 
@@ -29,3 +29,8 @@ class FakeRoomRepository(AbstractRoomRepository):
         for r in self.rooms:
             if r.room_id == room.room_id:
                 r.host = player_id
+
+    async def update_game_state(self, room: Room, new_room_state: RoomState):
+        for r in self.rooms:
+            if r.room_id == room.room_id:
+                r.state = new_room_state

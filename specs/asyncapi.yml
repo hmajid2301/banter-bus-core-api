@@ -23,6 +23,8 @@ channels:
           - $ref: "#/components/messages/join_room"
           - $ref: "#/components/messages/rejoin_room"
           - $ref: "#/components/messages/kick_player"
+          - $ref: "#/components/messages/player_disconnected"
+          - $ref: "#/components/messages/start_game"
     subscribe:
       message:
         oneOf:
@@ -30,6 +32,8 @@ channels:
           - $ref: "#/components/messages/room_joined"
           - $ref: "#/components/messages/new_room_joined"
           - $ref: "#/components/messages/player_kicked"
+          - $ref: "#/components/messages/permanately_disconnect_player"
+          - $ref: "#/components/messages/game_started"
 components:
   messages:
     create_room:
@@ -84,6 +88,30 @@ components:
         Server responds to `kick_player` event.
       payload:
         $ref: "#/components/schemas/player_kicked"
+    player_disconnected:
+      summary: After a player has been disconnected for x seconds (300 usually)
+      description: >-
+        Client requests server to kick player from game
+      payload:
+        $ref: "#/components/schemas/player_disconnected"
+    permanately_disconnect_player:
+      summary: Response to a player informing the server a player has been disconnected, now they have been disconnected on the server as well
+      description: >-
+        Server responds to `player_disconnected` event.
+      payload:
+        $ref: "#/components/schemas/player_disconnected"
+    start_game:
+      summary: Client tries to start a new game
+      description: >-
+        Client, which should be the host, tries to start a new game
+      payload:
+        $ref: "#/components/schemas/start_game"
+    game_started:
+      summary: Response to a client, informing them the game has started
+      description: >-
+        Server responds to `game_started` event.
+      payload:
+        $ref: "#/components/schemas/game_started"
   schemas:
     create_room:
       type: object
@@ -165,7 +193,6 @@ components:
           description: unique player id of the player trying to kick, this player must be host
         room_code:
           type: string
-          format: byte
           description: unique code of the room, from where wthe player will be kicked
         kick_player_nickname:
           type: string
@@ -184,3 +211,50 @@ components:
           example: Majiy
       required:
         - nickname
+    player_disconnected:
+      type: object
+      properties:
+        $ref: "#/components/schemas/player"
+    permanently_disconnect_player:
+      type: object
+      properties:
+        nickname:
+          type: string
+          description: the nickname of the player kicked from the room
+          example: Majiy
+        room_code:
+          type: string
+          description: unique code of the room, from where wthe player will be kicked
+    start_game:
+      type: object
+      properties:
+        game_name:
+          type: string
+          description: the name of the game the client wants to start
+          example: fibbing_it
+        player_id:
+          type: string
+          description: ID of the player trying to start the game (should be the host)
+        room_code:
+          type: string
+          description: unique code of the room, from where wthe player will be kicked
+    game_started:
+      type: object
+      properties:
+        game_name:
+          type: string
+          description: the name of the game the client wants to start
+          example: fibbing_it
+    player:
+      type: object
+      properties:
+        nickname:
+          type: string
+          description: The nickname of the player joining the room
+          example: Majiy
+        avatar:
+          type: string
+          format: byte
+      required:
+        - nickname
+        - avatar

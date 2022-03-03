@@ -4,12 +4,16 @@ from omnibus.database.repository import AbstractRepository
 from pymongo.errors import DuplicateKeyError
 
 from app.room.room_exceptions import RoomExistsException, RoomNotFound
-from app.room.room_models import Room
+from app.room.room_models import Room, RoomState
 
 
 class AbstractRoomRepository(AbstractRepository[Room]):
     @abc.abstractmethod
     async def update_host(self, room: Room, player_id: str):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def update_game_state(self, room: Room, new_room_state: RoomState):
         raise NotImplementedError
 
 
@@ -31,4 +35,8 @@ class RoomRepository(AbstractRoomRepository):
 
     async def update_host(self, room: Room, player_id: str):
         room.host = player_id
+        await room.save()
+
+    async def update_game_state(self, room: Room, new_room_state: RoomState):
+        room.state = new_room_state
         await room.save()

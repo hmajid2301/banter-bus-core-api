@@ -6,7 +6,7 @@ authors = ["Haseeb Majid <hello@haseebmajid.dev>"]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
-httpx = "^0.21.1"
+httpx = "^0.22.0"
 omnibus = { git = "https://gitlab.com/banter-bus/omnibus.git", tag = "0.2.6" }
 python-socketio = "^5.5.1"
 aioredis = "^2.0.1"
@@ -27,6 +27,8 @@ aiohttp = "^3.8.1"
 pytest-cov = "^3.0.0"
 pactman = "^2.30.0"
 copier = "^5.1.0"
+virtualenv = "^20.13.1"
+pytest-httpx = "^0.20.0"
 
 [tool.isort]
 profile = "black"

@@ -2,11 +2,13 @@ from datetime import datetime
 from typing import List
 from uuid import uuid4
 
+from app.clients.management_api.api.games_api import AsyncGamesApi
 from app.core.exceptions import NoOtherHostError
 from app.player.player_exceptions import PlayerHasNoRoomError, PlayerNotHostError
 from app.player.player_models import NewPlayer, Player, RoomPlayers
 from app.player.player_service import PlayerService
 from app.room.room_exceptions import (
+    GameNotEnabled,
     NicknameExistsException,
     RoomHasNoHostError,
     RoomInInvalidState,
@@ -114,11 +116,9 @@ class RoomService:
         self, player_service: PlayerService, player_to_kick_nickname: str, player_attempting_kick: str, room_id: str
     ) -> Player:
         room = await self.room_repository.get(id_=room_id)
-        if room.host != player_attempting_kick:
-            raise PlayerNotHostError(
-                msg="player is not host cannot kick player", player_id=player_attempting_kick, host_player_id=room.host
-            )
-        elif room.state != RoomState.CREATED:
+        self._check_is_player_host(room=room, player_id=player_attempting_kick)
+
+        if room.state != RoomState.CREATED:
             raise RoomInInvalidState(msg=f"expected room state {RoomState.CREATED}", room_state=room.state)
 
         player = await player_service.remove_from_room(nickname=player_to_kick_nickname, room_id=room.room_id)
@@ -134,3 +134,27 @@ class RoomService:
                 return player
 
         raise NoOtherHostError(f"no other host found for room {room.room_id=}")
+
+    async def start_game(self, game_api: AsyncGamesApi, game_name: str, player_id: str, room_id: str) -> Room:
+        room = await self.room_repository.get(id_=room_id)
+        if room.state != RoomState.CREATED:
+            raise RoomInInvalidState(msg=f"expected room state {RoomState.CREATED}", room_state=room.state)
+
+        self._check_is_player_host(room=room, player_id=player_id)
+
+        game = await game_api.get_game(game_name=game_name)
+        if not game.enabled:
+            raise GameNotEnabled(f"{game_name} is not enabled")
+
+        await self.room_repository.update_game_state(room=room, new_room_state=RoomState.PLAYING)
+        return room
+
+    @staticmethod
+    def _check_is_player_host(room: Room, player_id: str):
+        host_id = room.host
+        if not host_id:
+            raise RoomHasNoHostError(msg="room has no host", room_id=room.room_id)
+        elif host_id != player_id:
+            raise PlayerNotHostError(
+                msg="player is not host cannot kick player", player_id=player_id, host_player_id=room.host
+            )

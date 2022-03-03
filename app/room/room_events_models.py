@@ -15,6 +15,8 @@ PLAYER_DISCONNECTED = "PLAYER_DISCONNECTED"
 HOST_DISCONNECTED = "HOST_DISCONNECTED"
 PERMANENTLY_DISCONNECT_PLAYER = "PERMANENTLY_DISCONNECT_PLAYER"
 PERMANENTLY_DISCONNECTED_PLAYER = "PERMANENTLY_DISCONNECTED_PLAYER"
+START_GAME = "START_GAME"
+GAME_STARTED = "GAME_STARTED"
 
 
 class CreateRoom(BaseModel):
@@ -93,6 +95,16 @@ class PermanentlyDisconnectPlayer(BaseModel):
 
 class PermanentlyDisconnectedPlayer(BaseModel):
     nickname: str
+
+
+class StartGame(BaseModel):
+    player_id: str
+    game_name: str
+    room_code: str
+
+
+class GameStarted(BaseModel):
+    game_name: str
 
 
 class Error(BaseModel):

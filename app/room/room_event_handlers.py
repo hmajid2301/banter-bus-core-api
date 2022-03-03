@@ -12,6 +12,7 @@ from app.player.player_models import NewPlayer, RoomPlayers
 from app.room.room_events_models import (
     CREATE_ROOM,
     ERROR,
+    GAME_STARTED,
     JOIN_ROOM,
     KICK_PLAYER,
     NEW_ROOM_JOINED,
@@ -21,8 +22,10 @@ from app.room.room_events_models import (
     REJOIN_ROOM,
     ROOM_CREATED,
     ROOM_JOINED,
+    START_GAME,
     CreateRoom,
     Error,
+    GameStarted,
     JoinRoom,
     KickPlayer,
     NewRoomJoined,
@@ -33,13 +36,14 @@ from app.room.room_events_models import (
     RejoinRoom,
     RoomCreated,
     RoomJoined,
+    StartGame,
 )
 from app.room.room_exceptions import (
     NicknameExistsException,
     RoomInInvalidState,
     RoomNotFound,
 )
-from app.room.room_factory import get_room_service
+from app.room.room_factory import get_game_api, get_room_service
 
 
 async def handle_error(sid, error_code):
@@ -173,3 +177,18 @@ async def permanently_disconnect_player(sid, data: PermanentlyDisconnectPlayer):
         await sio.emit(PERMANENTLY_DISCONNECTED_PLAYER, data=perm_disconnected_player.dict(), room=data.room_code)
     except RoomNotFound as e:
         logger.exception("room not found", room_code=e.room_idenitifer)
+
+
+@validate(StartGame, handle_error, "start_game_fail")
+async def start_game(sid, data: StartGame):
+    logger = get_logger()
+    logger.debug(START_GAME, player_id=sid)
+    room_service = get_room_service()
+    game_api = get_game_api()
+    await room_service.start_game(
+        game_api=game_api, game_name=data.game_name, player_id=data.player_id, room_id=data.room_code
+    )
+
+    game_started = GameStarted(game_name=data.game_name)
+    logger.debug(GAME_STARTED, game_started=game_started.dict())
+    await sio.emit(GAME_STARTED, data=game_started.dict(), room=data.room_code)

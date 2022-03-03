@@ -8,6 +8,7 @@ from app.main import sio
 from app.player.player_factory import get_player_service
 from app.room.room_events_models import (
     Error,
+    GameStarted,
     HostDisconnected,
     JoinRoom,
     KickPlayer,
@@ -17,6 +18,7 @@ from app.room.room_events_models import (
     RejoinRoom,
     RoomCreated,
     RoomJoined,
+    StartGame,
 )
 from tests.integration.conftest import BASE_URL
 
@@ -202,3 +204,24 @@ async def test_disconnect_host(client: AsyncClient, client_two: AsyncClient):
     assert host_disconnected.new_host_nickname == new_host_nickname
     sio.leave_room(client_two.get_sid(), room=player.room_id)
     await client.connect(BASE_URL, socketio_path="/ws/socket.io")
+
+
+@pytest.mark.asyncio
+async def test_start_game(client: AsyncClient):
+    future = asyncio.get_running_loop().create_future()
+
+    @client.on("GAME_STARTED")
+    def _(data):
+        future.set_result(GameStarted(**data))
+
+    room_code = "5a18ac45-9876-4f8e-b636-cf730b17e59l"
+    start_game = StartGame(
+        game_name="fibbing_it",
+        room_code=room_code,
+        player_id="52dcb730-93ad-4364-917a-8760ee50d0f5",
+    )
+    sio.enter_room(client.get_sid(), room=room_code)
+    await client.emit("START_GAME", start_game.dict())
+    await asyncio.wait_for(future, timeout=5.0)
+    game_started: GameStarted = future.result()
+    assert game_started.game_name == "fibbing_it"
