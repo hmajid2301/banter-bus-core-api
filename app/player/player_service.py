@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, Optional
 from uuid import uuid4
 
 from app.player.player_models import NewPlayer, Player
@@ -35,9 +35,8 @@ class PlayerService:
         await self.player_repository.remove_from_room(player=player)
         return player
 
-    async def update_disconnected_time(self, sid: str) -> Player:
-        player = await self.player_repository.get_by_sid(sid=sid)
-        player = await self.player_repository.update_disconnected_at(player=player)
+    async def update_disconnected_time(self, player: Player, disconnected_at: Optional[datetime] = None) -> Player:
+        player = await self.player_repository.update_disconnected_at(player=player, disconnected_at=disconnected_at)
         return player
 
     async def update_latest_sid(self, player: Player, latest_sid: str) -> Player:

@@ -12,6 +12,7 @@ rooms: List[Room] = [
             "state": RoomState.CREATED,
             "created_at": datetime.now(),
             "updated_at": datetime.now(),
+            "player_count": 0,
         }
     ),
     Room(
@@ -22,6 +23,7 @@ rooms: List[Room] = [
             "state": RoomState.CREATED,
             "created_at": datetime.now(),
             "updated_at": datetime.now(),
+            "player_count": 4,
         }
     ),
     Room(
@@ -32,6 +34,7 @@ rooms: List[Room] = [
             "state": RoomState.FINISHED,
             "created_at": datetime.now(),
             "updated_at": datetime.now(),
+            "player_count": 2,
         }
     ),
 ]

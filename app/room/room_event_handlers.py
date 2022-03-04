@@ -85,6 +85,7 @@ async def join_room(sid, data: JoinRoom):
         await sio.emit(NEW_ROOM_JOINED, new_room_joined.dict(), room=sid)
         avatar_excludes = {idx: {"avatar"} for idx in range(len(room_joined.players))}
         logger.debug(ROOM_JOINED, room_joined=room_joined.dict(exclude={"players": avatar_excludes}))
+        logger.debug(NEW_ROOM_JOINED, new_room_joined=new_room_joined.dict(exclude={"players": avatar_excludes}))
     except RoomNotFound as e:
         logger.exception("room not found", room_code=e.room_idenitifer)
         error = Error(code="room_join_fail", message="room not found")
@@ -165,6 +166,10 @@ async def permanently_disconnect_player(sid, data: PermanentlyDisconnectPlayer):
     config = get_settings()
     try:
         player_service = get_player_service()
+        room_service = get_room_service()
+
+        room = await room_service.get(room_id=data.room_code)
+        await room_service.update_player_count(room, increment=False)
         disconnected_player = await player_service.disconnect_player(
             nickname=data.nickname,
             room_id=data.room_code,

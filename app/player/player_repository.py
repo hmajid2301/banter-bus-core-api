@@ -1,6 +1,6 @@
 import abc
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from omnibus.database.repository import AbstractRepository
 from pymongo.errors import DuplicateKeyError
@@ -31,7 +31,7 @@ class AbstractPlayerRepository(AbstractRepository[Player]):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def update_disconnected_at(self, player: Player) -> Player:
+    async def update_disconnected_at(self, player: Player, disconnected_at: Optional[datetime] = None) -> Player:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -81,8 +81,8 @@ class PlayerRepository(AbstractPlayerRepository):
         await player.save()
         return player
 
-    async def update_disconnected_at(self, player: Player) -> Player:
-        player.disconnected_at = datetime.now()
+    async def update_disconnected_at(self, player: Player, disconnected_at: Optional[datetime] = None) -> Player:
+        player.disconnected_at = disconnected_at
         await player.save()
         return player
 

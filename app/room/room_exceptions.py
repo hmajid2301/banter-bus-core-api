@@ -44,6 +44,29 @@ class RoomHasNoHostError(Exception):
         self.room_id = room_id
 
 
+class PlayerCountError(Exception):
+    def __init__(self, msg: str, room_id: str, game_name: str, room_player_count: int, game_players: int) -> None:
+        self.msg = msg
+        self.room_id = room_id
+        self.game_name = game_name
+        self.room_player_count = room_player_count
+        self.game_players = game_players
+
+
+class TooManyPlayersInRoomError(PlayerCountError):
+    def __init__(
+        self, msg: str, room_id: str, game_name: str, room_player_count: int, game_maximum_players: int
+    ) -> None:
+        super().__init__(msg, room_id, game_name, room_player_count, game_players=game_maximum_players)
+
+
+class TooFewPlayersInRoomError(PlayerCountError):
+    def __init__(
+        self, msg: str, room_id: str, game_name: str, room_player_count: int, game_minimum_players: int
+    ) -> None:
+        super().__init__(msg, room_id, game_name, room_player_count, game_players=game_minimum_players)
+
+
 class NicknameExistsException(ExistsException):
     def __init__(self, msg: str, nickname: str) -> None:
         self.msg = msg

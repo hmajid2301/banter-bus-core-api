@@ -88,7 +88,7 @@ async def test_should_update_disconnected_at_time():
     player_service = get_player_service(players=existing_players)
 
     first_player = existing_players[0]
-    player = await player_service.update_disconnected_time(sid=first_player.latest_sid)
+    player = await player_service.update_disconnected_time(player=first_player, disconnected_at=datetime.now())
     assert player.disconnected_at is not None
 
 

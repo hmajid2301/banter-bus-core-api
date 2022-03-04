@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from omnibus.log.logger import get_logger
 
 from app.main import sio
@@ -38,7 +40,9 @@ async def disconnect(sid):
     logger.debug("Player disconnected", sid=sid)
     player_service = get_player_service()
     try:
-        player = await player_service.update_disconnected_time(sid=sid)
+        # TODO: change into function
+        player = await player_service.player_repository.get_by_sid(sid=sid)
+        player = await player_service.update_disconnected_time(player=player, disconnected_at=datetime.now())
     except PlayerNotFound:
         logger.warning("Failed to find player", sid=sid, exc_info=True)
         return

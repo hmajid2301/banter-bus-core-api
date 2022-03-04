@@ -16,6 +16,10 @@ class AbstractRoomRepository(AbstractRepository[Room]):
     async def update_game_state(self, room: Room, new_room_state: RoomState):
         raise NotImplementedError
 
+    @abc.abstractmethod
+    async def update_player_count(self, room: Room, new_count: int):
+        raise NotImplementedError
+
 
 class RoomRepository(AbstractRoomRepository):
     async def add(self, room: Room):
@@ -39,4 +43,8 @@ class RoomRepository(AbstractRoomRepository):
 
     async def update_game_state(self, room: Room, new_room_state: RoomState):
         room.state = new_room_state
+        await room.save()
+
+    async def update_player_count(self, room: Room, new_count: int):
+        room.player_count = new_count
         await room.save()

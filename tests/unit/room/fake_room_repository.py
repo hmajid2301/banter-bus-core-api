@@ -34,3 +34,8 @@ class FakeRoomRepository(AbstractRoomRepository):
         for r in self.rooms:
             if r.room_id == room.room_id:
                 r.state = new_room_state
+
+    async def update_player_count(self, room: Room, new_count: int):
+        for r in self.rooms:
+            if r.room_id == room.room_id:
+                r.player_count = new_count

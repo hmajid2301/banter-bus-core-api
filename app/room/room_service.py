@@ -13,6 +13,8 @@ from app.room.room_exceptions import (
     RoomHasNoHostError,
     RoomInInvalidState,
     RoomNotJoinableError,
+    TooFewPlayersInRoomError,
+    TooManyPlayersInRoomError,
 )
 from app.room.room_models import Room, RoomState
 from app.room.room_repository import AbstractRoomRepository
@@ -38,19 +40,30 @@ class RoomService:
         room = await self.room_repository.get(id_=room_id)
         return room
 
+    async def update_player_count(self, room: Room, increment: bool):
+        new_count = room.player_count
+        if increment:
+            new_count += 1
+        else:
+            new_count -= 1
+
+        await self.room_repository.update_player_count(room, new_count)
+
     async def join(self, player_service: PlayerService, room_id: str, new_player: NewPlayer) -> RoomPlayers:
         room = await self.room_repository.get(id_=room_id)
+        if not room.state.is_room_joinable:
+            raise RoomNotJoinableError(msg="room is not joinable", room_id=room.room_id, room_state=room.state)
+
         existing_players = await player_service.get_all_in_room(room_id=room.room_id)
         self._check_nickname_is_unique(new_player_nickname=new_player.nickname, existing_players=existing_players)
 
         player = await self._add_new_player(player_service=player_service, new_player=new_player, room=room)
         players = [*existing_players, player]
 
-        if not room.state.is_room_joinable:
-            raise RoomNotJoinableError(msg="room is not joinable", room_id=room.room_id, room_state=room.state)
         if not room.host:
             raise RoomHasNoHostError(msg="room has no host", room_id=room.room_id)
 
+        await self.update_player_count(room, increment=True)
         room_players = self._get_room_players(
             room_host_player_id=room.host,
             players=players,
@@ -66,8 +79,8 @@ class RoomService:
         if not player.room_id:
             raise PlayerHasNoRoomError("player has no room id")
 
-        # TODO: use method in player service in future
-        player.disconnected_at = None
+        await player_service.update_disconnected_time(player=player, disconnected_at=None)
+
         room = await self.room_repository.get(id_=player.room_id)
         existing_players = await player_service.get_all_in_room(room_id=player.room_id)
 
@@ -122,6 +135,7 @@ class RoomService:
             raise RoomInInvalidState(msg=f"expected room state {RoomState.CREATED}", room_state=room.state)
 
         player = await player_service.remove_from_room(nickname=player_to_kick_nickname, room_id=room.room_id)
+        await self.update_player_count(room, increment=False)
         return player
 
     async def update_host(self, player_service: PlayerService, room: Room, old_host_id: str) -> Player:
@@ -145,6 +159,22 @@ class RoomService:
         game = await game_api.get_game(game_name=game_name)
         if not game.enabled:
             raise GameNotEnabled(f"{game_name} is not enabled")
+        elif room.player_count > game.maximum_players:
+            raise TooManyPlayersInRoomError(
+                "too many players in the room to play game",
+                game_name=game_name,
+                room_id=room.room_id,
+                room_player_count=room.player_count,
+                game_maximum_players=game.maximum_players,
+            )
+        elif room.player_count < game.minimum_players:
+            raise TooFewPlayersInRoomError(
+                "too few players in the room to play game",
+                game_name=game_name,
+                room_id=room.room_id,
+                room_player_count=room.player_count,
+                game_minimum_players=game.minimum_players,
+            )
 
         await self.room_repository.update_game_state(room=room, new_room_state=RoomState.PLAYING)
         return room

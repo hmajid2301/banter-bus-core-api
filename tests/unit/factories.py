@@ -20,6 +20,7 @@ class RoomFactory(factory.Factory):
     state = factory.fuzzy.FuzzyChoice(RoomState)
     created_at = datetime.now()
     updated_at = datetime.now()
+    player_count = 0
 
 
 class PlayerFactory(factory.Factory):

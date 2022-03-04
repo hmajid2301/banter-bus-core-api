@@ -24,6 +24,7 @@ class Room(Document):
     game_name: Optional[str] = None
     host: Optional[str] = None
     state: RoomState
+    player_count = 0
     created_at: datetime
     updated_at: datetime
 

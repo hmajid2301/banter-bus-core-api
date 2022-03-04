@@ -14,6 +14,8 @@ from app.room.room_exceptions import (
     RoomInInvalidState,
     RoomNotFound,
     RoomNotJoinableError,
+    TooFewPlayersInRoomError,
+    TooManyPlayersInRoomError,
 )
 from app.room.room_models import Room, RoomState
 from app.room.room_service import RoomService
@@ -326,7 +328,9 @@ async def test_should_start_game(httpx_mock: HTTPXMock):
     room_id = "4d18ac45-8034-4f8e-b636-cf730b17e51a"
     room_host_player_id = "5a18ac45-9876-4f8e-b636-cf730b17e59l"
 
-    existing_room: Room = RoomFactory.build(state=RoomState.CREATED, room_id=room_id, host=room_host_player_id)
+    existing_room: Room = RoomFactory.build(
+        state=RoomState.CREATED, room_id=room_id, host=room_host_player_id, player_count=2
+    )
     room_service = get_room_service(rooms=[existing_room])
     game_api = get_game_api_client()
 
@@ -369,7 +373,7 @@ async def test_should_start_game_game_disabled(httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
-async def test_should_not_start_game_room_not_found(httpx_mock: HTTPXMock):
+async def test_should_not_start_game_room_not_found():
     room_id = "4d18ac45-8034-4f8e-b636-cf730b17e51a"
     room_host_player_id = "5a18ac45-9876-4f8e-b636-cf730b17e59l"
 
@@ -384,7 +388,7 @@ async def test_should_not_start_game_room_not_found(httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
-async def test_should_not_start_game_player_not_host(httpx_mock: HTTPXMock):
+async def test_should_not_start_game_player_not_host():
     room_id = "4d18ac45-8034-4f8e-b636-cf730b17e51a"
     room_host_player_id = "5a18ac45-9876-4f8e-b636-cf730b17e59l"
 
@@ -395,6 +399,42 @@ async def test_should_not_start_game_player_not_host(httpx_mock: HTTPXMock):
     with pytest.raises(PlayerNotHostError):
         await room_service.start_game(
             game_api=game_api, game_name="fibbing_it", room_id=room_id, player_id="another_player_id"
+        )
+
+
+@pytest.mark.asyncio
+async def test_should_not_start_game_too_many_players(httpx_mock: HTTPXMock):
+    room_id = "4d18ac45-8034-4f8e-b636-cf730b17e51a"
+    room_host_player_id = "5a18ac45-9876-4f8e-b636-cf730b17e59l"
+
+    existing_room: Room = RoomFactory.build(
+        state=RoomState.CREATED, room_id=room_id, host=room_host_player_id, player_count=11
+    )
+    room_service = get_room_service(rooms=[existing_room])
+    game_api = get_game_api_client()
+
+    _mock_get_game(httpx_mock)
+    with pytest.raises(TooManyPlayersInRoomError):
+        await room_service.start_game(
+            game_api=game_api, game_name="fibbing_it", room_id=room_id, player_id=room_host_player_id
+        )
+
+
+@pytest.mark.asyncio
+async def test_should_not_start_game_too_few_players(httpx_mock: HTTPXMock):
+    room_id = "4d18ac45-8034-4f8e-b636-cf730b17e51a"
+    room_host_player_id = "5a18ac45-9876-4f8e-b636-cf730b17e59l"
+
+    existing_room: Room = RoomFactory.build(
+        state=RoomState.CREATED, room_id=room_id, host=room_host_player_id, player_count=0
+    )
+    room_service = get_room_service(rooms=[existing_room])
+    game_api = get_game_api_client()
+
+    _mock_get_game(httpx_mock)
+    with pytest.raises(TooFewPlayersInRoomError):
+        await room_service.start_game(
+            game_api=game_api, game_name="fibbing_it", room_id=room_id, player_id=room_host_player_id
         )
 
 
@@ -411,7 +451,7 @@ def _mock_get_game(httpx_mock: HTTPXMock, enabled=True):
             display_name="",
             description="",
             enabled=enabled,
-            minimum_players=0,
+            minimum_players=1,
             maximum_players=10,
             rules_url="",
         ).dict(),

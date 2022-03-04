@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from app.player.player_exceptions import PlayerExistsException, PlayerNotFound
 from app.player.player_models import Player
@@ -60,8 +60,8 @@ class FakePlayerRepository(AbstractPlayerRepository):
         player.room_id = None
         return player
 
-    async def update_disconnected_at(self, player: Player) -> Player:
-        player.disconnected_at = datetime.now()
+    async def update_disconnected_at(self, player: Player, disconnected_at: Optional[datetime] = None) -> Player:
+        player.disconnected_at = disconnected_at
         return player
 
     async def update_sid(self, player: Player, sid: str) -> Player:
