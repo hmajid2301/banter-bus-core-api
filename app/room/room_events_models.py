@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import List, Union
 
 from pydantic import BaseModel, validator
@@ -19,15 +20,28 @@ START_GAME = "START_GAME"
 GAME_STARTED = "GAME_STARTED"
 
 
-class CreateRoom(BaseModel):
-    pass
+class EventModel(BaseModel, ABC):
+    @property
+    @abstractmethod
+    def event_name(self) -> str:
+        raise NotImplementedError
 
 
-class RoomCreated(BaseModel):
+class CreateRoom(EventModel):
+    @property
+    def event_name(self):
+        return CREATE_ROOM
+
+
+class RoomCreated(EventModel):
     room_code: str
 
+    @property
+    def event_name(self):
+        return ROOM_CREATED
 
-class JoinRoom(BaseModel):
+
+class JoinRoom(EventModel):
     nickname: str
     avatar: Union[str, bytes]
     room_code: str
@@ -38,9 +52,17 @@ class JoinRoom(BaseModel):
             return value.encode()
         return value
 
+    @property
+    def event_name(self):
+        return JOIN_ROOM
 
-class RejoinRoom(BaseModel):
+
+class RejoinRoom(EventModel):
     player_id: str
+
+    @property
+    def event_name(self):
+        return REJOIN_ROOM
 
 
 class Player(BaseModel):
@@ -54,26 +76,42 @@ class Player(BaseModel):
         return value
 
 
-class RoomJoined(BaseModel):
+class RoomJoined(EventModel):
     host_player_nickname: str
     players: List[Player]
 
+    @property
+    def event_name(self):
+        return ROOM_JOINED
 
-class NewRoomJoined(BaseModel):
+
+class NewRoomJoined(EventModel):
     player_id: str
 
+    @property
+    def event_name(self):
+        return NEW_ROOM_JOINED
 
-class KickPlayer(BaseModel):
+
+class KickPlayer(EventModel):
     kick_player_nickname: str
     player_id: str
     room_code: str
 
+    @property
+    def event_name(self):
+        return KICK_PLAYER
 
-class PlayerKicked(BaseModel):
+
+class PlayerKicked(EventModel):
     nickname: str
 
+    @property
+    def event_name(self):
+        return PLAYER_KICKED
 
-class PlayerDisconnected(BaseModel):
+
+class PlayerDisconnected(EventModel):
     nickname: str
     avatar: Union[str, bytes]
 
@@ -83,30 +121,58 @@ class PlayerDisconnected(BaseModel):
             return value.decode()
         return value
 
+    @property
+    def event_name(self):
+        return PLAYER_DISCONNECTED
 
-class HostDisconnected(BaseModel):
+
+class HostDisconnected(EventModel):
     new_host_nickname: str
 
+    @property
+    def event_name(self):
+        return HOST_DISCONNECTED
 
-class PermanentlyDisconnectPlayer(BaseModel):
+
+class PermanentlyDisconnectPlayer(EventModel):
     nickname: str
     room_code: str
 
+    @property
+    def event_name(self):
+        return PERMANENTLY_DISCONNECT_PLAYER
 
-class PermanentlyDisconnectedPlayer(BaseModel):
+
+class PermanentlyDisconnectedPlayer(EventModel):
     nickname: str
 
+    @property
+    def event_name(self):
+        return PERMANENTLY_DISCONNECTED_PLAYER
 
-class StartGame(BaseModel):
+
+class StartGame(EventModel):
     player_id: str
     game_name: str
     room_code: str
 
+    @property
+    def event_name(self):
+        return START_GAME
 
-class GameStarted(BaseModel):
+
+class GameStarted(EventModel):
     game_name: str
 
+    @property
+    def event_name(self):
+        return GAME_STARTED
 
-class Error(BaseModel):
+
+class Error(EventModel):
     code: str
     message: str
+
+    @property
+    def event_name(self):
+        return ERROR

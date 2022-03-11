@@ -45,7 +45,6 @@ class PlayerService:
 
     async def disconnect_player(self, nickname: str, room_id: str, disconnect_timer_in_seconds: int) -> Player:
         player = await self.player_repository.get_by_nickname(room_id=room_id, nickname=nickname)
-
         if player.disconnected_at and player.room_id:
             now = datetime.now()
             disconnect_at = player.disconnected_at + timedelta(seconds=disconnect_timer_in_seconds)

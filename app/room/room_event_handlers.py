@@ -1,28 +1,22 @@
-from typing import List
+from typing import List, Tuple, Union
 
 from omnibus.log.logger import get_logger
 from pydantic import parse_obj_as
 
 from app.core.config import get_settings
-from app.main import sio
-from app.model_validator import validate
+from app.event_manager import (
+    enter_room,
+    error_handler,
+    event_handler,
+    leave_room,
+    publish_event,
+)
 from app.player.player_exceptions import PlayerHasNoRoomError, PlayerNotHostError
 from app.player.player_factory import get_player_service
 from app.player.player_models import NewPlayer, RoomPlayers
 from app.room.room_events_models import (
-    CREATE_ROOM,
     ERROR,
-    GAME_STARTED,
-    JOIN_ROOM,
-    KICK_PLAYER,
     NEW_ROOM_JOINED,
-    PERMANENTLY_DISCONNECT_PLAYER,
-    PERMANENTLY_DISCONNECTED_PLAYER,
-    PLAYER_KICKED,
-    REJOIN_ROOM,
-    ROOM_CREATED,
-    ROOM_JOINED,
-    START_GAME,
     CreateRoom,
     Error,
     GameStarted,
@@ -46,29 +40,26 @@ from app.room.room_exceptions import (
 from app.room.room_factory import get_game_api, get_room_service
 
 
-async def handle_error(sid, error_code):
+async def handle_error(sid):
     logger = get_logger()
-    logger.exception("Failed action", error_code=error_code)
-    error = Error(code=error_code, message="An unexpected error occurred on the server")
-    await sio.emit(ERROR, error.dict(), room=sid)
+    logger.exception("Failed action")
+    error = Error(code="server_error", message="An unexpected error occurred on the server")
+    await publish_event(event_name=ERROR, event_body=error, room=sid)
 
 
-@validate(CreateRoom, handle_error, "room_create_fail")
-async def create_room(sid, data: CreateRoom):
-    logger = get_logger()
-    logger.debug(CREATE_ROOM)
-
+@event_handler(input_model=CreateRoom)
+@error_handler(Exception, handle_error)
+async def create_room(sid: str, _: CreateRoom) -> Tuple[RoomCreated, None]:
     room_service = get_room_service()
     created_room = await room_service.create()
     room_created = RoomCreated(room_code=created_room.room_id)
-    await sio.emit(ROOM_CREATED, room_created.dict())
-    logger.debug("room created", room_created=room_created.dict(), room=sid)
+    return room_created, None
 
 
-@validate(JoinRoom, handle_error, "room_join_fail")
-async def join_room(sid, data: JoinRoom):
+@event_handler(input_model=JoinRoom)
+@error_handler(Exception, handle_error)
+async def join_room(sid, data: JoinRoom) -> Tuple[Union[RoomJoined, Error], str]:
     logger = get_logger()
-    logger.debug(JOIN_ROOM, player_id=sid)
     try:
         room_service = get_room_service()
         player_service = get_player_service()
@@ -82,24 +73,22 @@ async def join_room(sid, data: JoinRoom):
         )
         room_joined = await _publish_room_joined(sid, data.room_code, room_players)
         new_room_joined = NewRoomJoined(player_id=room_players.player_id)
-        await sio.emit(NEW_ROOM_JOINED, new_room_joined.dict(), room=sid)
-        avatar_excludes = {idx: {"avatar"} for idx in range(len(room_joined.players))}
-        logger.debug(ROOM_JOINED, room_joined=room_joined.dict(exclude={"players": avatar_excludes}))
-        logger.debug(NEW_ROOM_JOINED, new_room_joined=new_room_joined.dict(exclude={"players": avatar_excludes}))
+        await publish_event(event_name=NEW_ROOM_JOINED, event_body=new_room_joined, room=sid)
+        return room_joined, sid
     except RoomNotFound as e:
         logger.exception("room not found", room_code=e.room_idenitifer)
         error = Error(code="room_join_fail", message="room not found")
-        await sio.emit(ERROR, error.dict(), room=sid)
+        return error, sid
     except NicknameExistsException as e:
         logger.exception("nickname already exists", room_code=data.room_code, nickname=e.nickname)
         error = Error(code="room_join_fail", message=f"nickname {e.nickname} already exists")
-        await sio.emit(ERROR, error.dict(), room=sid)
+        return error, sid
 
 
-@validate(RejoinRoom, handle_error, "room_join_fail")
-async def rejoin_room(sid, data: RejoinRoom):
+@event_handler(input_model=RejoinRoom)
+@error_handler(Exception, handle_error)
+async def rejoin_room(sid, data: RejoinRoom) -> Tuple[Union[RoomJoined, Error], str]:
     logger = get_logger()
-    logger.debug(REJOIN_ROOM, player_id=sid)
     try:
         room_service = get_room_service()
         player_service = get_player_service()
@@ -107,30 +96,28 @@ async def rejoin_room(sid, data: RejoinRoom):
             player_service=player_service, player_id=data.player_id, latest_sid=sid
         )
         room_joined = await _publish_room_joined(sid, room_players.room_code, room_players)
-        avatar_excludes = {idx: {"avatar"} for idx in range(len(room_joined.players))}
-        logger.debug(ROOM_JOINED, room_joined=room_joined.dict(exclude={"players": avatar_excludes}))
+        return room_joined, room_players.room_code
     except RoomNotFound as e:
         logger.exception("room not found", room_code=e.room_idenitifer)
         error = Error(code="room_join_fail", message="room not found")
-        await sio.emit(ERROR, error.dict(), room=sid)
+        return error, sid
     except PlayerHasNoRoomError:
         logger.exception("player has no room, they were likely disconnected from said room", player_id=data.player_id)
         error = Error(code="room_join_fail", message="disconnected from room, please re-join with a new nickname")
-        await sio.emit(ERROR, error.dict(), room=sid)
+        return error, sid
 
 
 async def _publish_room_joined(sid: str, room_code: str, room_players: RoomPlayers) -> RoomJoined:
     players = parse_obj_as(List[Player], room_players.players)
     room_joined = RoomJoined(players=players, host_player_nickname=room_players.host_player_nickname)
-    sio.enter_room(sid, room_code)
-    await sio.emit(ROOM_JOINED, data=room_joined.dict(), room=room_code)
+    enter_room(sid, room_code)
     return room_joined
 
 
-@validate(KickPlayer, handle_error, "kick_player_fail")
-async def kick_player(sid, data: KickPlayer):
+@event_handler(input_model=KickPlayer)
+@error_handler(Exception, handle_error)
+async def kick_player(sid, data: KickPlayer) -> Tuple[Union[PlayerKicked, Error], str]:
     logger = get_logger()
-    logger.debug(KICK_PLAYER, player_id=sid)
     try:
         room_service = get_room_service()
         player_service = get_player_service()
@@ -142,29 +129,31 @@ async def kick_player(sid, data: KickPlayer):
             room_id=data.room_code,
         )
         player_kicked = PlayerKicked(nickname=kicked_player.nickname)
-        logger.debug(PLAYER_KICKED, player_kicked=player_kicked.dict())
-        await sio.emit(PLAYER_KICKED, data=player_kicked.dict(), room=data.room_code)
-        sio.leave_room(kicked_player.latest_sid, room=data.room_code)
+        leave_room(kicked_player.latest_sid, room=data.room_code)
+        return player_kicked, data.room_code
     except RoomInInvalidState as e:
         logger.exception("Game has started playing cannot kick players", room_state=e.room_state)
         error = Error(code="kick_player_fail", message="The game has started playing, so cannot kick player")
-        await sio.emit(ERROR, error.dict(), room=sid)
+        return error, sid
     except PlayerNotHostError as e:
         logger.exception("player is not host so cannot kick", player_id=e.player_id, host_player_id=e.host_player_id)
         error = Error(code="kick_player_fail", message="You are not host, so cannot kick another player")
-        await sio.emit(ERROR, error.dict(), room=sid)
+        return error, sid
     except RoomNotFound as e:
         logger.exception("room not found", room_code=e.room_idenitifer)
         error = Error(code="kick_player_fail", message="Room not found")
-        await sio.emit(ERROR, error.dict(), room=sid)
+        return error, sid
 
 
-@validate(PermanentlyDisconnectPlayer, handle_error, "disconnect_player_fail")
-async def permanently_disconnect_player(sid, data: PermanentlyDisconnectPlayer):
+@event_handler(input_model=PermanentlyDisconnectPlayer)
+@error_handler(Exception, handle_error)
+async def permanently_disconnect_player(
+    _: str, data: PermanentlyDisconnectPlayer
+) -> Tuple[PermanentlyDisconnectedPlayer, str]:
     logger = get_logger()
-    logger.debug(PERMANENTLY_DISCONNECT_PLAYER, player_id=sid)
-    config = get_settings()
+
     try:
+        config = get_settings()
         player_service = get_player_service()
         room_service = get_room_service()
 
@@ -176,18 +165,21 @@ async def permanently_disconnect_player(sid, data: PermanentlyDisconnectPlayer):
             disconnect_timer_in_seconds=config.DISCONNECT_TIMER_IN_SECONDS,
         )
 
+        if not disconnected_player.room_id:
+            logger.warning("Player already disconnected ", player_id=disconnected_player.player_id)
+            raise Exception("Unexpected state player already disconnected")
+
+        leave_room(disconnected_player.latest_sid, room=disconnected_player.room_id)
         perm_disconnected_player = PermanentlyDisconnectedPlayer(nickname=data.nickname)
-        logger.debug(PERMANENTLY_DISCONNECTED_PLAYER, disconnected_player=perm_disconnected_player.dict())
-        sio.leave_room(disconnected_player.latest_sid, room=disconnected_player.room_id)
-        await sio.emit(PERMANENTLY_DISCONNECTED_PLAYER, data=perm_disconnected_player.dict(), room=data.room_code)
+        return perm_disconnected_player, data.room_code
     except RoomNotFound as e:
         logger.exception("room not found", room_code=e.room_idenitifer)
+        raise e
 
 
-@validate(StartGame, handle_error, "start_game_fail")
-async def start_game(sid, data: StartGame):
-    logger = get_logger()
-    logger.debug(START_GAME, player_id=sid)
+@event_handler(input_model=StartGame)
+@error_handler(Exception, handle_error)
+async def start_game(_: str, data: StartGame) -> Tuple[GameStarted, str]:
     room_service = get_room_service()
     game_api = get_game_api()
     await room_service.start_game(
@@ -195,5 +187,4 @@ async def start_game(sid, data: StartGame):
     )
 
     game_started = GameStarted(game_name=data.game_name)
-    logger.debug(GAME_STARTED, game_started=game_started.dict())
-    await sio.emit(GAME_STARTED, data=game_started.dict(), room=data.room_code)
+    return game_started, data.room_code
