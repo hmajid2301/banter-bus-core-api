@@ -1,4 +1,4 @@
-asyncapi: 2.2.0
+asyncapi: 2.3.0
 info:
   title: Banter Bus Core API
   version: 1.0.0
@@ -68,6 +68,12 @@ components:
         $ref: "#/components/schemas/rejoin_room"
       x-response:
         $ref: "#/components/messages/room_joined"
+    new_room_joined:
+      summary: Response to a player joining a room message.
+      description: >-
+        Server responds to `join_room`.
+      payload:
+        $ref: "#/components/schemas/new_room_joined"
     room_joined:
       summary: Response to a player joining a room message.
       description: >-
@@ -212,9 +218,7 @@ components:
       required:
         - nickname
     player_disconnected:
-      type: object
-      properties:
-        $ref: "#/components/schemas/player"
+      $ref: "#/components/schemas/player"
     permanently_disconnect_player:
       type: object
       properties:
