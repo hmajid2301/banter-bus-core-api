@@ -4,10 +4,10 @@ import base64
 import pytest
 from socketio.asyncio_client import AsyncClient
 
+from app.event_models import Error
 from app.main import sio
 from app.player.player_factory import get_player_service
-from app.room.room_events_models import (
-    Error,
+from app.room.lobby.lobby_events_models import (
     GameStarted,
     HostDisconnected,
     JoinRoom,
@@ -16,10 +16,10 @@ from app.room.room_events_models import (
     PlayerDisconnected,
     PlayerKicked,
     RejoinRoom,
-    RoomCreated,
     RoomJoined,
     StartGame,
 )
+from app.room.room_events_models import RoomCreated
 from tests.integration.conftest import BASE_URL
 
 

@@ -1,6 +1,7 @@
 from app.clients.management_api.api.games_api import AsyncGamesApi
 from app.clients.management_api.api_client import ApiClient
 from app.core.config import get_settings
+from app.room.lobby.lobby_service import LobbyService
 from app.room.room_repository import AbstractRoomRepository, RoomRepository
 from app.room.room_service import RoomService
 
@@ -13,6 +14,12 @@ def get_room_service() -> RoomService:
     room_repository = get_room_repository()
     room_service = RoomService(room_repository=room_repository)
     return room_service
+
+
+def get_lobby_service() -> LobbyService:
+    room_service = get_room_service()
+    room_lobby_service = LobbyService(room_service=room_service)
+    return room_lobby_service
 
 
 def get_game_api() -> AsyncGamesApi:

@@ -2,8 +2,9 @@ from typing import Any, Callable, Coroutine, Optional, Type
 
 from structlog import get_logger
 
+from app.event_models import ERROR, Error
 from app.main import sio
-from app.room.room_events_models import ERROR, Error, EventModel
+from app.room.room_events_models import EventModel
 
 
 def error_handler(exception: Type[Exception], error_callback: Callable[[str], Coroutine[Any, Any, None]]):

@@ -2,6 +2,7 @@ from app.clients.management_api.api.games_api import AsyncGamesApi
 from app.clients.management_api.api_client import ApiClient
 from app.player.player_models import Player
 from app.player.player_service import PlayerService
+from app.room.lobby.lobby_service import LobbyService
 from app.room.room_models import Room
 from app.room.room_service import RoomService
 from tests.unit.factories import PlayerFactory, RoomFactory
@@ -33,6 +34,12 @@ def get_room_service(rooms: list[Room] = [], num: int = 1, **kwargs) -> RoomServ
     room_repository = FakeRoomRepository(rooms=existing_room)
     room_service = RoomService(room_repository=room_repository)
     return room_service
+
+
+def get_lobby_service(rooms: list[Room] = [], num: int = 1, **kwargs) -> LobbyService:
+    room_service = get_room_service(rooms=rooms, num=num, **kwargs)
+    lobby_service = LobbyService(room_service=room_service)
+    return lobby_service
 
 
 def get_game_api_client() -> AsyncGamesApi:
