@@ -20,7 +20,7 @@ class FakeRoomRepository(AbstractRoomRepository):
         for room in self.rooms:
             if room.room_id == id_:
                 return room
-        raise RoomNotFound("room not found", room_idenitifer=id_)
+        raise RoomNotFound("room not found", room_identifier=id_)
 
     async def remove(self, id_: str):
         return await super().remove(id_)

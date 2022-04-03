@@ -3,8 +3,8 @@ from pytest_mock import MockFixture
 
 from app.room.room_exceptions import RoomNotFound
 from app.room.room_models import Room, RoomState
-from tests.unit.common import get_room_service
 from tests.unit.factories import RoomFactory
+from tests.unit.get_services import get_room_service
 
 
 @pytest.fixture(autouse=True)

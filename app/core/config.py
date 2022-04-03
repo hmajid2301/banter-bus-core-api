@@ -12,6 +12,8 @@ class Settings(OmnibusSettings):
     MESSAGE_QUEUE_HOST: str
     MESSAGE_QUEUE_PORT: Optional[int]
 
+    QUESTIONS_PER_ROUND: int = 3
+
     class Config:
         env_prefix = "BANTER_BUS_CORE_API_"
         env_file = ".env"

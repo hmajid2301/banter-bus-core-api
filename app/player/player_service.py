@@ -7,8 +7,8 @@ from app.player.player_repository import AbstractPlayerRepository
 
 
 class PlayerService:
-    def __init__(self, player_repository: AbstractPlayerRepository) -> None:
-        self.player_repository = player_repository
+    def __init__(self, game_state_repository: AbstractPlayerRepository) -> None:
+        self.player_repository = game_state_repository
 
     async def create(self, room_id: str, new_player: NewPlayer) -> Player:
         player_id = str(uuid4())

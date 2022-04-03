@@ -1,9 +1,11 @@
 import base64
 from datetime import datetime
+from typing import List
 
 import factory
 import factory.fuzzy
 
+from app.game_state.game_state_models import GameState, PlayerScore
 from app.player.player_models import NewPlayer, Player
 from app.room.room_models import Room, RoomState
 
@@ -37,6 +39,15 @@ class PlayerFactory(factory.Factory):
         "lexify", text="??????????????", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
     )
     disconnected_at = None
+
+
+class GameStateFactory(factory.Factory):
+    class Meta:
+        model = GameState
+
+    game_name = factory.fuzzy.FuzzyChoice(game_names)
+    room_id = factory.Faker("uuid4")
+    player_scores: List[PlayerScore] = []
 
 
 def get_new_player() -> NewPlayer:

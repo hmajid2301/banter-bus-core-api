@@ -12,8 +12,12 @@ from app.room.room_exceptions import (
     RoomNotJoinableError,
 )
 from app.room.room_models import Room, RoomState
-from tests.unit.common import get_lobby_service, get_player_service, get_room_service
 from tests.unit.factories import PlayerFactory, RoomFactory, get_new_player
+from tests.unit.get_services import (
+    get_lobby_service,
+    get_player_service,
+    get_room_service,
+)
 
 
 @pytest.fixture(autouse=True)

@@ -6,8 +6,8 @@ from pytest_mock import MockFixture
 
 from app.player.player_exceptions import PlayerNotFound
 from app.player.player_models import Player
-from tests.unit.common import get_player_service
 from tests.unit.factories import PlayerFactory, get_new_player
+from tests.unit.get_services import get_player_service
 
 
 @pytest.fixture(autouse=True)

@@ -68,7 +68,7 @@ class QuestionPaginationOut(BaseModel):
 class QuestionSimpleOut(BaseModel):
     question_id: "str" = Field(..., alias="question_id")
     content: "str" = Field(..., alias="content")
-    type: "QuestionType" = Field(..., alias="type")
+    type: "Optional[str]" = Field(None, alias="type")
 
 
 class QuestionTranslationIn(BaseModel):

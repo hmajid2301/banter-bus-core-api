@@ -31,7 +31,7 @@ class RoomRepository(AbstractRoomRepository):
     async def get(self, id_: str) -> Room:
         room = await Room.find_one(Room.room_id == id_)
         if room is None:
-            raise RoomNotFound(msg="room not found", room_idenitifer=id_)
+            raise RoomNotFound(msg="room not found", room_identifier=id_)
         return room
 
     async def remove(self, id_: str):

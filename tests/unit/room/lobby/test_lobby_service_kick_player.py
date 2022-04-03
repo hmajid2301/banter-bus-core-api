@@ -7,8 +7,8 @@ from app.player.player_exceptions import PlayerNotHostError
 from app.player.player_models import Player
 from app.room.room_exceptions import RoomInInvalidState, RoomNotFound
 from app.room.room_models import Room, RoomState
-from tests.unit.common import get_lobby_service, get_player_service
 from tests.unit.factories import PlayerFactory, RoomFactory
+from tests.unit.get_services import get_lobby_service, get_player_service
 
 
 @pytest.fixture(autouse=True)

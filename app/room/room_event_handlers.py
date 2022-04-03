@@ -53,5 +53,5 @@ async def permanently_disconnect_player(
         perm_disconnected_player = PermanentlyDisconnectedPlayer(nickname=data.nickname)
         return perm_disconnected_player, data.room_code
     except RoomNotFound as e:
-        logger.exception("room not found", room_code=e.room_idenitifer)
+        logger.exception("room not found", room_code=e.room_identifier)
         raise e

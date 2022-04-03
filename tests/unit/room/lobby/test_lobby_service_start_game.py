@@ -12,8 +12,8 @@ from app.room.room_exceptions import (
     TooManyPlayersInRoomError,
 )
 from app.room.room_models import Room, RoomState
-from tests.unit.common import get_game_api_client, get_lobby_service
 from tests.unit.factories import RoomFactory
+from tests.unit.get_services import get_game_api_client, get_lobby_service
 
 
 @pytest.fixture(autouse=True)

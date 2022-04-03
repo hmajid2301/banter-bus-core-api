@@ -55,7 +55,7 @@ async def join_room(sid, data: JoinRoom) -> Tuple[Union[RoomJoined, Error], str]
         await publish_event(event_name=NEW_ROOM_JOINED, event_body=new_room_joined, room=sid)
         return room_joined, sid
     except RoomNotFound as e:
-        logger.exception("room not found", room_code=e.room_idenitifer)
+        logger.exception("room not found", room_code=e.room_identifier)
         error = Error(code="room_join_fail", message="room not found")
         return error, sid
     except NicknameExistsException as e:
@@ -77,7 +77,7 @@ async def rejoin_room(sid, data: RejoinRoom) -> Tuple[Union[RoomJoined, Error], 
         room_joined = await _publish_room_joined(sid, room_players.room_code, room_players)
         return room_joined, room_players.room_code
     except RoomNotFound as e:
-        logger.exception("room not found", room_code=e.room_idenitifer)
+        logger.exception("room not found", room_code=e.room_identifier)
         error = Error(code="room_join_fail", message="room not found")
         return error, sid
     except PlayerHasNoRoomError:
@@ -119,7 +119,7 @@ async def kick_player(sid, data: KickPlayer) -> Tuple[Union[PlayerKicked, Error]
         error = Error(code="kick_player_fail", message="You are not host, so cannot kick another player")
         return error, sid
     except RoomNotFound as e:
-        logger.exception("room not found", room_code=e.room_idenitifer)
+        logger.exception("room not found", room_code=e.room_identifier)
         error = Error(code="kick_player_fail", message="Room not found")
         return error, sid
 
