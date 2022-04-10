@@ -8,7 +8,7 @@ from app.player.player_models import Player
 from app.room.room_exceptions import RoomInInvalidState, RoomNotFound
 from app.room.room_models import Room, RoomState
 from tests.unit.factories import PlayerFactory, RoomFactory
-from tests.unit.get_services import get_lobby_service, get_player_service
+from tests.unit.get_services import get_lobby_service
 
 
 @pytest.fixture(autouse=True)
@@ -26,11 +26,8 @@ async def test_should_kick_player():
     existing_players[0].player_id = room_host_player_id
     player_to_kick = existing_players[1]
 
-    player_service = get_player_service(existing_players)
-    lobby_service = get_lobby_service(rooms=[existing_room])
-
+    lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
     player_kicked = await lobby_service.kick_player(
-        player_service=player_service,
         player_to_kick_nickname=player_to_kick.nickname,
         player_attempting_kick=room_host_player_id,
         room_id=existing_room.room_id,
@@ -48,12 +45,9 @@ async def test_should_not_kick_player_player_not_host():
     existing_players[0].player_id = room_host_player_id
     player_to_kick = existing_players[1]
 
-    player_service = get_player_service(existing_players)
-    lobby_service = get_lobby_service(rooms=[existing_room])
-
+    lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
     with pytest.raises(PlayerNotHostError):
         await lobby_service.kick_player(
-            player_service=player_service,
             player_to_kick_nickname=player_to_kick.nickname,
             player_attempting_kick=existing_players[2].player_id,
             room_id=existing_room.room_id,
@@ -70,12 +64,9 @@ async def test_should_not_kick_player_room_not_found():
     existing_players[0].player_id = room_host_player_id
     player_to_kick = existing_players[1]
 
-    player_service = get_player_service(existing_players)
-    lobby_service = get_lobby_service(rooms=[existing_room])
-
+    lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
     with pytest.raises(RoomNotFound):
         await lobby_service.kick_player(
-            player_service=player_service,
             player_to_kick_nickname=player_to_kick.nickname,
             player_attempting_kick=room_host_player_id,
             room_id="BADROOM",
@@ -92,12 +83,9 @@ async def test_should_not_kick_player_invalid_room_state():
     existing_players[0].player_id = room_host_player_id
     player_to_kick = existing_players[1]
 
-    player_service = get_player_service(existing_players)
-    lobby_service = get_lobby_service(rooms=[existing_room])
-
+    lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
     with pytest.raises(RoomInInvalidState):
         await lobby_service.kick_player(
-            player_service=player_service,
             player_to_kick_nickname=player_to_kick.nickname,
             player_attempting_kick=room_host_player_id,
             room_id=existing_room.room_id,

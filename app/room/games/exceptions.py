@@ -1,0 +1,2 @@
+class UnexpectedGameStateType(Exception):
+    pass

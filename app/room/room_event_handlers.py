@@ -5,9 +5,13 @@ from omnibus.log.logger import get_logger
 from app.core.config import get_settings
 from app.event_manager import error_handler, event_handler, leave_room
 from app.exception_handlers import handle_error
+from app.game_state.game_state_factory import get_game_state_service
 from app.player.player_factory import get_player_service
+from app.room.games.game import get_game
 from app.room.room_events_models import (
     CreateRoom,
+    GetNextQuestion,
+    GotNextQuestion,
     PermanentlyDisconnectedPlayer,
     PermanentlyDisconnectPlayer,
     RoomCreated,
@@ -55,3 +59,15 @@ async def permanently_disconnect_player(
     except RoomNotFound as e:
         logger.exception("room not found", room_code=e.room_identifier)
         raise e
+
+
+@event_handler(input_model=GetNextQuestion)
+@error_handler(Exception, handle_error)
+async def get_next_question(sid: str, get_next_question: GetNextQuestion) -> Tuple[GotNextQuestion, str]:
+    game_state_service = get_game_state_service()
+    game_state = await game_state_service.get_game_state_by_room_id(room_id=get_next_question.room_code)
+    next_question = await game_state_service.get_next_question(game_state=game_state)
+
+    game = get_game(game_name=game_state.game_name)
+    got_next_question = game.got_next_question(sid=sid, game_state=game_state, next_question=next_question)
+    return got_next_question, sid

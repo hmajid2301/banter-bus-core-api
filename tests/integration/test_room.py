@@ -19,7 +19,7 @@ from app.room.lobby.lobby_events_models import (
     RoomJoined,
     StartGame,
 )
-from app.room.room_events_models import RoomCreated
+from app.room.room_events_models import GetNextQuestion, GotNextQuestion, RoomCreated
 from tests.integration.conftest import BASE_URL
 
 
@@ -225,3 +225,24 @@ async def test_start_game(client: AsyncClient):
     await asyncio.wait_for(future, timeout=5.0)
     game_started: GameStarted = future.result()
     assert game_started.game_name == "fibbing_it"
+
+
+@pytest.mark.asyncio
+async def test_get_next_question(client: AsyncClient):
+    future = asyncio.get_running_loop().create_future()
+
+    @client.on("GOT_NEXT_QUESTION")
+    def _(data):
+        future.set_result(GotNextQuestion(**data))
+
+    room_code = "2257856e-bf37-4cc4-8551-0b1ccdc38c60"
+    get_next_question = GetNextQuestion(
+        room_code=room_code,
+    )
+    sio.enter_room(client.get_sid(), room=room_code)
+    await client.emit("GET_NEXT_QUESTION", get_next_question.dict())
+    await asyncio.wait_for(future, timeout=5.0)
+    got_next_question: GotNextQuestion = future.result()
+    assert got_next_question.updated_round.round_changed is True
+    assert got_next_question.updated_round.new_round == "opinion"
+    assert got_next_question.question.answers is not None

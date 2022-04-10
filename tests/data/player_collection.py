@@ -70,4 +70,40 @@ players: List[Player] = [
             "latest_sid": "123456",
         },
     ),
+    Player(
+        **{
+            "room_id": "2257856e-bf37-4cc4-8551-0b1ccdc38c60",
+            "player_id": "8cdc1984-e832-48c7-9d89-1d724665bef1",
+            "nickname": "Majiy",
+            "avatar": b"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg",
+            "latest_sid": "123456",
+        },
+    ),
+    Player(
+        **{
+            "room_id": "2257856e-bf37-4cc4-8551-0b1ccdc38c60",
+            "player_id": "02b38b51-3926-4b11-829a-54aa848f992f",
+            "nickname": "AnotherPlayer",
+            "avatar": b"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg",
+            "latest_sid": "65371",
+        },
+    ),
+    Player(
+        **{
+            "room_id": "2257856e-bf37-4cc4-8551-0b1ccdc38c60",
+            "player_id": "49e810c5-c0ae-4443-88da-9fa4788541f2",
+            "nickname": "Lima",
+            "avatar": b"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg",
+            "latest_sid": "abcd1234",
+        },
+    ),
+    Player(
+        **{
+            "room_id": "2257856e-bf37-4cc4-8551-0b1ccdc38c60",
+            "player_id": "63fd683c-570a-49ac-b2bb-b1f306296ea7",
+            "nickname": "YAP",
+            "avatar": b"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg",
+            "latest_sid": "zxcvb980",
+        },
+    ),
 ]

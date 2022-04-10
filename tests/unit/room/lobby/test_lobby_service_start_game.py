@@ -1,9 +1,11 @@
+from typing import List
+
 import pytest
 from pytest_httpx import HTTPXMock
 from pytest_mock import MockFixture
 
-from app.clients.management_api.models import GameOut
 from app.player.player_exceptions import PlayerNotHostError
+from app.player.player_models import Player
 from app.room.room_exceptions import (
     GameNotEnabled,
     RoomInInvalidState,
@@ -12,8 +14,9 @@ from app.room.room_exceptions import (
     TooManyPlayersInRoomError,
 )
 from app.room.room_models import Room, RoomState
-from tests.unit.factories import RoomFactory
+from tests.unit.factories import PlayerFactory, RoomFactory
 from tests.unit.get_services import get_game_api_client, get_lobby_service
+from tests.unit.mocks import mock_get_game, mock_get_questions
 
 
 @pytest.fixture(autouse=True)
@@ -29,10 +32,12 @@ async def test_should_start_game(httpx_mock: HTTPXMock):
     existing_room: Room = RoomFactory.build(
         state=RoomState.CREATED, room_id=room_id, host=room_host_player_id, player_count=2
     )
-    lobby_service = get_lobby_service(rooms=[existing_room])
+    existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
+    lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
     game_api = get_game_api_client()
 
-    _mock_get_game(httpx_mock)
+    mock_get_game(httpx_mock)
+    mock_get_questions(httpx_mock)
     room = await lobby_service.start_game(
         game_api=game_api, game_name="fibbing_it", room_id=existing_room.room_id, player_id=room_host_player_id
     )
@@ -63,7 +68,7 @@ async def test_should_start_game_game_disabled(httpx_mock: HTTPXMock):
     lobby_service = get_lobby_service(rooms=[existing_room])
     game_api = get_game_api_client()
 
-    _mock_get_game(httpx_mock, enabled=False)
+    mock_get_game(httpx_mock, enabled=False)
     with pytest.raises(GameNotEnabled):
         await lobby_service.start_game(
             game_api=game_api, game_name="fibbing_it", room_id=existing_room.room_id, player_id=room_host_player_id
@@ -111,7 +116,7 @@ async def test_should_not_start_game_too_many_players(httpx_mock: HTTPXMock):
     lobby_service = get_lobby_service(rooms=[existing_room])
     game_api = get_game_api_client()
 
-    _mock_get_game(httpx_mock)
+    mock_get_game(httpx_mock)
     with pytest.raises(TooManyPlayersInRoomError):
         await lobby_service.start_game(
             game_api=game_api, game_name="fibbing_it", room_id=room_id, player_id=room_host_player_id
@@ -129,24 +134,8 @@ async def test_should_not_start_game_too_few_players(httpx_mock: HTTPXMock):
     lobby_service = get_lobby_service(rooms=[existing_room])
     game_api = get_game_api_client()
 
-    _mock_get_game(httpx_mock)
+    mock_get_game(httpx_mock)
     with pytest.raises(TooFewPlayersInRoomError):
         await lobby_service.start_game(
             game_api=game_api, game_name="fibbing_it", room_id=room_id, player_id=room_host_player_id
         )
-
-
-def _mock_get_game(httpx_mock: HTTPXMock, enabled=True):
-    httpx_mock.add_response(
-        url="http://localhost/game/fibbing_it",
-        method="GET",
-        json=GameOut(
-            name="fibbing_it",
-            display_name="",
-            description="",
-            enabled=enabled,
-            minimum_players=1,
-            maximum_players=10,
-            rules_url="",
-        ).dict(),
-    )

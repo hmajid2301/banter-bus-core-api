@@ -28,6 +28,17 @@ rooms: List[Room] = [
     ),
     Room(
         **{
+            "room_id": "2257856e-bf37-4cc4-8551-0b1ccdc38c60",
+            "game_name": "fibbing_it",
+            "host": "8cdc1984-e832-48c7-9d89-1d724665bef1",
+            "state": RoomState.PLAYING,
+            "created_at": datetime.now(),
+            "updated_at": datetime.now(),
+            "player_count": 4,
+        }
+    ),
+    Room(
+        **{
             "room_id": "a4ffd1c8-93c5-4f4c-8ace-71996edcbcb7",
             "game_name": "fibbing_it",
             "host": "",

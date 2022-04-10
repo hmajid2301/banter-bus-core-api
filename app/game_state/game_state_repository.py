@@ -12,7 +12,7 @@ from app.game_state.game_state_models import GameState
 
 class AbstractGameStateRepository(AbstractRepository[GameState]):
     @abc.abstractmethod
-    async def add(self, game_state: GameState):
+    async def update(self, game_state: GameState) -> GameState:
         raise NotImplementedError
 
 
@@ -30,4 +30,8 @@ class GameStateRepository(AbstractGameStateRepository):
         game_state = await GameState.find_one(GameState.room_id == id_)
         if game_state is None:
             raise GameStateNotFound(msg="game state not found", room_identifier=id_)
+        return game_state
+
+    async def update(self, game_state: GameState) -> GameState:
+        await game_state.save()
         return game_state

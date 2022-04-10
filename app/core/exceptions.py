@@ -16,3 +16,7 @@ class IncorrectFormatException(Exception):
 
 class NoOtherHostError(Exception):
     pass
+
+
+class GameNotFound(Exception):
+    pass

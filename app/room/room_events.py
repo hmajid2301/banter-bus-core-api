@@ -21,8 +21,16 @@ from app.room.lobby.lobby_events_models import (
     HostDisconnected,
     PlayerDisconnected,
 )
-from app.room.room_event_handlers import create_room, permanently_disconnect_player
-from app.room.room_events_models import CREATE_ROOM, PERMANENTLY_DISCONNECT_PLAYER
+from app.room.room_event_handlers import (
+    create_room,
+    get_next_question,
+    permanently_disconnect_player,
+)
+from app.room.room_events_models import (
+    CREATE_ROOM,
+    GET_NEXT_QUESTION,
+    PERMANENTLY_DISCONNECT_PLAYER,
+)
 from app.room.room_factory import get_lobby_service, get_room_service
 
 
@@ -51,9 +59,7 @@ async def disconnect(sid):
         lobby_service = get_lobby_service()
         room = await room_service.get(room_id=player.room_id)
         if room.host == player.player_id:
-            new_host = await lobby_service.update_host(
-                player_service=player_service, room=room, old_host_id=player.player_id
-            )
+            new_host = await lobby_service.update_host(room=room, old_host_id=player.player_id)
             host_disconnected = HostDisconnected(new_host_nickname=new_host.nickname)
             await sio.emit(HOST_DISCONNECTED, host_disconnected.dict(), room=room.room_id)
 
@@ -66,3 +72,4 @@ sio.on(REJOIN_ROOM, rejoin_room)
 sio.on(KICK_PLAYER, kick_player)
 sio.on(PERMANENTLY_DISCONNECT_PLAYER, permanently_disconnect_player)
 sio.on(START_GAME, start_game)
+sio.on(GET_NEXT_QUESTION, get_next_question)

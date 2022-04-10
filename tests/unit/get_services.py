@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from app.clients.management_api.api.games_api import AsyncGamesApi
 from app.clients.management_api.api.questions_api import AsyncQuestionsApi
@@ -26,7 +26,7 @@ def get_player_service(players: Optional[list[Player]] = None, num: int = 1, **k
         existing_players = []
 
     player_repository = FakePlayerRepository(players=existing_players)
-    player_service = PlayerService(game_state_repository=player_repository)
+    player_service = PlayerService(player_repository=player_repository)
     return player_service
 
 
@@ -43,15 +43,25 @@ def get_room_service(rooms: Optional[list[Room]] = None, num: int = 1, **kwargs)
     return room_service
 
 
-def get_lobby_service(rooms: list[Room] = [], num: int = 1, **kwargs) -> LobbyService:
+def get_lobby_service(
+    rooms: Optional[list[Room]] = None,
+    num: int = 1,
+    players: Optional[List[Player]] = None,
+    game_states: Optional[List[GameState]] = None,
+    **kwargs
+) -> LobbyService:
     room_service = get_room_service(rooms=rooms, num=num, **kwargs)
-    lobby_service = LobbyService(room_service=room_service)
+    player_service = get_player_service(players=players)
+    game_state_service = get_game_state_service(game_states=game_states)
+    lobby_service = LobbyService(
+        room_service=room_service, player_service=player_service, game_state_service=game_state_service
+    )
     return lobby_service
 
 
-def get_game_state_service(game_state: Optional[list[GameState]] = None, num: int = 1, **kwargs) -> GameStateService:
-    if game_state:
-        existing_game_states = game_state
+def get_game_state_service(game_states: Optional[list[GameState]] = None, num: int = 1, **kwargs) -> GameStateService:
+    if game_states:
+        existing_game_states = game_states
     elif num:
         existing_game_states = GameStateFactory.build_batch(num, **kwargs)
     else:

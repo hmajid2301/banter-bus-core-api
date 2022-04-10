@@ -13,7 +13,6 @@ from app.event_manager import (
 from app.event_models import Error
 from app.exception_handlers import handle_error
 from app.player.player_exceptions import PlayerHasNoRoomError, PlayerNotHostError
-from app.player.player_factory import get_player_service
 from app.player.player_models import NewPlayer, RoomPlayers
 from app.room.lobby.lobby_events_models import (
     NEW_ROOM_JOINED,
@@ -41,15 +40,12 @@ async def join_room(sid, data: JoinRoom) -> Tuple[Union[RoomJoined, Error], str]
     logger = get_logger()
     try:
         lobby_service = get_lobby_service()
-        player_service = get_player_service()
         new_player = NewPlayer(
-            avatar=data.avatar,
+            avatar=data.avatar,  # type: ignore
             nickname=data.nickname,
             latest_sid=sid,
         )
-        room_players = await lobby_service.join(
-            player_service=player_service, room_id=data.room_code, new_player=new_player
-        )
+        room_players = await lobby_service.join(room_id=data.room_code, new_player=new_player)
         room_joined = await _publish_room_joined(sid, data.room_code, room_players)
         new_room_joined = NewRoomJoined(player_id=room_players.player_id)
         await publish_event(event_name=NEW_ROOM_JOINED, event_body=new_room_joined, room=sid)
@@ -70,10 +66,7 @@ async def rejoin_room(sid, data: RejoinRoom) -> Tuple[Union[RoomJoined, Error], 
     logger = get_logger()
     try:
         lobby_service = get_lobby_service()
-        player_service = get_player_service()
-        room_players = await lobby_service.rejoin(
-            player_service=player_service, player_id=data.player_id, latest_sid=sid
-        )
+        room_players = await lobby_service.rejoin(player_id=data.player_id, latest_sid=sid)
         room_joined = await _publish_room_joined(sid, room_players.room_code, room_players)
         return room_joined, room_players.room_code
     except RoomNotFound as e:
@@ -99,10 +92,8 @@ async def kick_player(sid, data: KickPlayer) -> Tuple[Union[PlayerKicked, Error]
     logger = get_logger()
     try:
         lobby_service = get_lobby_service()
-        player_service = get_player_service()
 
         kicked_player = await lobby_service.kick_player(
-            player_service=player_service,
             player_to_kick_nickname=data.kick_player_nickname,
             player_attempting_kick=data.player_id,
             room_id=data.room_code,

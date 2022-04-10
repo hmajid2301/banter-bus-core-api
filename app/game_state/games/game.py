@@ -1,6 +1,6 @@
 from app.core.config import get_settings
+from app.core.exceptions import GameNotFound
 from app.game_state.games.abstract_game import AbstractGame
-from app.game_state.games.exceptions import GameNotFound
 from app.game_state.games.fibbing_it import FibbingIt
 
 

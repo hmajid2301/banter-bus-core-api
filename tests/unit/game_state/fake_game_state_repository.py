@@ -28,3 +28,6 @@ class FakeGameStateRepository(AbstractGameStateRepository):
                 return existing_game_state
 
         raise GameStateNotFound("game state not found", room_identifier="room_id")
+
+    async def update(self, game_state: GameState) -> GameState:
+        return game_state

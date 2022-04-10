@@ -1,7 +1,13 @@
+from datetime import datetime
 from typing import List, Optional, Union
 
 from beanie import Document, Indexed
 from pydantic.main import BaseModel
+
+
+class UpdateQuestionRoundState(BaseModel):
+    round_changed: bool
+    new_round: Optional[str] = None
 
 
 class DrawlossuemState(BaseModel):
@@ -23,6 +29,11 @@ class FibbingItQuestion(BaseModel):
     answers: Optional[List[str]] = None
 
 
+class NextQuestion(BaseModel):
+    updated_round: UpdateQuestionRoundState
+    next_question: Union[FibbingItQuestion, QuiblyState, DrawlossuemState, None]
+
+
 class FibbingItRounds(BaseModel):
     opinion: List[FibbingItQuestion]
     likely: List[FibbingItQuestion]
@@ -36,12 +47,12 @@ class FibbingItAnswers(BaseModel):
 
 class FibbingItQuestionsState(BaseModel):
     rounds: FibbingItRounds
-    question_nb: int = 0
+    question_nb: int = -1
     current_answers: List[FibbingItAnswers]
 
 
 class FibbingItState(BaseModel):
-    current_faker: str
+    current_faker_sid: str
     questions_to_show: FibbingItQuestionsState
     current_round: str
 
@@ -51,6 +62,7 @@ class GameState(Document):
     game_name: str
     player_scores: List[PlayerScore]
     state: Optional[Union[FibbingItState, QuiblyState, DrawlossuemState]] = None
+    answers_expected_by_time: Optional[datetime] = None
 
     class Collection:
         name = "game_state"

@@ -29,3 +29,9 @@ class AbstractGame(abc.ABC):
         self, current_state: Union[FibbingItState, QuiblyState, DrawlossuemState]
     ) -> Union[FibbingItQuestion, QuiblyState, DrawlossuemState, None]:
         raise NotImplementedError
+
+    @abc.abstractmethod
+    def has_round_changed(
+        self, current_state: Union[FibbingItState, QuiblyState, DrawlossuemState], old_round: str, new_round: str
+    ) -> bool:
+        raise NotImplementedError

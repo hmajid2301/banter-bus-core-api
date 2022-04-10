@@ -1,6 +1,6 @@
 import asyncio
 import random
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 from app.clients.management_api.api.questions_api import AsyncQuestionsApi
 from app.game_state.game_state_models import (
@@ -15,17 +15,22 @@ from app.player.player_models import Player
 
 
 class FibbingIt(AbstractGame):
-    def __init__(self, questions_per_round: int = 3) -> None:
+    def __init__(self, questions_per_round: int = 3, rounds_timer_map: Optional[dict] = None) -> None:
         self.questions_per_round_index = questions_per_round - 1
         self.rounds = ["opinion", "likely", "free_form"]
         self.rounds_with_groups = ["opinion", "free_form"]
 
+        if not rounds_timer_map:
+            self.round_timer_map = {"likely": 30, "opinion": 45, "free_form": 60}
+
     async def get_starting_state(self, question_client: AsyncQuestionsApi, players: List[Player]) -> FibbingItState:
         first_faker = random.choice(players)
-        get_questions = GetQuestions(question_client=question_client, players=players)
+        get_questions = GetQuestions(
+            question_client=question_client, players=players, questions_per_round=self.questions_per_round_index + 1
+        )
         questions = await get_questions()
         starting_state = FibbingItState(
-            current_faker=first_faker.player_id, questions_to_show=questions, current_round=self.rounds[0]
+            current_faker_sid=first_faker.latest_sid, questions_to_show=questions, current_round=self.rounds[0]
         )
         return starting_state
 
@@ -66,13 +71,22 @@ class FibbingIt(AbstractGame):
         question = questions[current_question_state.question_nb]
         return question
 
+    def has_round_changed(self, current_state: FibbingItState, old_round: str, new_round: str) -> bool:
+        round_changed = False
+        if current_state.current_round == "opinion" and current_state.questions_to_show.question_nb == 0:
+            round_changed = True
+        elif old_round != new_round:
+            round_changed = True
+        return round_changed
+
 
 class GetQuestions:
-    def __init__(self, question_client: AsyncQuestionsApi, players: List[Player]) -> None:
+    def __init__(self, question_client: AsyncQuestionsApi, players: List[Player], questions_per_round: int = 3) -> None:
         self.question_client = question_client
         self.players = players
         self.rounds = ["opinion", "likely", "free_form"]
         self.rounds_with_groups = ["opinion", "free_form"]
+        self.questions_per_round = questions_per_round
 
     async def __call__(self) -> FibbingItQuestionsState:
         rounds_dict = await self._get_rounds()
@@ -98,7 +112,9 @@ class GetQuestions:
 
     async def _get_questions_for_rounds_with_groups(self, round_: str) -> List[FibbingItQuestion]:
         questions_in_round: List[FibbingItQuestion] = []
-        random_groups = await self.question_client.get_random_groups(game_name="fibbing_it", round=round_, limit=3)
+        random_groups = await self.question_client.get_random_groups(
+            game_name="fibbing_it", round=round_, limit=self.questions_per_round
+        )
         questions_in_group = await asyncio.gather(
             *[
                 self.question_client.get_random_questions(game_name="fibbing_it", round=round_, group_name=random_group)
@@ -106,16 +122,16 @@ class GetQuestions:
             ]
         )
 
-        for p in questions_in_group:
+        for question_group in questions_in_group:
             if round_ == "opinion":
-                questions_content = [question.content for question in p if question.type == "question"]
-                answers_content = [answer.content for answer in p if answer.type == "answer"]
+                questions_content = [question.content for question in question_group if question.type == "question"]
+                answers_content = [answer.content for answer in question_group if answer.type == "answer"]
                 faker_question, real_question = random.sample(questions_content, k=2)
                 question = FibbingItQuestion(
                     faker_question=faker_question, question=real_question, answers=answers_content
                 )
             elif round_ == "free_form":
-                questions_content = [question.content for question in p]
+                questions_content = [question.content for question in question_group]
                 faker_question, real_question = random.sample(questions_content, k=2)
                 question = FibbingItQuestion(faker_question=faker_question, question=real_question)
             else:
@@ -128,7 +144,7 @@ class GetQuestions:
     async def _get_questions_for_rounds_without_group(self, round_: str) -> List[FibbingItQuestion]:
         questions_in_round: List[FibbingItQuestion] = []
         random_questions = await self.question_client.get_random_questions(
-            game_name="fibbing_it", round=round_, limit=3
+            game_name="fibbing_it", round=round_, limit=self.questions_per_round
         )
         for question in random_questions:
             player_names = [player.nickname for player in self.players]

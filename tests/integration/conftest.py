@@ -9,6 +9,7 @@ from omnibus.tests.uvicorn_test_server import UvicornTestServer
 from socketio.asyncio_client import AsyncClient
 
 from app import app
+from app.game_state.game_state_models import GameState
 
 HOST = "127.0.0.1"
 PORT = 8000
@@ -59,14 +60,17 @@ async def http() -> AsyncIterator[HttpXClient]:
 async def setup_and_teardown(startup_and_shutdown_server, http):
     from app.player.player_models import Player
     from app.room.room_models import Room
+    from tests.data.game_state_collection import game_states
     from tests.data.player_collection import players
     from tests.data.room_collection import rooms
 
     try:
         await Room.insert_many(documents=rooms)
         await Player.insert_many(documents=players)
+        await GameState.insert_many(documents=game_states)
     except Exception as e:
         print("Failed", e)
     yield
     await Room.delete_all()
     await Player.delete_all()
+    await GameState.delete_all()
