@@ -2,6 +2,7 @@ from typing import Any, Callable, Coroutine, Optional, Type
 
 from structlog import get_logger
 
+from app.core.config import get_settings
 from app.event_models import ERROR, Error
 from app.main import sio
 from app.room.room_events_models import EventModel
@@ -33,7 +34,19 @@ def event_handler(input_model: Type[EventModel]):
                 await sio.emit(ERROR, response.dict(), room=room)
             else:
                 await sio.emit(response.event_name, response.dict(), room=room)
-                logger.debug(response.event_name, data=response.dict())
+                _log_resonse(response)
+
+        def _log_resonse(response: EventModel):
+            exclude = {}
+            settings = get_settings()
+            for attribute in settings.LOG_RESPONSE_EXCLUDE_ATTR["list"]:
+                if hasattr(response, attribute):
+                    list_ = len(getattr(response, attribute))
+                    exclude_index = {index: {attribute} for index in range(list_)}
+                    exclude[attribute] = exclude_index
+
+            logger = get_logger()
+            logger.debug(response.event_name, data=response.dict(exclude=exclude))
 
         return inner
 

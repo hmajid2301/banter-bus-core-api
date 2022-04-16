@@ -1,7 +1,11 @@
 from functools import lru_cache
-from typing import Optional
+from typing import Dict, Optional, Set, TypedDict
 
 from omnibus.config.settings import OmnibusSettings
+
+
+class IgnoreAttributes(TypedDict):
+    list: Dict[str, Set[str]]
 
 
 class Settings(OmnibusSettings):
@@ -13,6 +17,7 @@ class Settings(OmnibusSettings):
     MESSAGE_QUEUE_PORT: Optional[int]
 
     QUESTIONS_PER_ROUND: int = 3
+    LOG_RESPONSE_EXCLUDE_ATTR: IgnoreAttributes = {"list": {"players": {"avatar"}}}
 
     class Config:
         env_prefix = "BANTER_BUS_CORE_API_"
