@@ -39,10 +39,10 @@ def event_handler(input_model: Type[EventModel]):
         def _log_resonse(response: EventModel):
             exclude = {}
             settings = get_settings()
-            for attribute in settings.LOG_RESPONSE_EXCLUDE_ATTR["list"]:
+            for attribute, ignore_fields in settings.LOG_RESPONSE_EXCLUDE_ATTR["list"].items():
                 if hasattr(response, attribute):
                     list_ = len(getattr(response, attribute))
-                    exclude_index = {index: {attribute} for index in range(list_)}
+                    exclude_index = {index: ignore_fields for index in range(list_)}
                     exclude[attribute] = exclude_index
 
             logger = get_logger()
