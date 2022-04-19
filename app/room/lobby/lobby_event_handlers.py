@@ -49,7 +49,7 @@ async def join_room(sid, data: JoinRoom) -> Tuple[Union[RoomJoined, Error], str]
         room_joined = await _publish_room_joined(sid, data.room_code, room_players)
         new_room_joined = NewRoomJoined(player_id=room_players.player_id)
         await publish_event(event_name=NEW_ROOM_JOINED, event_body=new_room_joined, room=sid)
-        return room_joined, sid
+        return room_joined, data.room_code
     except RoomNotFound as e:
         logger.exception("room not found", room_code=e.room_identifier)
         error = Error(code="room_join_fail", message="room not found")
