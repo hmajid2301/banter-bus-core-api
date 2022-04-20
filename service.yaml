@@ -53,7 +53,7 @@ spec:
             - name: BANTER_BUS_CORE_API_MESSAGE_QUEUE_HOST
               value: redis-13370.c299.asia-northeast1-1.gce.cloud.redislabs.com
             - name: BANTER_BUS_CORE_API_MESSAGE_QUEUE_PORT
-              value: 13370
+              value: "13370"
             - name: BANTER_BUS_CORE_API_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
