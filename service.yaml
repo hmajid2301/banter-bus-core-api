@@ -27,7 +27,7 @@ spec:
     spec:
       containerConcurrency: 80
       timeoutSeconds: 300
-      serviceAccountName: 78358389381-compute@developer.gserviceaccount.com
+      serviceAccountName: banter-bus@appspot.gserviceaccount.com
       containers:
         - image: eu.gcr.io/banter-bus/banter-bus-core-api
           ports:
