@@ -59,11 +59,11 @@ spec:
                 secretKeyRef:
                   key: latest
                   name: banter-bus-db-password
-            - name: BANTER_BUS_CORE_MESSAGE_QUEUE_PASSWORD
+            - name: BANTER_BUS_CORE_API_MESSAGE_QUEUE_PASSWORD
               valueFrom:
                 secretKeyRef:
                   key: latest
-                  name: banter-bus-redis-password
+                  name: a
           resources:
             limits:
               cpu: 1000m
