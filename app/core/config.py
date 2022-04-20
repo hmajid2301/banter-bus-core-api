@@ -15,6 +15,7 @@ class Settings(OmnibusSettings):
 
     MESSAGE_QUEUE_HOST: str
     MESSAGE_QUEUE_PORT: Optional[int]
+    MESSAGE_QUEUE_PASSWORD: Optional[str]
 
     QUESTIONS_PER_ROUND: int = 3
     LOG_RESPONSE_EXCLUDE_ATTR: IgnoreAttributes = {"list": {"players": {"avatar"}}}
@@ -31,7 +32,11 @@ class Settings(OmnibusSettings):
         return management_api_base
 
     def get_redis_uri(self) -> str:
-        uri = f"redis://{self.MESSAGE_QUEUE_HOST}"
+        uri = "redis://"
+        if self.MESSAGE_QUEUE_PASSWORD:
+            uri += f"{self.MESSAGE_QUEUE_PASSWORD}@"
+
+        uri += f"{self.MESSAGE_QUEUE_HOST}"
         if self.MESSAGE_QUEUE_PORT:
             uri += f":{self.MESSAGE_QUEUE_PORT}"
 
