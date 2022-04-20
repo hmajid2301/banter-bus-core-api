@@ -63,7 +63,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: latest
-                  name: a
+                  name: banter-bus-redis-password
           resources:
             limits:
               cpu: 1000m
