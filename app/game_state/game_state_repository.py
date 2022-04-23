@@ -1,4 +1,5 @@
 import abc
+from datetime import datetime, timedelta
 from typing import Union
 
 from omnibus.database.repository import AbstractRepository
@@ -28,7 +29,10 @@ class AbstractGameStateRepository(AbstractRepository[GameState]):
 
     @abc.abstractmethod
     async def update_next_action(
-        self, game_state: GameState, next_action: Union[FibbingActions, QuiblyActions, DrawlossuemActions]
+        self,
+        game_state: GameState,
+        timer_in_seconds: int,
+        next_action: Union[FibbingActions, QuiblyActions, DrawlossuemActions],
     ) -> GameState:
         raise NotImplementedError
 
@@ -57,8 +61,12 @@ class GameStateRepository(AbstractGameStateRepository):
         return game_state
 
     async def update_next_action(
-        self, game_state: GameState, next_action: Union[FibbingActions, QuiblyActions, DrawlossuemActions]
+        self,
+        game_state: GameState,
+        timer_in_seconds: int,
+        next_action: Union[FibbingActions, QuiblyActions, DrawlossuemActions],
     ) -> GameState:
+        game_state.next_action_completed_by = datetime.now() + timedelta(seconds=timer_in_seconds)
         game_state.next_action = next_action
         await game_state.save()
         return game_state

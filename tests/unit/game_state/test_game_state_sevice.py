@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 import pytest
 from pytest_httpx import HTTPXMock
 from pytest_mock import MockFixture
@@ -55,7 +57,7 @@ async def test_should_not_create_game_not_found():
 
 
 @pytest.mark.asyncio
-async def test_should_get_first_question_for_fibbing_it():
+async def test_should_get_first_question_for_fibbing_it(freezer):
     room_id = "5b2dd1e9-d8e3-4855-80ef-3bd0acfd481f"
     game_state = GameState(
         state=starting_state,
@@ -64,6 +66,9 @@ async def test_should_get_first_question_for_fibbing_it():
         game_name="fibbing_it",
         next_action=FibbingActions.show_question,
     )
+
+    datetime_ = "2022-04-23T12:34:11Z"
+    freezer.move_to(datetime_)
     game_state_service = get_game_state_service(game_states=[game_state])
     question = await game_state_service.get_next_question(game_state=game_state)
 
@@ -71,7 +76,11 @@ async def test_should_get_first_question_for_fibbing_it():
     assert question.next_question.faker_question != question.next_question.question
     assert question.next_question.answers is not None
     assert question.updated_round == UpdateQuestionRoundState(round_changed=False, new_round="opinion")
+    assert question.timer_in_seconds == 45
+
+    expected_completed_by_time = datetime.strptime(datetime_, "%Y-%m-%dT%H:%M:%SZ") + timedelta(seconds=45)
     assert game_state.next_action == FibbingActions.submit_answers
+    assert game_state.next_action_completed_by == expected_completed_by_time
 
 
 @pytest.mark.asyncio

@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from typing import List, Union
 
 from app.game_state.game_state_exceptions import (
@@ -44,7 +45,11 @@ class FakeGameStateRepository(AbstractGameStateRepository):
         return game_state
 
     async def update_next_action(
-        self, game_state: GameState, next_action: Union[FibbingActions, QuiblyActions, DrawlossuemActions]
+        self,
+        game_state: GameState,
+        timer_in_seconds: int,
+        next_action: Union[FibbingActions, QuiblyActions, DrawlossuemActions],
     ) -> GameState:
+        game_state.next_action_completed_by = datetime.now() + timedelta(seconds=timer_in_seconds)
         game_state.next_action = next_action
         return game_state

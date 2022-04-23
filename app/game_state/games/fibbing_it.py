@@ -22,7 +22,10 @@ class FibbingIt(AbstractGame):
         self.rounds_with_groups = ["opinion", "free_form"]
 
         if not rounds_timer_map:
-            self.round_timer_map = {"likely": 30, "opinion": 45, "free_form": 60}
+            self.round_timer_map = {
+                FibbingActions.show_question: {"likely": 30, "opinion": 45, "free_form": 60},
+                FibbingActions.submit_answers: {"likely": 30, "opinion": 30, "free_form": 30},
+            }
 
     async def get_starting_state(self, question_client: AsyncQuestionsApi, players: List[Player]) -> FibbingItState:
         first_faker = random.choice(players)
@@ -71,6 +74,10 @@ class FibbingIt(AbstractGame):
 
         question = questions[current_question_state.question_nb]
         return question
+
+    def get_timer(self, current_state: FibbingItState, prev_action: FibbingActions) -> int:  # type: ignore[override]
+        timer = self.round_timer_map[prev_action][current_state.current_round]
+        return timer
 
     def has_round_changed(self, current_state: FibbingItState, old_round: str, new_round: str) -> bool:
         round_changed = False

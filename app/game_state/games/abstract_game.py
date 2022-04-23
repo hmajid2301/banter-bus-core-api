@@ -34,6 +34,14 @@ class AbstractGame(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
+    def get_timer(
+        self,
+        current_state: Union[FibbingItState, QuiblyState, DrawlossuemState],
+        prev_action: Union[FibbingActions, QuiblyActions, DrawlossuemActions],
+    ) -> int:
+        raise NotImplementedError
+
+    @abc.abstractmethod
     def has_round_changed(
         self, current_state: Union[FibbingItState, QuiblyState, DrawlossuemState], old_round: str, new_round: str
     ) -> bool:

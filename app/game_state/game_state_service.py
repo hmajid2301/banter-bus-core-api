@@ -47,8 +47,11 @@ class GameStateService:
         updated_round_state = await self._update_question_state(game_state=game_state)
         game = get_game(game_name=game_state.game_name)
         next_question = game.get_next_question(current_state=game_state.state)  # type: ignore
-        next_question_data = NextQuestion(updated_round=updated_round_state, next_question=next_question)
-        await self._update_next_action(game=game, game_state=game_state)
+        timer = game.get_timer(current_state=game_state.state, prev_action=game_state.next_action)  # type: ignore
+        game_state = await self._update_next_action(game=game, timer=timer, game_state=game_state)
+        next_question_data = NextQuestion(
+            updated_round=updated_round_state, next_question=next_question, timer_in_seconds=timer
+        )
         return next_question_data
 
     async def _update_question_state(self, game_state: GameState) -> UpdateQuestionRoundState:
@@ -70,9 +73,12 @@ class GameStateService:
         updated_round_state = UpdateQuestionRoundState(round_changed=round_changed, new_round=new_round)
         return updated_round_state
 
-    async def _update_next_action(self, game: AbstractGame, game_state: GameState):
+    async def _update_next_action(self, game: AbstractGame, timer: int, game_state: GameState) -> GameState:
         next_action = game.get_next_action(current_action=game_state.next_action.value)
-        await self.game_state_repository.update_next_action(game_state=game_state, next_action=next_action)
+        new_game_state = await self.game_state_repository.update_next_action(
+            game_state=game_state, timer_in_seconds=timer, next_action=next_action
+        )
+        return new_game_state
 
     async def get_game_state_by_room_id(self, room_id) -> GameState:
         game_state = await self.game_state_repository.get(room_id)

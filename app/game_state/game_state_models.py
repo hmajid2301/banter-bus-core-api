@@ -33,6 +33,7 @@ class FibbingItQuestion(BaseModel):
 class NextQuestion(BaseModel):
     updated_round: UpdateQuestionRoundState
     next_question: Union[FibbingItQuestion, QuiblyState, DrawlossuemState, None]
+    timer_in_seconds: int
 
 
 class FibbingItRounds(BaseModel):
@@ -79,6 +80,7 @@ class GameState(Document):
     state: Optional[Union[FibbingItState, QuiblyState, DrawlossuemState]] = None
     answers_expected_by_time: Optional[datetime] = None
     next_action: Union[FibbingActions, QuiblyActions, DrawlossuemActions]
+    next_action_completed_by: Optional[datetime] = None
 
     class Collection:
         name = "game_state"
