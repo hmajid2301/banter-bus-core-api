@@ -5,7 +5,7 @@ from typing import List
 import factory
 import factory.fuzzy
 
-from app.game_state.game_state_models import GameState, PlayerScore
+from app.game_state.game_state_models import FibbingActions, GameState, PlayerScore
 from app.player.player_models import NewPlayer, Player
 from app.room.room_models import Room, RoomState
 
@@ -48,6 +48,7 @@ class GameStateFactory(factory.Factory):
     game_name = factory.fuzzy.FuzzyChoice(game_names)
     room_id = factory.Faker("uuid4")
     player_scores: List[PlayerScore] = []
+    next_action = FibbingActions.show_question  # Fix this use action depending on game
 
 
 def get_new_player() -> NewPlayer:

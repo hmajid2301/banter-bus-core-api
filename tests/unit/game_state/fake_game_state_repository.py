@@ -1,10 +1,18 @@
-from typing import List
+from typing import List, Union
 
 from app.game_state.game_state_exceptions import (
     GameStateExistsException,
     GameStateNotFound,
 )
-from app.game_state.game_state_models import GameState
+from app.game_state.game_state_models import (
+    DrawlossuemActions,
+    DrawlossuemState,
+    FibbingActions,
+    FibbingItState,
+    GameState,
+    QuiblyActions,
+    QuiblyState,
+)
 from app.game_state.game_state_repository import AbstractGameStateRepository
 
 
@@ -29,5 +37,14 @@ class FakeGameStateRepository(AbstractGameStateRepository):
 
         raise GameStateNotFound("game state not found", room_identifier="room_id")
 
-    async def update(self, game_state: GameState) -> GameState:
+    async def update_state(
+        self, game_state: GameState, state: Union[FibbingItState, QuiblyState, DrawlossuemState]
+    ) -> GameState:
+        game_state.state = state
+        return game_state
+
+    async def update_next_action(
+        self, game_state: GameState, next_action: Union[FibbingActions, QuiblyActions, DrawlossuemActions]
+    ) -> GameState:
+        game_state.next_action = next_action
         return game_state

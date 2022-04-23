@@ -1,4 +1,5 @@
 import abc
+from typing import Union
 
 from omnibus.database.repository import AbstractRepository
 from pymongo.errors import DuplicateKeyError
@@ -7,12 +8,28 @@ from app.game_state.game_state_exceptions import (
     GameStateExistsException,
     GameStateNotFound,
 )
-from app.game_state.game_state_models import GameState
+from app.game_state.game_state_models import (
+    DrawlossuemActions,
+    DrawlossuemState,
+    FibbingActions,
+    FibbingItState,
+    GameState,
+    QuiblyActions,
+    QuiblyState,
+)
 
 
 class AbstractGameStateRepository(AbstractRepository[GameState]):
     @abc.abstractmethod
-    async def update(self, game_state: GameState) -> GameState:
+    async def update_state(
+        self, game_state: GameState, state: Union[FibbingItState, QuiblyState, DrawlossuemState]
+    ) -> GameState:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def update_next_action(
+        self, game_state: GameState, next_action: Union[FibbingActions, QuiblyActions, DrawlossuemActions]
+    ) -> GameState:
         raise NotImplementedError
 
 
@@ -32,6 +49,16 @@ class GameStateRepository(AbstractGameStateRepository):
             raise GameStateNotFound(msg="game state not found", room_identifier=id_)
         return game_state
 
-    async def update(self, game_state: GameState) -> GameState:
+    async def update_state(
+        self, game_state: GameState, state: Union[FibbingItState, QuiblyState, DrawlossuemState]
+    ) -> GameState:
+        game_state.state = state
+        await game_state.save()
+        return game_state
+
+    async def update_next_action(
+        self, game_state: GameState, next_action: Union[FibbingActions, QuiblyActions, DrawlossuemActions]
+    ) -> GameState:
+        game_state.next_action = next_action
         await game_state.save()
         return game_state

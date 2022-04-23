@@ -3,7 +3,9 @@ from pytest_httpx import HTTPXMock
 from pytest_mock import MockFixture
 
 from app.core.exceptions import GameNotFound
+from app.game_state.exceptions import InvalidGameAction
 from app.game_state.game_state_models import (
+    FibbingActions,
     FibbingItQuestion,
     FibbingItState,
     GameState,
@@ -55,7 +57,13 @@ async def test_should_not_create_game_not_found():
 @pytest.mark.asyncio
 async def test_should_get_first_question_for_fibbing_it():
     room_id = "5b2dd1e9-d8e3-4855-80ef-3bd0acfd481f"
-    game_state = GameState(state=starting_state, room_id=room_id, player_scores=[], game_name="fibbing_it")
+    game_state = GameState(
+        state=starting_state,
+        room_id=room_id,
+        player_scores=[],
+        game_name="fibbing_it",
+        next_action=FibbingActions.show_question,
+    )
     game_state_service = get_game_state_service(game_states=[game_state])
     question = await game_state_service.get_next_question(game_state=game_state)
 
@@ -63,3 +71,19 @@ async def test_should_get_first_question_for_fibbing_it():
     assert question.next_question.faker_question != question.next_question.question
     assert question.next_question.answers is not None
     assert question.updated_round == UpdateQuestionRoundState(round_changed=False, new_round="opinion")
+    assert game_state.next_action == FibbingActions.submit_answers
+
+
+@pytest.mark.asyncio
+async def test_should_not_get_question_waiting_for_answers():
+    room_id = "5b2dd1e9-d8e3-4855-80ef-3bd0acfd481f"
+    game_state = GameState(
+        state=starting_state,
+        room_id=room_id,
+        player_scores=[],
+        game_name="fibbing_it",
+        next_action=FibbingActions.submit_answers,
+    )
+    game_state_service = get_game_state_service(game_states=[game_state])
+    with pytest.raises(InvalidGameAction):
+        await game_state_service.get_next_question(game_state=game_state)

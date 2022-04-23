@@ -4,6 +4,7 @@ from typing import Dict, List, Optional, Union
 
 from app.clients.management_api.api.questions_api import AsyncQuestionsApi
 from app.game_state.game_state_models import (
+    FibbingActions,
     FibbingItQuestion,
     FibbingItQuestionsState,
     FibbingItRounds,
@@ -52,7 +53,7 @@ class FibbingIt(AbstractGame):
         new_state.questions_to_show = question_state
         return new_state
 
-    async def get_next_question(
+    def get_next_question(
         self,
         current_state: FibbingItState,
     ) -> Union[FibbingItQuestion, None]:
@@ -78,6 +79,15 @@ class FibbingIt(AbstractGame):
         elif old_round != new_round:
             round_changed = True
         return round_changed
+
+    def get_next_action(self, current_action: str) -> FibbingActions:
+        next_action_map = {
+            FibbingActions.show_question.value: FibbingActions.submit_answers,
+            FibbingActions.submit_answers.value: FibbingActions.vote_on_faker,
+            FibbingActions.vote_on_faker.value: FibbingActions.show_question,
+        }
+        next_action = next_action_map[current_action]
+        return next_action
 
 
 class GetQuestions:

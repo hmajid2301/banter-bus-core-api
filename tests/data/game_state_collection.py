@@ -1,6 +1,7 @@
 from typing import List
 
 from app.game_state.game_state_models import (
+    FibbingActions,
     FibbingItQuestion,
     FibbingItQuestionsState,
     FibbingItRounds,
@@ -18,6 +19,7 @@ game_states: List[GameState] = [
             PlayerScore(player_id="f921d6cf-b59f-4a3c-9e58-f0273121cc1a", score=0),
             PlayerScore(player_id="285243e1-0656-44cc-9549-fea3a17e2540", score=0),
         ],
+        next_action=FibbingActions.show_question,
         state=FibbingItState(
             current_faker_sid="285243e1-0656-44cc-9549-fea3a17e2540",
             questions_to_show=FibbingItQuestionsState(

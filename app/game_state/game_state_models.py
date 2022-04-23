@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum
 from typing import List, Optional, Union
 
 from beanie import Document, Indexed
@@ -57,12 +58,27 @@ class FibbingItState(BaseModel):
     current_round: str
 
 
+class FibbingActions(Enum):
+    show_question = "SHOW_QUESTION"
+    submit_answers = "SUBMIT_ANSWERS"
+    vote_on_faker = "VOTE_ON_FAKER"
+
+
+class QuiblyActions(Enum):
+    pass
+
+
+class DrawlossuemActions(Enum):
+    pass
+
+
 class GameState(Document):
     room_id: Indexed(str, unique=True)  # type: ignore
     game_name: str
     player_scores: List[PlayerScore]
     state: Optional[Union[FibbingItState, QuiblyState, DrawlossuemState]] = None
     answers_expected_by_time: Optional[datetime] = None
+    next_action: Union[FibbingActions, QuiblyActions, DrawlossuemActions]
 
     class Collection:
         name = "game_state"

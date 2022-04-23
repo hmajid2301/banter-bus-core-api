@@ -89,7 +89,7 @@ async def test_should_get_next_question(current_question_state: dict, expected_q
     new_state = merge(starting_state.dict(), current_question_state)
     fibbing_it_questions = FibbingItState(**new_state)
 
-    question = await fibbing_it.get_next_question(current_state=fibbing_it_questions)
+    question = fibbing_it.get_next_question(current_state=fibbing_it_questions)
     assert question == expected_question
 
 
