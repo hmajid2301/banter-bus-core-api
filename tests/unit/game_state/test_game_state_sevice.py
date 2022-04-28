@@ -73,7 +73,7 @@ async def test_should_get_first_question_for_fibbing_it(freezer):
     question = await game_state_service.get_next_question(game_state=game_state)
 
     assert isinstance(question.next_question, FibbingItQuestion)
-    assert question.next_question.faker_question != question.next_question.question
+    assert question.next_question.fibber_question != question.next_question.question
     assert question.next_question.answers is not None
     assert question.updated_round == UpdateQuestionRoundState(round_changed=False, new_round="opinion")
     assert question.timer_in_seconds == 45

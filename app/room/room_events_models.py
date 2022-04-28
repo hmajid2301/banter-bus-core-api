@@ -53,7 +53,7 @@ class GetNextQuestion(EventModel):
 
 
 class GotQuestionFibbingIt(BaseModel):
-    is_faker: bool
+    is_fibber: bool
     question: str
     answers: Optional[List[str]] = None
 

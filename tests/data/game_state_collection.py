@@ -21,54 +21,54 @@ game_states: List[GameState] = [
         ],
         next_action=FibbingActions.show_question,
         state=FibbingItState(
-            current_faker_sid="285243e1-0656-44cc-9549-fea3a17e2540",
+            current_fibber_sid="285243e1-0656-44cc-9549-fea3a17e2540",
             questions_to_show=FibbingItQuestionsState(
                 rounds=FibbingItRounds(
                     opinion=[
                         FibbingItQuestion(
-                            faker_question="What do you think about horses?",
+                            fibber_question="What do you think about horses?",
                             question="What do you think about camels?",
                             answers=["lame", "tasty", "cool"],
                         ),
                         FibbingItQuestion(
-                            faker_question="Dogs are cute?",
+                            fibber_question="Dogs are cute?",
                             question="Cats are cuter than dogs?",
                             answers=["Agree", "Strongly Agree", "Disagree"],
                         ),
                         FibbingItQuestion(
-                            faker_question="What is your least favourite colour?",
+                            fibber_question="What is your least favourite colour?",
                             question="What is your favourite colour?",
                             answers=["red", "blue"],
                         ),
                     ],
                     likely=[
                         FibbingItQuestion(
-                            faker_question="",
+                            fibber_question="",
                             question="Most likely to get arrested",
                             answers=["Richard", "Michael", "Brandon"],
                         ),
                         FibbingItQuestion(
-                            faker_question="",
+                            fibber_question="",
                             question="Most likely to eat a tub of ice-cream",
                             answers=["Richard", "Michael", "Brandon"],
                         ),
                         FibbingItQuestion(
-                            faker_question="",
+                            fibber_question="",
                             question="Most likely to fight a horse and lose",
                             answers=["Richard", "Michael", "Brandon"],
                         ),
                     ],
                     free_form=[
                         FibbingItQuestion(
-                            faker_question="A funny question?", question="Favourite bike colour?", answers=None
+                            fibber_question="A funny question?", question="Favourite bike colour?", answers=None
                         ),
                         FibbingItQuestion(
-                            faker_question="what do you like about cats?",
+                            fibber_question="what do you like about cats?",
                             question="what don't you like about cats?",
                             answers=None,
                         ),
                         FibbingItQuestion(
-                            faker_question="Favourite fruit", question="Least favourite fruit", answers=None
+                            fibber_question="Favourite fruit", question="Least favourite fruit", answers=None
                         ),
                     ],
                 ),

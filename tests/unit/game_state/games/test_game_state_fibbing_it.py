@@ -35,7 +35,7 @@ async def test_should_get_starting_state(httpx_mock: HTTPXMock):
 
     assert state.current_round == "opinion"
     player_ids = [player.latest_sid for player in players]
-    assert state.current_faker_sid in player_ids
+    assert state.current_fibber_sid in player_ids
 
     question_state = state.questions_to_show
     assert question_state.question_nb == -1
@@ -44,7 +44,7 @@ async def test_should_get_starting_state(httpx_mock: HTTPXMock):
         assert len(round_) == 3
 
         for state in round_:
-            assert state.faker_question != state.question
+            assert state.fibber_question != state.question
 
 
 @pytest.mark.asyncio

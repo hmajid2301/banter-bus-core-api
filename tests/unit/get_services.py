@@ -14,7 +14,7 @@ from app.room.room_service import RoomService
 from tests.unit.factories import GameStateFactory, PlayerFactory, RoomFactory
 from tests.unit.game_state.fake_game_state_repository import FakeGameStateRepository
 from tests.unit.player.fake_player_repository import FakePlayerRepository
-from tests.unit.room.fake_room_repository import FakeRoomRepository
+from tests.unit.room.fake_room_repository import fibberoomRepository
 
 
 def get_player_service(players: Optional[list[Player]] = None, num: int = 1, **kwargs) -> PlayerService:
@@ -38,7 +38,7 @@ def get_room_service(rooms: Optional[list[Room]] = None, num: int = 1, **kwargs)
     else:
         existing_room = []
 
-    room_repository = FakeRoomRepository(rooms=existing_room)
+    room_repository = fibberoomRepository(rooms=existing_room)
     room_service = RoomService(room_repository=room_repository)
     return room_service
 

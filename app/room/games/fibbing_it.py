@@ -17,15 +17,15 @@ class FibbingIt(AbstractGame):
         if not isinstance(next_question.next_question, FibbingItQuestion):
             raise UnexpectedGameStateType("expected `next_question.next_question` to be of type `FibbingItQuestion`")
 
-        is_faker = False
+        is_fibber = False
         question = next_question.next_question.question
-        if sid == game_state.state.current_faker_sid:
-            is_faker = True
-            question = next_question.next_question.faker_question
+        if sid == game_state.state.current_fibber_sid:
+            is_fibber = True
+            question = next_question.next_question.fibber_question
 
         got_next_question = GotNextQuestion(
             question=GotQuestionFibbingIt(
-                is_faker=is_faker,
+                is_fibber=is_fibber,
                 question=question,
                 answers=next_question.next_question.answers,
             ),

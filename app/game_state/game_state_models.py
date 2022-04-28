@@ -25,7 +25,7 @@ class PlayerScore(BaseModel):
 
 
 class FibbingItQuestion(BaseModel):
-    faker_question: str
+    fibber_question: str
     question: str
     answers: Optional[List[str]] = None
 
@@ -54,7 +54,7 @@ class FibbingItQuestionsState(BaseModel):
 
 
 class FibbingItState(BaseModel):
-    current_faker_sid: str
+    current_fibber_sid: str
     questions_to_show: FibbingItQuestionsState
     current_round: str
 
@@ -62,7 +62,7 @@ class FibbingItState(BaseModel):
 class FibbingActions(Enum):
     show_question = "SHOW_QUESTION"
     submit_answers = "SUBMIT_ANSWERS"
-    vote_on_faker = "VOTE_ON_FAKER"
+    vote_on_fibber = "VOTE_ON_fibber"
 
 
 class QuiblyActions(Enum):

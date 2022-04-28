@@ -5,7 +5,7 @@ from app.room.room_models import Room, RoomState
 from app.room.room_repository import AbstractRoomRepository
 
 
-class FakeRoomRepository(AbstractRoomRepository):
+class fibberoomRepository(AbstractRoomRepository):
     def __init__(self, rooms: List[Room]):
         self.rooms = rooms
 

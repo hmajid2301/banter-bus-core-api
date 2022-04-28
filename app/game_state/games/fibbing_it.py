@@ -28,13 +28,13 @@ class FibbingIt(AbstractGame):
             }
 
     async def get_starting_state(self, question_client: AsyncQuestionsApi, players: List[Player]) -> FibbingItState:
-        first_faker = random.choice(players)
+        first_fibber = random.choice(players)
         get_questions = GetQuestions(
             question_client=question_client, players=players, questions_per_round=self.questions_per_round_index + 1
         )
         questions = await get_questions()
         starting_state = FibbingItState(
-            current_faker_sid=first_faker.latest_sid, questions_to_show=questions, current_round=self.rounds[0]
+            current_fibber_sid=first_fibber.latest_sid, questions_to_show=questions, current_round=self.rounds[0]
         )
         return starting_state
 
@@ -90,8 +90,8 @@ class FibbingIt(AbstractGame):
     def get_next_action(self, current_action: str) -> FibbingActions:
         next_action_map = {
             FibbingActions.show_question.value: FibbingActions.submit_answers,
-            FibbingActions.submit_answers.value: FibbingActions.vote_on_faker,
-            FibbingActions.vote_on_faker.value: FibbingActions.show_question,
+            FibbingActions.submit_answers.value: FibbingActions.vote_on_fibber,
+            FibbingActions.vote_on_fibber.value: FibbingActions.show_question,
         }
         next_action = next_action_map[current_action]
         return next_action
@@ -143,14 +143,14 @@ class GetQuestions:
             if round_ == "opinion":
                 questions_content = [question.content for question in question_group if question.type == "question"]
                 answers_content = [answer.content for answer in question_group if answer.type == "answer"]
-                faker_question, real_question = random.sample(questions_content, k=2)
+                fibber_question, real_question = random.sample(questions_content, k=2)
                 question = FibbingItQuestion(
-                    faker_question=faker_question, question=real_question, answers=answers_content
+                    fibber_question=fibber_question, question=real_question, answers=answers_content
                 )
             elif round_ == "free_form":
                 questions_content = [question.content for question in question_group]
-                faker_question, real_question = random.sample(questions_content, k=2)
-                question = FibbingItQuestion(faker_question=faker_question, question=real_question)
+                fibber_question, real_question = random.sample(questions_content, k=2)
+                question = FibbingItQuestion(fibber_question=fibber_question, question=real_question)
             else:
                 raise InvalidGameRound(f"unexpected game round {round_}")
 
@@ -165,6 +165,6 @@ class GetQuestions:
         )
         for question in random_questions:
             player_names = [player.nickname for player in self.players]
-            question = FibbingItQuestion(faker_question="", question=question.content, answers=player_names)
+            question = FibbingItQuestion(fibber_question="", question=question.content, answers=player_names)
             questions_in_round.append(question)
         return questions_in_round
