@@ -115,8 +115,8 @@ test:integration-tests:
 
 test:publish-contract:
   stage: test
-  # only:
-  #   - main
+  only:
+    - main
   variables:
     BANTER_BUS_CORE_API_MANAGEMENT_API_URL: http://localhost
     BANTER_BUS_CORE_API_MANAGEMENT_API_PORT: 1234
@@ -130,8 +130,8 @@ test:publish-contract:
 management-api:commit:
   stage: post-test
   image: bitnami/git
-  # only:
-  #   - main
+  only:
+    - main
   before_script: []
   script:
     - git clone https://gitlab.com/banter-bus/banter-bus-management-api.git
@@ -146,10 +146,11 @@ verify:test-contract:
   image:
     name: pactfoundation/pact-cli:latest
     entrypoint: [""]
-  # only:
-  #   - main
+  only:
+    - main
   extends:
     - .test
+  allow_failure: true
   dependencies:
     - management-api:commit
   before_script: []
