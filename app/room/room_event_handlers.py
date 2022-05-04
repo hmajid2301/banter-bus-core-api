@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import List, Tuple
 
 from omnibus.log.logger import get_logger
 
@@ -10,8 +10,8 @@ from app.player.player_factory import get_player_service
 from app.room.games.game import get_game
 from app.room.room_events_models import (
     CreateRoom,
+    EventResponse,
     GetNextQuestion,
-    GotNextQuestion,
     PermanentlyDisconnectedPlayer,
     PermanentlyDisconnectPlayer,
     RoomCreated,
@@ -63,11 +63,13 @@ async def permanently_disconnect_player(
 
 @event_handler(input_model=GetNextQuestion)
 @error_handler(Exception, handle_error)
-async def get_next_question(sid: str, get_next_question: GetNextQuestion) -> Tuple[GotNextQuestion, str]:
+async def get_next_question(_: str, get_next_question: GetNextQuestion) -> Tuple[List[EventResponse], None]:
     game_state_service = get_game_state_service()
     game_state = await game_state_service.get_game_state_by_room_id(room_id=get_next_question.room_code)
     next_question = await game_state_service.get_next_question(game_state=game_state)
 
+    player_service = get_player_service()
+    players = await player_service.get_all_in_room(room_id=get_next_question.room_code)
     game = get_game(game_name=game_state.game_name)
-    got_next_question = game.got_next_question(sid=sid, game_state=game_state, next_question=next_question)
-    return got_next_question, sid
+    event_response = game.got_next_question(players=players, game_state=game_state, next_question=next_question)
+    return event_response, None

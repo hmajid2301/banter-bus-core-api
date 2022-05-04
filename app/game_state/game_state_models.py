@@ -54,7 +54,7 @@ class FibbingItQuestionsState(BaseModel):
 
 
 class FibbingItState(BaseModel):
-    current_fibber_sid: str
+    current_fibber_id: str
     questions_to_show: FibbingItQuestionsState
     current_round: str
 

@@ -34,7 +34,7 @@ class FibbingIt(AbstractGame):
         )
         questions = await get_questions()
         starting_state = FibbingItState(
-            current_fibber_sid=first_fibber.latest_sid, questions_to_show=questions, current_round=self.rounds[0]
+            current_fibber_id=first_fibber.player_id, questions_to_show=questions, current_round=self.rounds[0]
         )
         return starting_state
 

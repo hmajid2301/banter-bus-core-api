@@ -21,7 +21,7 @@ game_states: List[GameState] = [
         ],
         next_action=FibbingActions.show_question,
         state=FibbingItState(
-            current_fibber_sid="285243e1-0656-44cc-9549-fea3a17e2540",
+            current_fibber_id="8cdc1984-e832-48c7-9d89-1d724665bef1",
             questions_to_show=FibbingItQuestionsState(
                 rounds=FibbingItRounds(
                     opinion=[

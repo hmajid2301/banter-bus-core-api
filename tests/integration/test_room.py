@@ -230,6 +230,9 @@ async def test_start_game(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_get_next_question(client: AsyncClient):
     future = asyncio.get_running_loop().create_future()
+    player_service = get_player_service()
+    player = await player_service.get(player_id="8cdc1984-e832-48c7-9d89-1d724665bef1")
+    await player_service.update_latest_sid(latest_sid=client.get_sid(), player=player)
 
     @client.on("GOT_NEXT_QUESTION")
     def _(data):

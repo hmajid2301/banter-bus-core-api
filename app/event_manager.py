@@ -5,7 +5,7 @@ from structlog import get_logger
 from app.core.config import get_settings
 from app.event_models import ERROR, Error
 from app.main import sio
-from app.room.room_events_models import EventModel
+from app.room.room_events_models import EventModel, EventResponse
 
 
 def error_handler(exception: Type[Exception], error_callback: Callable[[str], Coroutine[Any, Any, None]]):
@@ -22,7 +22,7 @@ def error_handler(exception: Type[Exception], error_callback: Callable[[str], Co
 
 
 def event_handler(input_model: Type[EventModel]):
-    def outer(func: Callable[[str, Any], Coroutine[Any, Any, Any]]):
+    def outer(func: Callable[[str, EventModel], Coroutine[Any, Any, Any]]):
         async def inner(sid: str, data: dict):
             model = input_model(**data)
 
@@ -33,8 +33,13 @@ def event_handler(input_model: Type[EventModel]):
             if isinstance(response, Error):
                 await sio.emit(ERROR, response.dict(), room=room)
             else:
-                await sio.emit(response.event_name, response.dict(), room=room)
-                _log_resonse(response)
+                if isinstance(response, list) and isinstance(response[0], EventResponse):
+                    for r in response:
+                        await sio.emit(r.response.event_name, r.response.dict(), room=r.send_to)
+                        _log_resonse(r.response)
+                else:
+                    await sio.emit(response.event_name, response.dict(), room=room)
+                    _log_resonse(response)
 
         def _log_resonse(response: EventModel):
             exclude = {}

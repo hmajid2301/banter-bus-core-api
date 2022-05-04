@@ -6,7 +6,7 @@ from app.game_state.game_state_models import (
 )
 
 starting_state = FibbingItState(
-    current_fibber_sid="a_random_id",
+    current_fibber_id="a_random_id",
     current_round="opinion",
     questions_to_show=FibbingItQuestionsState(
         current_answers=[],

@@ -73,3 +73,8 @@ class GotNextQuestion(EventModel):
     @property
     def event_name(self):
         return GOT_NEXT_QUESTION
+
+
+class EventResponse(BaseModel):
+    send_to: str
+    response: EventModel
