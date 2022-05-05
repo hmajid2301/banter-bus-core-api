@@ -16,7 +16,15 @@ class RoomState(Enum):
 
     @property
     def is_room_joinable(self) -> bool:
+        return self in [self.CREATED]
+
+    @property
+    def is_room_rejoinable(self) -> bool:
         return self in [self.CREATED, self.PLAYING, self.PAUSED]
+
+    @property
+    def is_room_rejoinable_and_started(self) -> bool:
+        return self in [self.PLAYING, self.PAUSED]
 
 
 class Room(Document):

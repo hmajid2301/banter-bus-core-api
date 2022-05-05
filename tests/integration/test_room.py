@@ -100,6 +100,28 @@ async def test_rejoin_room(client: AsyncClient):
 
 
 @pytest.mark.asyncio
+async def test_rejoin_room_get_game(client: AsyncClient):
+    future = asyncio.get_running_loop().create_future()
+    player_id = "8cdc1984-e832-48c7-9d89-1d724665bef1"
+    player_service = get_player_service()
+    player = await player_service.get(player_id=player_id)
+    await player_service.update_latest_sid(latest_sid=client.get_sid(), player=player)
+
+    @client.on("GOT_NEXT_QUESTION")
+    def _(data):
+        future.set_result(GotNextQuestion(**data))
+
+    rejoin_room = RejoinRoom(player_id=player_id)
+    await client.emit("REJOIN_ROOM", rejoin_room.dict())
+    await asyncio.wait_for(future, timeout=5.0)
+
+    got_next_question: GotNextQuestion = future.result()
+    assert got_next_question.updated_round.round_changed is True
+    assert got_next_question.updated_round.new_round == "opinion"
+    assert got_next_question.question.answers is not None
+
+
+@pytest.mark.asyncio
 async def test_room_joined_nickname_in_use(client: AsyncClient):
     future = asyncio.get_running_loop().create_future()
 

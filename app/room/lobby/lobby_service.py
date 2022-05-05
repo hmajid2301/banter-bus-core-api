@@ -71,12 +71,11 @@ class LobbyService:
             raise PlayerHasNoRoomError("player has no room id")
 
         await self.player_service.update_disconnected_time(player=player, disconnected_at=None)
-
         room = await self.room_service.get(room_id=player.room_id)
         existing_players = await self.player_service.get_all_in_room(room_id=player.room_id)
 
-        if not room.state.is_room_joinable:
-            raise RoomNotJoinableError(msg="room is not joinable", room_id=room.room_id, room_state=room.state)
+        if not room.state.is_room_rejoinable:
+            raise RoomNotJoinableError(msg="room is not rejoinable", room_id=room.room_id, room_state=room.state)
         if not room.host:
             raise RoomHasNoHostError(msg="room has no host", room_id=room.room_id)
 

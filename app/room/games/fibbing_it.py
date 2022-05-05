@@ -1,5 +1,3 @@
-from typing import List
-
 from app.game_state.game_state_models import (
     FibbingItQuestion,
     FibbingItState,
@@ -10,26 +8,17 @@ from app.game_state.game_state_models import (
 from app.player.player_models import Player
 from app.room.games.abstract_game import AbstractGame
 from app.room.games.exceptions import UnexpectedGameStateType
-from app.room.room_events_models import (
-    EventResponse,
-    GotNextQuestion,
-    GotQuestionFibbingIt,
-)
+from app.room.room_events_models import GotNextQuestion, GotQuestionFibbingIt
 
 
 class FibbingIt(AbstractGame):
-    def got_next_question(
-        self, players: List[Player], game_state: GameState, next_question: NextQuestion
-    ) -> List[EventResponse]:
+    def got_next_question(self, player: Player, game_state: GameState, next_question: NextQuestion) -> GotNextQuestion:
         if not isinstance(game_state.state, FibbingItState):
             raise UnexpectedGameStateType("expected `game_state.state` to be of type `FibbingItState`")
 
-        event_response: List[EventResponse] = []
-        for player in players:
-            is_player_fibber = player.player_id == game_state.state.current_fibber_id
-            got_next_question = self._get_got_next_question(is_player_fibber, next_question)
-            event_response.append(EventResponse(send_to=player.latest_sid, response=got_next_question))
-        return event_response
+        is_player_fibber = player.player_id == game_state.state.current_fibber_id
+        got_next_question = self._get_got_next_question(is_player_fibber, next_question)
+        return got_next_question
 
     @staticmethod
     def _get_got_next_question(is_player_fibber: bool, next_question: NextQuestion) -> GotNextQuestion:

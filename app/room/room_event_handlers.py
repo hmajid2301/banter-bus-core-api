@@ -71,5 +71,8 @@ async def get_next_question(_: str, get_next_question: GetNextQuestion) -> Tuple
     player_service = get_player_service()
     players = await player_service.get_all_in_room(room_id=get_next_question.room_code)
     game = get_game(game_name=game_state.game_name)
-    event_response = game.got_next_question(players=players, game_state=game_state, next_question=next_question)
-    return event_response, None
+    event_responses: List[EventResponse] = []
+    for player in players:
+        got_next_question = game.got_next_question(player=player, game_state=game_state, next_question=next_question)
+        event_responses.append(EventResponse(send_to=player.latest_sid, response=got_next_question))
+    return event_responses, None
