@@ -77,4 +77,4 @@ class GotNextQuestion(EventModel):
 
 class EventResponse(BaseModel):
     send_to: str
-    response: EventModel
+    response_data: EventModel

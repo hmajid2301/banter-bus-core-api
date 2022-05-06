@@ -74,5 +74,5 @@ async def get_next_question(_: str, get_next_question: GetNextQuestion) -> Tuple
     event_responses: List[EventResponse] = []
     for player in players:
         got_next_question = game.got_next_question(player=player, game_state=game_state, next_question=next_question)
-        event_responses.append(EventResponse(send_to=player.latest_sid, response=got_next_question))
+        event_responses.append(EventResponse(send_to=player.latest_sid, response_data=got_next_question))
     return event_responses, None

@@ -100,7 +100,7 @@ async def test_rejoin_room(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_rejoin_room_get_game(client: AsyncClient):
+async def test_rejoin_room_that_has_started(client: AsyncClient):
     future = asyncio.get_running_loop().create_future()
     player_id = "8cdc1984-e832-48c7-9d89-1d724665bef1"
     player_service = get_player_service()

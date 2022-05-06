@@ -1,4 +1,4 @@
-from typing import Any, Callable, Coroutine, Optional, Type
+from typing import Any, Callable, Coroutine, List, Optional, Tuple, Type, Union
 
 from structlog import get_logger
 
@@ -22,7 +22,9 @@ def error_handler(exception: Type[Exception], error_callback: Callable[[str], Co
 
 
 def event_handler(input_model: Type[EventModel]):
-    def outer(func: Callable[[str, EventModel], Coroutine[Any, Any, Any]]):
+    def outer(
+        func: Callable[[str, EventModel], Coroutine[Any, Any, Tuple[Union[List[EventResponse], EventModel], str]]]
+    ):
         async def inner(sid: str, data: dict):
             model = input_model(**data)
 
@@ -35,9 +37,9 @@ def event_handler(input_model: Type[EventModel]):
             else:
                 if isinstance(response, list) and isinstance(response[0], EventResponse):
                     for r in response:
-                        await sio.emit(r.response.event_name, r.response.dict(), room=r.send_to)
-                        _log_resonse(r.response)
-                else:
+                        await sio.emit(r.response_data.event_name, r.response_data.dict(), room=r.send_to)
+                        _log_resonse(r.response_data)
+                elif isinstance(response, EventModel):
                     await sio.emit(response.event_name, response.dict(), room=room)
                     _log_resonse(response)
 
