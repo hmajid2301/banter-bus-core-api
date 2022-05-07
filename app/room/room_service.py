@@ -1,6 +1,10 @@
 from datetime import datetime
 from uuid import uuid4
 
+from app.core.exceptions import NoOtherHostError
+from app.game_state.game_state_service import GameStateService
+from app.player.player_exceptions import PlayerNotHostError
+from app.room.room_exceptions import RoomInInvalidState
 from app.room.room_models import Room, RoomState
 from app.room.room_repository import AbstractRoomRepository
 
@@ -41,3 +45,14 @@ class RoomService:
             new_count -= 1
 
         await self.room_repository.update_player_count(room, new_count)
+
+    async def pause_game(self, room_id: str, player_id: str, game_state_service: GameStateService) -> int:
+        room = await self.get(room_id=room_id)
+        if room.host is None:
+            raise NoOtherHostError("no player is host")
+        elif room.host and room.host != player_id:
+            raise PlayerNotHostError("player cannot pause game not host", player_id=player_id, host_player_id=room.host)
+        if room.state is not RoomState.PLAYING:
+            raise RoomInInvalidState("expected room to be in PLAYING state", room_state=room.state)
+        paused_for_seconds = await game_state_service.pause_game(room_id=room_id)
+        return paused_for_seconds

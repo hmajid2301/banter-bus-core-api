@@ -11,7 +11,9 @@ from app.room.games.game import get_game
 from app.room.room_events_models import (
     CreateRoom,
     EventResponse,
+    GamePaused,
     GetNextQuestion,
+    PauseGame,
     PermanentlyDisconnectedPlayer,
     PermanentlyDisconnectPlayer,
     RoomCreated,
@@ -76,3 +78,14 @@ async def get_next_question(_: str, get_next_question: GetNextQuestion) -> Tuple
         got_next_question = game.got_next_question(player=player, game_state=game_state, next_question=next_question)
         event_responses.append(EventResponse(send_to=player.latest_sid, response_data=got_next_question))
     return event_responses, None
+
+
+@event_handler(input_model=PauseGame)
+@error_handler(Exception, handle_error)
+async def pause_game(_: str, pause_game: PauseGame) -> Tuple[GamePaused, str]:
+    room_service = get_room_service()
+    game_state_service = get_game_state_service()
+    paused_for_seconds = await room_service.pause_game(
+        room_id=pause_game.room_code, player_id=pause_game.player_id, game_state_service=game_state_service
+    )
+    return GamePaused(paused_for=paused_for_seconds), pause_game.room_code

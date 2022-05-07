@@ -13,3 +13,11 @@ class GameStateNotFound(NotFoundException):
 
 class NoStateFound(NotFoundException):
     pass
+
+
+class GameStateAlreadyPaused(Exception):
+    pass
+
+
+class GameStateAlreadyUnpaused(Exception):
+    pass

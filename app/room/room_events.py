@@ -24,11 +24,13 @@ from app.room.lobby.lobby_events_models import (
 from app.room.room_event_handlers import (
     create_room,
     get_next_question,
+    pause_game,
     permanently_disconnect_player,
 )
 from app.room.room_events_models import (
     CREATE_ROOM,
     GET_NEXT_QUESTION,
+    PAUSE_GAME,
     PERMANENTLY_DISCONNECT_PLAYER,
 )
 from app.room.room_factory import get_lobby_service, get_room_service
@@ -73,3 +75,4 @@ sio.on(KICK_PLAYER, kick_player)
 sio.on(PERMANENTLY_DISCONNECT_PLAYER, permanently_disconnect_player)
 sio.on(START_GAME, start_game)
 sio.on(GET_NEXT_QUESTION, get_next_question)
+sio.on(PAUSE_GAME, pause_game)

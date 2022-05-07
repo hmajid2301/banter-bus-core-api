@@ -14,6 +14,7 @@ from app.game_state.game_state_models import (
     DrawlossuemState,
     FibbingActions,
     FibbingItState,
+    GamePaused,
     GameState,
     QuiblyActions,
     QuiblyState,
@@ -34,6 +35,9 @@ class AbstractGameStateRepository(AbstractRepository[GameState]):
         timer_in_seconds: int,
         next_action: Union[FibbingActions, QuiblyActions, DrawlossuemActions],
     ) -> GameState:
+        raise NotImplementedError
+
+    async def update_paused(self, game_state: GameState, game_paused: GamePaused) -> GameState:
         raise NotImplementedError
 
 
@@ -66,7 +70,12 @@ class GameStateRepository(AbstractGameStateRepository):
         timer_in_seconds: int,
         next_action: Union[FibbingActions, QuiblyActions, DrawlossuemActions],
     ) -> GameState:
-        game_state.next_action_completed_by = datetime.now() + timedelta(seconds=timer_in_seconds)
-        game_state.next_action = next_action
+        game_state.action_completed_by = datetime.now() + timedelta(seconds=timer_in_seconds)
+        game_state.action = next_action
+        await game_state.save()
+        return game_state
+
+    async def update_paused(self, game_state: GameState, game_paused: GamePaused) -> GameState:
+        game_state.paused = game_paused
         await game_state.save()
         return game_state

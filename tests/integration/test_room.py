@@ -19,7 +19,13 @@ from app.room.lobby.lobby_events_models import (
     RoomJoined,
     StartGame,
 )
-from app.room.room_events_models import GetNextQuestion, GotNextQuestion, RoomCreated
+from app.room.room_events_models import (
+    GamePaused,
+    GetNextQuestion,
+    GotNextQuestion,
+    PauseGame,
+    RoomCreated,
+)
 from tests.integration.conftest import BASE_URL
 
 
@@ -271,3 +277,24 @@ async def test_get_next_question(client: AsyncClient):
     assert got_next_question.updated_round.round_changed is True
     assert got_next_question.updated_round.new_round == "opinion"
     assert got_next_question.question.answers is not None
+
+
+@pytest.mark.asyncio
+async def test_pause_room(client: AsyncClient):
+    future = asyncio.get_running_loop().create_future()
+
+    @client.on("GAME_PAUSED")
+    def _(data):
+        future.set_result(GamePaused(**data))
+
+    room_code = "2257856e-bf37-4cc4-8551-0b1ccdc38c60"
+    get_next_question = PauseGame(
+        room_code=room_code,
+        player_id="8cdc1984-e832-48c7-9d89-1d724665bef1",
+    )
+    sio.enter_room(client.get_sid(), room=room_code)
+    await client.emit("PAUSE_GAME", get_next_question.dict())
+    await asyncio.wait_for(future, timeout=5.0)
+
+    game_paused: GamePaused = future.result()
+    assert game_paused.paused_for == 300

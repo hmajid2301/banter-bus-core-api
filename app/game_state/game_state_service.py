@@ -1,12 +1,22 @@
+from datetime import datetime, timedelta
 from typing import List
 
 from pydantic import parse_obj_as
 
 from app.clients.management_api.api.questions_api import AsyncQuestionsApi
-from app.game_state.exceptions import GameStateIsNoneError, InvalidGameAction
-from app.game_state.game_state_exceptions import NoStateFound
+from app.game_state.exceptions import (
+    GameIsPaused,
+    GameStateIsNoneError,
+    InvalidGameAction,
+)
+from app.game_state.game_state_exceptions import (
+    GameStateAlreadyPaused,
+    GameStateAlreadyUnpaused,
+    NoStateFound,
+)
 from app.game_state.game_state_models import (
     FibbingActions,
+    GamePaused,
     GameState,
     NextQuestion,
     PlayerScore,
@@ -32,22 +42,31 @@ class GameStateService:
             room_id=room_id,
             player_scores=player_scores,
             state=state,
-            next_action=FibbingActions.show_question,
+            action=FibbingActions.show_question,
+            paused=GamePaused(),
         )
         await self.game_state_repository.add(game_state)
         return game_state
 
     async def get_next_question(self, game_state: GameState) -> NextQuestion:
-        next_action = game_state.next_action
-        if next_action != FibbingActions.show_question:
+        current_action = game_state.action
+        now = datetime.now()
+        if (
+            game_state.paused.is_paused
+            and game_state.paused.paused_stopped_at is not None
+            and game_state.paused.paused_stopped_at < now
+        ):
+            raise GameIsPaused("game is paused unable to get next question")
+
+        if current_action != FibbingActions.show_question:
             raise InvalidGameAction(
-                f"expected next action {FibbingActions.show_question.value} current next action {next_action}"
+                f"expected next action {FibbingActions.show_question.value} current next action {current_action}"
             )
 
         updated_round_state = await self._update_question_state(game_state=game_state)
         game = get_game(game_name=game_state.game_name)
         next_question = game.get_next_question(current_state=game_state.state)  # type: ignore
-        timer = game.get_timer(current_state=game_state.state, prev_action=game_state.next_action)  # type: ignore
+        timer = game.get_timer(current_state=game_state.state, prev_action=game_state.action)  # type: ignore
         game_state = await self._update_next_action(game=game, timer=timer, game_state=game_state)
         next_question_data = NextQuestion(
             updated_round=updated_round_state, next_question=next_question, timer_in_seconds=timer
@@ -74,7 +93,7 @@ class GameStateService:
         return updated_round_state
 
     async def _update_next_action(self, game: AbstractGame, timer: int, game_state: GameState) -> GameState:
-        next_action = game.get_next_action(current_action=game_state.next_action.value)
+        next_action = game.get_next_action(current_action=game_state.action.value)
         new_game_state = await self.game_state_repository.update_next_action(
             game_state=game_state, timer_in_seconds=timer, next_action=next_action
         )
@@ -85,3 +104,23 @@ class GameStateService:
         if game_state.state is None:
             raise NoStateFound(f"game state for {room_id=} is `None`")
         return game_state
+
+    async def pause_game(self, room_id: str) -> int:
+        game_state = await self.game_state_repository.get(room_id)
+        if game_state.paused.is_paused:
+            raise GameStateAlreadyPaused("game is already paused")
+
+        now = datetime.now()
+        seconds_to_pause = 300
+        paused_stopped_at = now + timedelta(seconds=300)
+
+        game_paused = GamePaused(is_paused=True, paused_stopped_at=paused_stopped_at)
+        await self.game_state_repository.update_paused(game_state=game_state, game_paused=game_paused)
+        return seconds_to_pause
+
+    async def unpause_game(self, room_id: str):
+        game_state = await self.game_state_repository.get(room_id)
+        if not game_state.paused.is_paused:
+            raise GameStateAlreadyUnpaused("game is already not paused")
+        game_paused = GamePaused()
+        await self.game_state_repository.update_paused(game_state=game_state, game_paused=game_paused)

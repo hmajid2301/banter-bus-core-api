@@ -1,3 +1,7 @@
+class GameIsPaused(Exception):
+    pass
+
+
 class InvalidGameAction(Exception):
     pass
 

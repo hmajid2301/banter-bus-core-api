@@ -10,6 +10,7 @@ from app.game_state.game_state_models import (
     DrawlossuemState,
     FibbingActions,
     FibbingItState,
+    GamePaused,
     GameState,
     QuiblyActions,
     QuiblyState,
@@ -50,6 +51,10 @@ class FakeGameStateRepository(AbstractGameStateRepository):
         timer_in_seconds: int,
         next_action: Union[FibbingActions, QuiblyActions, DrawlossuemActions],
     ) -> GameState:
-        game_state.next_action_completed_by = datetime.now() + timedelta(seconds=timer_in_seconds)
-        game_state.next_action = next_action
+        game_state.action_completed_by = datetime.now() + timedelta(seconds=timer_in_seconds)
+        game_state.action = next_action
+        return game_state
+
+    async def update_paused(self, game_state: GameState, game_paused: GamePaused) -> GameState:
+        game_state.paused = game_paused
         return game_state

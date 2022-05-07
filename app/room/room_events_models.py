@@ -11,6 +11,8 @@ PERMANENTLY_DISCONNECT_PLAYER = "PERMANENTLY_DISCONNECT_PLAYER"
 PERMANENTLY_DISCONNECTED_PLAYER = "PERMANENTLY_DISCONNECTED_PLAYER"
 GET_NEXT_QUESTION = "GET_NEXT_QUESTION"
 GOT_NEXT_QUESTION = "GOT_NEXT_QUESTION"
+PAUSE_GAME = "PAUSE_GAME"
+GAME_PAUSED = "GAME_PAUSED"
 
 
 class CreateRoom(EventModel):
@@ -73,6 +75,23 @@ class GotNextQuestion(EventModel):
     @property
     def event_name(self):
         return GOT_NEXT_QUESTION
+
+
+class PauseGame(EventModel):
+    player_id: str
+    room_code: str
+
+    @property
+    def event_name(self):
+        return PAUSE_GAME
+
+
+class GamePaused(EventModel):
+    paused_for: int
+
+    @property
+    def event_name(self):
+        return GAME_PAUSED
 
 
 class EventResponse(BaseModel):

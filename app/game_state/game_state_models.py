@@ -73,14 +73,20 @@ class DrawlossuemActions(Enum):
     pass
 
 
+class GamePaused(BaseModel):
+    is_paused: bool = False
+    paused_stopped_at: Optional[datetime] = None
+
+
 class GameState(Document):
     room_id: Indexed(str, unique=True)  # type: ignore
     game_name: str
     player_scores: List[PlayerScore]
     state: Optional[Union[FibbingItState, QuiblyState, DrawlossuemState]] = None
     answers_expected_by_time: Optional[datetime] = None
-    next_action: Union[FibbingActions, QuiblyActions, DrawlossuemActions]
-    next_action_completed_by: Optional[datetime] = None
+    action: Union[FibbingActions, QuiblyActions, DrawlossuemActions]
+    action_completed_by: Optional[datetime] = None
+    paused: GamePaused
 
     class Collection:
         name = "game_state"
