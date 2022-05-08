@@ -2,6 +2,7 @@ from datetime import datetime
 
 from omnibus.log.logger import get_logger
 
+from app.game_state.game_state_factory import get_game_state_service
 from app.main import sio
 from app.player.player_exceptions import PlayerNotFound
 from app.player.player_factory import get_player_service
@@ -30,11 +31,14 @@ from app.room.room_event_handlers import (
 )
 from app.room.room_events_models import (
     CREATE_ROOM,
+    GAME_PAUSED,
     GET_NEXT_QUESTION,
     PAUSE_GAME,
     PERMANENTLY_DISCONNECT_PLAYER,
     UNPAUSE_GAME,
+    GamePaused,
 )
+from app.room.room_exceptions import RoomInInvalidState
 from app.room.room_factory import get_lobby_service, get_room_service
 
 
@@ -62,10 +66,20 @@ async def disconnect(sid):
         room_service = get_room_service()
         lobby_service = get_lobby_service()
         room = await room_service.get(room_id=player.room_id)
-        if room.host == player.player_id:
+        if room.host and room.host == player.player_id:
             new_host = await lobby_service.update_host(room=room, old_host_id=player.player_id)
             host_disconnected = HostDisconnected(new_host_nickname=new_host.nickname)
             await sio.emit(HOST_DISCONNECTED, host_disconnected.dict(), room=room.room_id)
+
+        try:
+            game_state_service = get_game_state_service()
+            paused_for = await room_service.pause_game(
+                room_id=player.room_id, player_id=room.host or "", game_state_service=game_state_service
+            )
+            game_paused = GamePaused(paused_for=paused_for)
+            await sio.emit(GAME_PAUSED, game_paused.dict(), room=room.room_id)
+        except RoomInInvalidState:
+            pass
 
         await sio.emit(PLAYER_DISCONNECTED, player_disconnected.dict(), room=room.room_id)
 

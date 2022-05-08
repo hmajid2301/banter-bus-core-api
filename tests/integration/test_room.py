@@ -216,6 +216,27 @@ async def test_disconnect(client: AsyncClient, client_two: AsyncClient):
 
 
 @pytest.mark.asyncio
+async def test_disconnect_game_paused(client: AsyncClient, client_two: AsyncClient):
+    future = asyncio.get_running_loop().create_future()
+    player_service = get_player_service()
+    player = await player_service.get(player_id="8cdc1984-e832-48c7-9d89-1d724665bef1")
+
+    sio.enter_room(client_two.get_sid(), room=player.room_id)
+    await player_service.update_latest_sid(player=player, latest_sid=client.get_sid())
+
+    @client_two.on("GAME_PAUSED")
+    def _(data):
+        future.set_result(GamePaused(**data))
+
+    await client.disconnect()
+    await asyncio.wait_for(future, timeout=5.0)
+
+    game_paused: GamePaused = future.result()
+    assert game_paused.paused_for == 300
+    await client.connect(BASE_URL, socketio_path="/ws/socket.io")
+
+
+@pytest.mark.asyncio
 async def test_disconnect_host(client: AsyncClient, client_two: AsyncClient):
     future = asyncio.get_running_loop().create_future()
     player_service = get_player_service()
