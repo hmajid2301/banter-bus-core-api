@@ -12,11 +12,13 @@ from app.room.room_events_models import (
     CreateRoom,
     EventResponse,
     GamePaused,
+    GameUnpaused,
     GetNextQuestion,
     PauseGame,
     PermanentlyDisconnectedPlayer,
     PermanentlyDisconnectPlayer,
     RoomCreated,
+    UnpauseGame,
 )
 from app.room.room_exceptions import RoomNotFound
 from app.room.room_factory import get_room_service
@@ -89,3 +91,14 @@ async def pause_game(_: str, pause_game: PauseGame) -> Tuple[GamePaused, str]:
         room_id=pause_game.room_code, player_id=pause_game.player_id, game_state_service=game_state_service
     )
     return GamePaused(paused_for=paused_for_seconds), pause_game.room_code
+
+
+@event_handler(input_model=UnpauseGame)
+@error_handler(Exception, handle_error)
+async def unpause_game(_: str, unpause_game: UnpauseGame) -> Tuple[GameUnpaused, str]:
+    room_service = get_room_service()
+    game_state_service = get_game_state_service()
+    await room_service.unpause_game(
+        room_id=unpause_game.room_code, player_id=unpause_game.player_id, game_state_service=game_state_service
+    )
+    return GameUnpaused(), unpause_game.room_code

@@ -5,6 +5,7 @@ import pytest
 from socketio.asyncio_client import AsyncClient
 
 from app.event_models import Error
+from app.game_state.game_state_factory import get_game_state_service
 from app.main import sio
 from app.player.player_factory import get_player_service
 from app.room.lobby.lobby_events_models import (
@@ -21,10 +22,12 @@ from app.room.lobby.lobby_events_models import (
 )
 from app.room.room_events_models import (
     GamePaused,
+    GameUnpaused,
     GetNextQuestion,
     GotNextQuestion,
     PauseGame,
     RoomCreated,
+    UnpauseGame,
 )
 from tests.integration.conftest import BASE_URL
 
@@ -288,13 +291,36 @@ async def test_pause_room(client: AsyncClient):
         future.set_result(GamePaused(**data))
 
     room_code = "2257856e-bf37-4cc4-8551-0b1ccdc38c60"
-    get_next_question = PauseGame(
+    pause_game = PauseGame(
         room_code=room_code,
         player_id="8cdc1984-e832-48c7-9d89-1d724665bef1",
     )
     sio.enter_room(client.get_sid(), room=room_code)
-    await client.emit("PAUSE_GAME", get_next_question.dict())
+    await client.emit("PAUSE_GAME", pause_game.dict())
     await asyncio.wait_for(future, timeout=5.0)
 
     game_paused: GamePaused = future.result()
     assert game_paused.paused_for == 300
+
+
+@pytest.mark.asyncio
+async def test_unpause_room(client: AsyncClient):
+    future = asyncio.get_running_loop().create_future()
+    room_code = "2257856e-bf37-4cc4-8551-0b1ccdc38c60"
+    game_state_service = get_game_state_service()
+    await game_state_service.pause_game(room_id=room_code)
+
+    @client.on("GAME_UNPAUSED")
+    def _(data):
+        future.set_result(GameUnpaused(**data))
+
+    unpaused_game = UnpauseGame(
+        room_code=room_code,
+        player_id="8cdc1984-e832-48c7-9d89-1d724665bef1",
+    )
+    sio.enter_room(client.get_sid(), room=room_code)
+    await client.emit("UNPAUSE_GAME", unpaused_game.dict())
+    await asyncio.wait_for(future, timeout=5.0)
+
+    game_paused: GamePaused = future.result()
+    assert game_paused

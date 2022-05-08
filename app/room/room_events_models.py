@@ -13,6 +13,8 @@ GET_NEXT_QUESTION = "GET_NEXT_QUESTION"
 GOT_NEXT_QUESTION = "GOT_NEXT_QUESTION"
 PAUSE_GAME = "PAUSE_GAME"
 GAME_PAUSED = "GAME_PAUSED"
+UNPAUSE_GAME = "UNPAUSE_GAME"
+GAME_UNPAUSED = "GAME_UNPAUSED"
 
 
 class CreateRoom(EventModel):
@@ -92,6 +94,21 @@ class GamePaused(EventModel):
     @property
     def event_name(self):
         return GAME_PAUSED
+
+
+class UnpauseGame(EventModel):
+    player_id: str
+    room_code: str
+
+    @property
+    def event_name(self):
+        return UNPAUSE_GAME
+
+
+class GameUnpaused(EventModel):
+    @property
+    def event_name(self):
+        return GAME_UNPAUSED
 
 
 class EventResponse(BaseModel):
