@@ -19,5 +19,5 @@ class GameStateAlreadyPaused(Exception):
     pass
 
 
-class GameStateAlreadyUnpaused(Exception):
+class GameStateNotPaused(Exception):
     pass

@@ -8,7 +8,7 @@ from app.core.exceptions import GameNotFound
 from app.game_state.exceptions import GameIsPaused, InvalidGameAction
 from app.game_state.game_state_exceptions import (
     GameStateAlreadyPaused,
-    GameStateAlreadyUnpaused,
+    GameStateNotPaused,
 )
 from app.game_state.game_state_models import (
     FibbingActions,
@@ -112,15 +112,6 @@ async def test_should_pause_game(freezer):
 
 
 @pytest.mark.asyncio
-async def test_should_unpause_game():
-    game_state = GameStateFactory.build(paused=GamePaused(is_paused=True))
-    game_state_service = get_game_state_service(game_states=[game_state])
-    await game_state_service.unpause_game(room_id=game_state.room_id)
-
-    assert game_state.paused.is_paused is False
-
-
-@pytest.mark.asyncio
 async def test_should_not_pause_game_already_paused():
     game_state = GameStateFactory.build(paused=GamePaused(is_paused=True))
     game_state_service = get_game_state_service(game_states=[game_state])
@@ -130,9 +121,36 @@ async def test_should_not_pause_game_already_paused():
 
 
 @pytest.mark.asyncio
+async def test_should_add_player_to_waiting_for_players_list():
+    game_state: GameState = GameStateFactory.build(paused=GamePaused(is_paused=True))
+    game_state_service = get_game_state_service(game_states=[game_state])
+
+    await game_state_service.pause_game(room_id=game_state.room_id, player_disconnected="me")
+    assert game_state.paused.waiting_for_players == ["me"]
+
+
+@pytest.mark.asyncio
+async def test_should_unpause_game():
+    game_state = GameStateFactory.build(paused=GamePaused(is_paused=True))
+    game_state_service = get_game_state_service(game_states=[game_state])
+    await game_state_service.unpause_game(room_id=game_state.room_id)
+
+    assert game_state.paused.is_paused is False
+
+
+@pytest.mark.asyncio
 async def test_should_not_unpause_game_already_unpaused():
     game_state: GameState = GameStateFactory.build()
     game_state_service = get_game_state_service(game_states=[game_state])
 
-    with pytest.raises(GameStateAlreadyUnpaused):
+    with pytest.raises(GameStateNotPaused):
         await game_state_service.unpause_game(room_id=game_state.room_id)
+
+
+@pytest.mark.asyncio
+async def test_should_remove_player_to_waiting_for_players_list():
+    game_state: GameState = GameStateFactory.build(paused=GamePaused(is_paused=True, waiting_for_players=["me"]))
+    game_state_service = get_game_state_service(game_states=[game_state])
+
+    await game_state_service.unpause_game(room_id=game_state.room_id, player_reconnected="me")
+    assert game_state.paused.waiting_for_players == []

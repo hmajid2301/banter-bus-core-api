@@ -233,6 +233,7 @@ async def test_disconnect_game_paused(client: AsyncClient, client_two: AsyncClie
 
     game_paused: GamePaused = future.result()
     assert game_paused.paused_for == 300
+    assert game_paused.message == "Player Majiy disconnected, pausing game."
     await client.connect(BASE_URL, socketio_path="/ws/socket.io")
 
 
@@ -322,6 +323,7 @@ async def test_pause_room(client: AsyncClient):
 
     game_paused: GamePaused = future.result()
     assert game_paused.paused_for == 300
+    assert game_paused.message == "Game paused by host."
 
 
 @pytest.mark.asyncio

@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, Optional
 
 from pydantic import parse_obj_as
 
@@ -11,7 +11,7 @@ from app.game_state.exceptions import (
 )
 from app.game_state.game_state_exceptions import (
     GameStateAlreadyPaused,
-    GameStateAlreadyUnpaused,
+    GameStateNotPaused,
     NoStateFound,
 )
 from app.game_state.game_state_models import (
@@ -105,22 +105,46 @@ class GameStateService:
             raise NoStateFound(f"game state for {room_id=} is `None`")
         return game_state
 
-    async def pause_game(self, room_id: str) -> int:
+    async def pause_game(self, room_id: str, player_disconnected: Optional[str] = None) -> int:
         game_state = await self.game_state_repository.get(room_id)
-        if game_state.paused.is_paused:
+        if game_state.paused.is_paused and not player_disconnected:
             raise GameStateAlreadyPaused("game is already paused")
 
         now = datetime.now()
         seconds_to_pause = 300
         paused_stopped_at = now + timedelta(seconds=300)
 
-        game_paused = GamePaused(is_paused=True, paused_stopped_at=paused_stopped_at)
+        waiting_for_players = self._add_waiting_for_players(game_state, player_disconnected)
+        game_paused = GamePaused(
+            is_paused=True, paused_stopped_at=paused_stopped_at, waiting_for_players=waiting_for_players
+        )
         await self.game_state_repository.update_paused(game_state=game_state, game_paused=game_paused)
         return seconds_to_pause
 
-    async def unpause_game(self, room_id: str):
+    def _add_waiting_for_players(self, game_state: GameState, player_disconnected: Optional[str] = None):
+        waiting_for_players = game_state.paused.waiting_for_players
+        if player_disconnected:
+            if waiting_for_players:
+                waiting_for_players.append(player_disconnected)
+            else:
+                waiting_for_players = [player_disconnected]
+        return waiting_for_players
+
+    async def unpause_game(self, room_id: str, player_reconnected: Optional[str] = None):
         game_state = await self.game_state_repository.get(room_id)
+        waiting_for_players = self._remove_waiting_for_players(game_state, player_reconnected)
+
         if not game_state.paused.is_paused:
-            raise GameStateAlreadyUnpaused("game is already not paused")
-        game_paused = GamePaused()
+            raise GameStateNotPaused("game is not paused")
+
+        game_paused = GamePaused(waiting_for_players=waiting_for_players)
         await self.game_state_repository.update_paused(game_state=game_state, game_paused=game_paused)
+
+    def _remove_waiting_for_players(self, game_state: GameState, player_reconnected: Optional[str] = None):
+        waiting_for_players = game_state.paused.waiting_for_players
+
+        if player_reconnected and waiting_for_players:
+            waiting_for_players.remove(player_reconnected)
+        else:
+            waiting_for_players = []
+        return waiting_for_players

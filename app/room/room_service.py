@@ -46,7 +46,12 @@ class RoomService:
 
         await self.room_repository.update_player_count(room, new_count)
 
-    async def pause_game(self, room_id: str, player_id: str, game_state_service: GameStateService) -> int:
+    async def pause_game(
+        self,
+        room_id: str,
+        player_id: str,
+        game_state_service: GameStateService,
+    ) -> int:
         room = await self.get(room_id=room_id)
         self._check_action_pause_action_is_valid(player_id, room)
         paused_for_seconds = await game_state_service.pause_game(room_id=room_id)

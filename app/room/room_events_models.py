@@ -90,6 +90,7 @@ class PauseGame(EventModel):
 
 class GamePaused(EventModel):
     paused_for: int
+    message: str
 
     @property
     def event_name(self):

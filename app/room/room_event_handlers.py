@@ -90,7 +90,7 @@ async def pause_game(_: str, pause_game: PauseGame) -> Tuple[GamePaused, str]:
     paused_for_seconds = await room_service.pause_game(
         room_id=pause_game.room_code, player_id=pause_game.player_id, game_state_service=game_state_service
     )
-    return GamePaused(paused_for=paused_for_seconds), pause_game.room_code
+    return GamePaused(paused_for=paused_for_seconds, message="Game paused by host."), pause_game.room_code
 
 
 @event_handler(input_model=UnpauseGame)

@@ -38,8 +38,8 @@ from app.room.room_events_models import (
     UNPAUSE_GAME,
     GamePaused,
 )
-from app.room.room_exceptions import RoomInInvalidState
 from app.room.room_factory import get_lobby_service, get_room_service
+from app.room.room_models import RoomState
 
 
 @sio.event
@@ -71,15 +71,16 @@ async def disconnect(sid):
             host_disconnected = HostDisconnected(new_host_nickname=new_host.nickname)
             await sio.emit(HOST_DISCONNECTED, host_disconnected.dict(), room=room.room_id)
 
-        try:
-            game_state_service = get_game_state_service()
-            paused_for = await room_service.pause_game(
-                room_id=player.room_id, player_id=room.host or "", game_state_service=game_state_service
+        game_state_service = get_game_state_service()
+        if room.state == RoomState.PLAYING:
+            paused_for = await game_state_service.pause_game(
+                room_id=player.room_id,
+                player_disconnected=player.player_id,
             )
-            game_paused = GamePaused(paused_for=paused_for)
+            game_paused = GamePaused(
+                paused_for=paused_for, message=f"Player {player.nickname} disconnected, pausing game."
+            )
             await sio.emit(GAME_PAUSED, game_paused.dict(), room=room.room_id)
-        except RoomInInvalidState:
-            pass
 
         await sio.emit(PLAYER_DISCONNECTED, player_disconnected.dict(), room=room.room_id)
 
