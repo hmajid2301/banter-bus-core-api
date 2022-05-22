@@ -62,7 +62,7 @@ class RoomService:
         self._check_action_pause_action_is_valid(player_id, room)
         await game_state_service.unpause_game(room_id=room_id)
 
-    def _check_action_pause_action_is_valid(self, player_id, room):
+    def _check_action_pause_action_is_valid(self, player_id: str, room: Room):
         if room.host is None:
             raise NoOtherHostError("no player is host")
         elif room.host and room.host != player_id:

@@ -73,6 +73,7 @@ class GotQuestionQuibly(BaseModel):
 class GotNextQuestion(EventModel):
     updated_round: UpdateQuestionRoundState
     question: Union[GotQuestionFibbingIt, GotQuestionDrawlossuem, GotQuestionQuibly]
+    timer_in_seconds: int
 
     @property
     def event_name(self):

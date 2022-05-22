@@ -5,10 +5,11 @@ from pytest_httpx import HTTPXMock
 from pytest_mock import MockFixture
 
 from app.core.exceptions import GameNotFound
-from app.game_state.exceptions import GameIsPaused, InvalidGameAction
 from app.game_state.game_state_exceptions import (
+    GameIsPaused,
     GameStateAlreadyPaused,
     GameStateNotPaused,
+    InvalidGameAction,
 )
 from app.game_state.game_state_models import (
     FibbingActions,
@@ -148,7 +149,7 @@ async def test_should_not_unpause_game_already_unpaused():
 
 
 @pytest.mark.asyncio
-async def test_should_remove_player_to_waiting_for_players_list():
+async def test_should_remove_player_from_waiting_for_players_list():
     game_state: GameState = GameStateFactory.build(paused=GamePaused(is_paused=True, waiting_for_players=["me"]))
     game_state_service = get_game_state_service(game_states=[game_state])
 

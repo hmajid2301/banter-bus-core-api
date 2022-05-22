@@ -4,14 +4,12 @@ from typing import List, Optional
 from pydantic import parse_obj_as
 
 from app.clients.management_api.api.questions_api import AsyncQuestionsApi
-from app.game_state.exceptions import (
-    GameIsPaused,
-    GameStateIsNoneError,
-    InvalidGameAction,
-)
 from app.game_state.game_state_exceptions import (
+    GameIsPaused,
     GameStateAlreadyPaused,
+    GameStateIsNoneError,
     GameStateNotPaused,
+    InvalidGameAction,
     NoStateFound,
 )
 from app.game_state.game_state_models import (
@@ -130,15 +128,20 @@ class GameStateService:
                 waiting_for_players = [player_disconnected]
         return waiting_for_players
 
-    async def unpause_game(self, room_id: str, player_reconnected: Optional[str] = None):
+    async def unpause_game(self, room_id: str, player_reconnected: Optional[str] = None) -> GamePaused:
         game_state = await self.game_state_repository.get(room_id)
         waiting_for_players = self._remove_waiting_for_players(game_state, player_reconnected)
 
         if not game_state.paused.is_paused:
             raise GameStateNotPaused("game is not paused")
 
-        game_paused = GamePaused(waiting_for_players=waiting_for_players)
+        if waiting_for_players:
+            game_state.paused.waiting_for_players = waiting_for_players
+            game_paused = game_state.paused
+        else:
+            game_paused = GamePaused()
         await self.game_state_repository.update_paused(game_state=game_state, game_paused=game_paused)
+        return game_paused
 
     def _remove_waiting_for_players(self, game_state: GameState, player_reconnected: Optional[str] = None):
         waiting_for_players = game_state.paused.waiting_for_players

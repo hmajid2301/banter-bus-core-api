@@ -76,7 +76,7 @@ class DrawlossuemActions(Enum):
 class GamePaused(BaseModel):
     is_paused: bool = False
     paused_stopped_at: Optional[datetime] = None
-    waiting_for_players: Optional[List[str]] = None
+    waiting_for_players: List[str] = []
 
 
 class GameState(Document):

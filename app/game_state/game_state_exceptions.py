@@ -21,3 +21,15 @@ class GameStateAlreadyPaused(Exception):
 
 class GameStateNotPaused(Exception):
     pass
+
+
+class GameIsPaused(Exception):
+    pass
+
+
+class InvalidGameAction(Exception):
+    pass
+
+
+class GameStateIsNoneError(Exception):
+    pass

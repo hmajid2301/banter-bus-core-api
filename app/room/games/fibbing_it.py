@@ -36,6 +36,7 @@ class FibbingIt(AbstractGame):
                 answers=next_question.next_question.answers,
             ),
             updated_round=UpdateQuestionRoundState(**next_question.updated_round.dict()),
+            timer_in_seconds=next_question.timer_in_seconds,
         )
 
         return got_next_question

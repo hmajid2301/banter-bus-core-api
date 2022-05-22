@@ -131,6 +131,53 @@ async def test_rejoin_room_that_has_started(client: AsyncClient):
 
 
 @pytest.mark.asyncio
+async def test_rejoin_room_game_unpaused(client: AsyncClient):
+    future = asyncio.get_running_loop().create_future()
+    player_id = "8cdc1984-e832-48c7-9d89-1d724665bef1"
+    player_service = get_player_service()
+    player = await player_service.get(player_id=player_id)
+    await player_service.update_latest_sid(latest_sid=client.get_sid(), player=player)
+
+    game_state_service = get_game_state_service()
+    await game_state_service.pause_game(room_id="2257856e-bf37-4cc4-8551-0b1ccdc38c60", player_disconnected=player_id)
+
+    @client.on("GAME_UNPAUSED")
+    def _(data):
+        future.set_result(GameUnpaused(**data))
+
+    rejoin_room = RejoinRoom(player_id=player_id)
+    await client.emit("REJOIN_ROOM", rejoin_room.dict())
+    await asyncio.wait_for(future, timeout=5.0)
+    game_unpaused: GameUnpaused = future.result()
+    assert game_unpaused
+
+
+@pytest.mark.asyncio
+async def test_rejoin_room_game_should_not_unpaused(client: AsyncClient):
+    future = asyncio.get_running_loop().create_future()
+    player_id = "8cdc1984-e832-48c7-9d89-1d724665bef1"
+    player_service = get_player_service()
+    player = await player_service.get(player_id=player_id)
+    await player_service.update_latest_sid(latest_sid=client.get_sid(), player=player)
+
+    game_state_service = get_game_state_service()
+    await game_state_service.pause_game(room_id="2257856e-bf37-4cc4-8551-0b1ccdc38c60", player_disconnected=player_id)
+    await game_state_service.pause_game(
+        room_id="2257856e-bf37-4cc4-8551-0b1ccdc38c60", player_disconnected="99acb730-93de-4364-917a-8760ee50d0gg"
+    )
+
+    @client.on("GAME_UNPAUSED")
+    def _(data):
+        future.set_result(GameUnpaused(**data))
+
+    rejoin_room = RejoinRoom(player_id=player_id)
+    await client.emit("REJOIN_ROOM", rejoin_room.dict())
+
+    with pytest.raises(asyncio.exceptions.TimeoutError):
+        await asyncio.wait_for(future, timeout=1.0)
+
+
+@pytest.mark.asyncio
 async def test_room_joined_nickname_in_use(client: AsyncClient):
     future = asyncio.get_running_loop().create_future()
 

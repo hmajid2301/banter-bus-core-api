@@ -58,6 +58,7 @@ async def permanently_disconnect_player(
             raise Exception("Unexpected state player already disconnected")
 
         leave_room(disconnected_player.latest_sid, room=disconnected_player.room_id)
+        # TODO: remove from waiting for
         perm_disconnected_player = PermanentlyDisconnectedPlayer(nickname=data.nickname)
         return perm_disconnected_player, data.room_code
     except RoomNotFound as e:
