@@ -1,16 +1,23 @@
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 from omnibus.log.logger import get_logger
 
 from app.core.config import get_settings
 from app.event_manager import error_handler, event_handler, leave_room
+from app.event_models import Error
 from app.exception_handlers import handle_error
+from app.game_state.game_state_exceptions import GameStateNotFound
 from app.game_state.game_state_factory import get_game_state_service
-from app.player.player_exceptions import PlayerNotInRoom
+from app.player.player_exceptions import PlayerHasNoRoomError, PlayerNotInRoom
 from app.player.player_factory import get_player_service
 from app.room.games.game import get_game
+from app.room.lobby.lobby_event_helpers import (
+    get_next_question_helper,
+    get_room_joined,
+    send_unpause_event_if_no_players_are_disconnected,
+)
+from app.room.lobby.lobby_events_models import RoomJoined
 from app.room.room_events_models import (
-    CreateRoom,
     EventResponse,
     GamePaused,
     GameUnpaused,
@@ -18,20 +25,11 @@ from app.room.room_events_models import (
     PauseGame,
     PermanentlyDisconnectedPlayer,
     PermanentlyDisconnectPlayer,
-    RoomCreated,
+    RejoinRoom,
     UnpauseGame,
 )
 from app.room.room_exceptions import RoomNotFound
-from app.room.room_factory import get_room_service
-
-
-@event_handler(input_model=CreateRoom)
-@error_handler(Exception, handle_error)
-async def create_room(sid: str, _: CreateRoom) -> Tuple[RoomCreated, None]:
-    room_service = get_room_service()
-    created_room = await room_service.create()
-    room_created = RoomCreated(room_code=created_room.room_id)
-    return room_created, None
+from app.room.room_factory import get_lobby_service, get_room_service
 
 
 @event_handler(input_model=PermanentlyDisconnectPlayer)
@@ -65,6 +63,41 @@ async def permanently_disconnect_player(
     except RoomNotFound as e:
         logger.exception("room not found", room_code=e.room_identifier)
         raise e
+
+
+@event_handler(input_model=RejoinRoom)
+@error_handler(Exception, handle_error)
+async def rejoin_room(sid: str, rejoin_room: RejoinRoom) -> Tuple[Union[RoomJoined, Error], str]:
+    logger = get_logger()
+    try:
+        lobby_service = get_lobby_service()
+        room_players = await lobby_service.rejoin(player_id=rejoin_room.player_id, latest_sid=sid)
+
+        room_service = get_room_service()
+        room = await room_service.get(room_id=room_players.room_code)
+        room_joined = await get_room_joined(sid, room_players.room_code, room_players)
+        if room.state.is_room_rejoinable_and_started:
+            await get_next_question_helper(sid=sid, player_id=rejoin_room.player_id, room_code=room_players.room_code)
+
+        try:
+            game_state_service = get_game_state_service()
+            await send_unpause_event_if_no_players_are_disconnected(
+                game_state_service=game_state_service, room_id=room_players.room_code, player_id=rejoin_room.player_id
+            )
+        except GameStateNotFound:
+            pass
+
+        return room_joined, room_players.room_code
+    except RoomNotFound as e:
+        logger.exception("room not found", room_code=e.room_identifier)
+        error = Error(code="room_join_fail", message="room not found")
+        return error, sid
+    except PlayerHasNoRoomError:
+        logger.exception(
+            "player has no room, they were likely disconnected from said room", player_id=rejoin_room.player_id
+        )
+        error = Error(code="room_join_fail", message="disconnected from room, please re-join with a new nickname")
+        return error, sid
 
 
 @event_handler(input_model=GetNextQuestion)

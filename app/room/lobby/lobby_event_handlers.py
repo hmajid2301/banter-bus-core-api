@@ -5,23 +5,18 @@ from omnibus.log.logger import get_logger
 from app.event_manager import error_handler, event_handler, leave_room, publish_event
 from app.event_models import Error
 from app.exception_handlers import handle_error
-from app.game_state.game_state_exceptions import GameStateNotFound
-from app.game_state.game_state_factory import get_game_state_service
-from app.player.player_exceptions import PlayerHasNoRoomError, PlayerNotHostError
+from app.player.player_exceptions import PlayerNotHostError
 from app.player.player_models import NewPlayer
-from app.room.lobby.lobby_event_helpers import (
-    get_next_question,
-    get_room_joined,
-    send_unpause_event_if_no_players_are_disconnected,
-)
+from app.room.lobby.lobby_event_helpers import get_room_joined
 from app.room.lobby.lobby_events_models import (
     NEW_ROOM_JOINED,
+    CreateRoom,
     GameStarted,
     JoinRoom,
     KickPlayer,
     NewRoomJoined,
     PlayerKicked,
-    RejoinRoom,
+    RoomCreated,
     RoomJoined,
     StartGame,
 )
@@ -30,7 +25,16 @@ from app.room.room_exceptions import (
     RoomInInvalidState,
     RoomNotFound,
 )
-from app.room.room_factory import get_game_api, get_lobby_service, get_room_service
+from app.room.room_factory import get_game_api, get_lobby_service
+
+
+@event_handler(input_model=CreateRoom)
+@error_handler(Exception, handle_error)
+async def create_room(sid: str, _: CreateRoom) -> Tuple[RoomCreated, None]:
+    lobby_service = get_lobby_service()
+    created_room = await lobby_service.create_room()
+    room_created = RoomCreated(room_code=created_room.room_id)
+    return room_created, None
 
 
 @event_handler(input_model=JoinRoom)
@@ -56,41 +60,6 @@ async def join_room(sid, join_room: JoinRoom) -> Tuple[Union[RoomJoined, Error],
     except NicknameExistsException as e:
         logger.exception("nickname already exists", room_code=join_room.room_code, nickname=e.nickname)
         error = Error(code="room_join_fail", message=f"nickname {e.nickname} already exists")
-        return error, sid
-
-
-@event_handler(input_model=RejoinRoom)
-@error_handler(Exception, handle_error)
-async def rejoin_room(sid: str, rejoin_room: RejoinRoom) -> Tuple[Union[RoomJoined, Error], str]:
-    logger = get_logger()
-    try:
-        lobby_service = get_lobby_service()
-        room_players = await lobby_service.rejoin(player_id=rejoin_room.player_id, latest_sid=sid)
-
-        room_service = get_room_service()
-        room = await room_service.get(room_id=room_players.room_code)
-        room_joined = await get_room_joined(sid, room_players.room_code, room_players)
-        if room.state.is_room_rejoinable_and_started:
-            await get_next_question(sid=sid, player_id=rejoin_room.player_id, room_code=room_players.room_code)
-
-        try:
-            game_state_service = get_game_state_service()
-            await send_unpause_event_if_no_players_are_disconnected(
-                game_state_service=game_state_service, room_id=room_players.room_code, player_id=rejoin_room.player_id
-            )
-        except GameStateNotFound:
-            pass
-
-        return room_joined, room_players.room_code
-    except RoomNotFound as e:
-        logger.exception("room not found", room_code=e.room_identifier)
-        error = Error(code="room_join_fail", message="room not found")
-        return error, sid
-    except PlayerHasNoRoomError:
-        logger.exception(
-            "player has no room, they were likely disconnected from said room", player_id=rejoin_room.player_id
-        )
-        error = Error(code="room_join_fail", message="disconnected from room, please re-join with a new nickname")
         return error, sid
 
 

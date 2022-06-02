@@ -12,7 +12,7 @@ from app.room.lobby.lobby_events_models import Player, RoomJoined
 from app.room.room_events_models import GAME_UNPAUSED, GOT_NEXT_QUESTION, GameUnpaused
 
 
-async def get_next_question(sid: str, player_id: str, room_code: str):
+async def get_next_question_helper(sid: str, player_id: str, room_code: str):
     game_state_service = get_game_state_service()
     game_state = await game_state_service.get_game_state_by_room_id(room_id=room_code)
     next_question = await game_state_service.get_next_question(game_state=game_state)

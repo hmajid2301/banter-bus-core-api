@@ -1,12 +1,13 @@
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 from app.event_models import EventModel
 from app.game_state.game_state_models import UpdateQuestionRoundState
 
-CREATE_ROOM = "CREATE_ROOM"
-ROOM_CREATED = "ROOM_CREATED"
+REJOIN_ROOM = "REJOIN_ROOM"
+PLAYER_DISCONNECTED = "PLAYER_DISCONNECTED"
+HOST_DISCONNECTED = "HOST_DISCONNECTED"
 PERMANENTLY_DISCONNECT_PLAYER = "PERMANENTLY_DISCONNECT_PLAYER"
 PERMANENTLY_DISCONNECTED_PLAYER = "PERMANENTLY_DISCONNECTED_PLAYER"
 GET_NEXT_QUESTION = "GET_NEXT_QUESTION"
@@ -17,18 +18,35 @@ UNPAUSE_GAME = "UNPAUSE_GAME"
 GAME_UNPAUSED = "GAME_UNPAUSED"
 
 
-class CreateRoom(EventModel):
-    @property
-    def event_name(self):
-        return CREATE_ROOM
-
-
-class RoomCreated(EventModel):
-    room_code: str
+class HostDisconnected(EventModel):
+    new_host_nickname: str
 
     @property
     def event_name(self):
-        return ROOM_CREATED
+        return HOST_DISCONNECTED
+
+
+class PlayerDisconnected(EventModel):
+    nickname: str
+    avatar: Union[str, bytes]
+
+    @validator("avatar", pre=True)
+    def base64_bytes_to_string(cls, value):
+        if isinstance(value, bytes):
+            return value.decode()
+        return value
+
+    @property
+    def event_name(self):
+        return PLAYER_DISCONNECTED
+
+
+class RejoinRoom(EventModel):
+    player_id: str
+
+    @property
+    def event_name(self):
+        return REJOIN_ROOM
 
 
 class PermanentlyDisconnectPlayer(EventModel):

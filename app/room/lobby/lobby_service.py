@@ -28,6 +28,10 @@ class LobbyService:
         self.player_service = player_service
         self.game_state_service = game_state_service
 
+    async def create_room(self) -> Room:
+        room = await self.room_service.create()
+        return room
+
     async def join(self, room_id: str, new_player: NewPlayer) -> RoomPlayers:
         room = await self.room_service.get(room_id=room_id)
         if not room.state.is_room_joinable:
