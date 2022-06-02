@@ -6,6 +6,7 @@ from app.core.config import get_settings
 from app.event_manager import error_handler, event_handler, leave_room
 from app.exception_handlers import handle_error
 from app.game_state.game_state_factory import get_game_state_service
+from app.player.player_exceptions import PlayerNotInRoom
 from app.player.player_factory import get_player_service
 from app.room.games.game import get_game
 from app.room.room_events_models import (
@@ -69,11 +70,17 @@ async def permanently_disconnect_player(
 @event_handler(input_model=GetNextQuestion)
 @error_handler(Exception, handle_error)
 async def get_next_question(_: str, get_next_question: GetNextQuestion) -> Tuple[List[EventResponse], None]:
+    logger = get_logger()
     game_state_service = get_game_state_service()
     game_state = await game_state_service.get_game_state_by_room_id(room_id=get_next_question.room_code)
     next_question = await game_state_service.get_next_question(game_state=game_state)
 
     player_service = get_player_service()
+    player = await player_service.get(player_id=get_next_question.player_id)
+    if not player.room_id == get_next_question.room_code:
+        logger.warning("Player getting next question not in room", get_next_question=get_next_question.dict())
+        raise PlayerNotInRoom("player not in room, cannot get next question")
+
     players = await player_service.get_all_in_room(room_id=get_next_question.room_code)
     game = get_game(game_name=game_state.game_name)
     event_responses: List[EventResponse] = []

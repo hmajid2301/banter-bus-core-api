@@ -49,6 +49,7 @@ class PermanentlyDisconnectedPlayer(EventModel):
 
 
 class GetNextQuestion(EventModel):
+    player_id: str
     room_code: str
 
     @property
