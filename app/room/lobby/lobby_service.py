@@ -4,7 +4,7 @@ from app.clients.management_api.api.games_api import AsyncGamesApi
 from app.clients.management_api.models import GameOut
 from app.core.exceptions import NoOtherHostError
 from app.game_state.game_state_service import GameStateService
-from app.player.player_exceptions import PlayerHasNoRoomError, PlayerNotHostError
+from app.player.player_exceptions import PlayerHasNoRoomError
 from app.player.player_models import NewPlayer, Player, RoomPlayers
 from app.player.player_service import PlayerService
 from app.room.room_exceptions import (
@@ -109,7 +109,7 @@ class LobbyService:
 
     async def kick_player(self, player_to_kick_nickname: str, player_attempting_kick: str, room_id: str) -> Player:
         room = await self.room_service.get(room_id=room_id)
-        self._check_is_player_host(room=room, player_id=player_attempting_kick)
+        self.room_service.check_is_player_host(room=room, player_id=player_attempting_kick)
 
         if room.state != RoomState.CREATED:
             raise RoomInInvalidState(msg=f"expected room state {RoomState.CREATED}", room_state=room.state)
@@ -134,8 +134,7 @@ class LobbyService:
         if room.state != RoomState.CREATED:
             raise RoomInInvalidState(msg=f"expected room state {RoomState.CREATED}", room_state=room.state)
 
-        self._check_is_player_host(room=room, player_id=player_id)
-
+        self.room_service.check_is_player_host(room=room, player_id=player_id)
         game = await game_api.get_game(game_name=game_name)
         self._check_game_is_valid(game_name, room, game)
 
@@ -143,16 +142,6 @@ class LobbyService:
         players = await self.player_service.get_all_in_room(room_id=room.room_id)
         await self.game_state_service.create(room_id=room.room_id, players=players, game_name=game.name)
         return room
-
-    @staticmethod
-    def _check_is_player_host(room: Room, player_id: str):
-        host_id = room.host
-        if not host_id:
-            raise RoomHasNoHostError(msg="room has no host", room_id=room.room_id)
-        elif host_id != player_id:
-            raise PlayerNotHostError(
-                msg="player is not host cannot kick player", player_id=player_id, host_player_id=room.host
-            )
 
     @staticmethod
     def _check_game_is_valid(game_name: str, room: Room, game: GameOut):

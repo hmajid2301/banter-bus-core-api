@@ -1,10 +1,9 @@
 from datetime import datetime
 from uuid import uuid4
 
-from app.core.exceptions import NoOtherHostError
 from app.game_state.game_state_service import GameStateService
 from app.player.player_exceptions import PlayerNotHostError
-from app.room.room_exceptions import RoomInInvalidState
+from app.room.room_exceptions import RoomHasNoHostError, RoomInInvalidState
 from app.room.room_models import Room, RoomState
 from app.room.room_repository import AbstractRoomRepository
 
@@ -63,9 +62,16 @@ class RoomService:
         await game_state_service.unpause_game(room_id=room_id)
 
     def _check_action_pause_action_is_valid(self, player_id: str, room: Room):
-        if room.host is None:
-            raise NoOtherHostError("no player is host")
-        elif room.host and room.host != player_id:
-            raise PlayerNotHostError("player cannot pause game not host", player_id=player_id, host_player_id=room.host)
+        self.check_is_player_host(room=room, player_id=player_id)
         if room.state is not RoomState.PLAYING:
             raise RoomInInvalidState("expected room to be in PLAYING state", room_state=room.state)
+
+    @staticmethod
+    def check_is_player_host(room: Room, player_id: str):
+        host_id = room.host
+        if not host_id:
+            raise RoomHasNoHostError(msg="room has no host", room_id=room.room_id)
+        elif host_id != player_id:
+            raise PlayerNotHostError(
+                msg="player is not host cannot kick player", player_id=player_id, host_player_id=room.host
+            )
