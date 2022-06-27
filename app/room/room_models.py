@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 from beanie import Document, Indexed
 
@@ -29,10 +28,10 @@ class RoomState(Enum):
 
 class Room(Document):
     room_id: Indexed(str, unique=True)  # type: ignore
-    game_name: Optional[str] = None
-    host: Optional[str] = None
+    game_name: str | None = None
+    host: str | None = None
     state: RoomState
-    player_count = 0
+    player_count: int = 0
     created_at: datetime
     updated_at: datetime
 

@@ -1,5 +1,3 @@
-from typing import List
-
 from app.clients.management_api.api.games_api import AsyncGamesApi
 from app.clients.management_api.models import GameOut
 from app.core.exceptions import NoOtherHostError
@@ -56,7 +54,7 @@ class LobbyService:
         return room_players
 
     @staticmethod
-    def _check_nickname_is_unique(new_player_nickname: str, existing_players: List[Player]):
+    def _check_nickname_is_unique(new_player_nickname: str, existing_players: list[Player]):
         matching_nickname = [player for player in existing_players if player.nickname == new_player_nickname]
         if matching_nickname:
             raise NicknameExistsException(msg="nickname already exists", nickname=new_player_nickname)
@@ -94,7 +92,7 @@ class LobbyService:
     @staticmethod
     def _get_players_in_room(
         room_host_player_id: str,
-        players: List[Player],
+        players: list[Player],
         player_id: str,
         room_code: str,
     ) -> RoomPlayers:

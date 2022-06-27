@@ -1,5 +1,3 @@
-from typing import List, Optional, Union
-
 from pydantic import BaseModel, validator
 
 from app.event_models import EventModel
@@ -16,6 +14,8 @@ PAUSE_GAME = "PAUSE_GAME"
 GAME_PAUSED = "GAME_PAUSED"
 UNPAUSE_GAME = "UNPAUSE_GAME"
 GAME_UNPAUSED = "GAME_UNPAUSED"
+SUBMIT_ANSWER = "SUBMIT_ANSWER"
+ANSWER_SUBMITTED = "ANSWER_SUBMITTED"
 
 
 class HostDisconnected(EventModel):
@@ -28,7 +28,7 @@ class HostDisconnected(EventModel):
 
 class PlayerDisconnected(EventModel):
     nickname: str
-    avatar: Union[str, bytes]
+    avatar: str | bytes
 
     @validator("avatar", pre=True)
     def base64_bytes_to_string(cls, value):
@@ -78,7 +78,7 @@ class GetNextQuestion(EventModel):
 class GotQuestionFibbingIt(BaseModel):
     is_fibber: bool
     question: str
-    answers: Optional[List[str]] = None
+    answers: list[str] | None = None
 
 
 class GotQuestionDrawlossuem(BaseModel):
@@ -91,7 +91,7 @@ class GotQuestionQuibly(BaseModel):
 
 class GotNextQuestion(EventModel):
     updated_round: UpdateQuestionRoundState
-    question: Union[GotQuestionFibbingIt, GotQuestionDrawlossuem, GotQuestionQuibly]
+    question: GotQuestionFibbingIt | GotQuestionDrawlossuem | GotQuestionQuibly
     timer_in_seconds: int
 
     @property
@@ -130,6 +130,22 @@ class GameUnpaused(EventModel):
     @property
     def event_name(self):
         return GAME_UNPAUSED
+
+
+class SubmitAnswer(EventModel):
+    player_id: str
+    answer: str
+    room_code: str
+
+    @property
+    def event_name(self):
+        return SUBMIT_ANSWER
+
+
+class AnswerSubmitted(EventModel):
+    @property
+    def event_name(self):
+        return ANSWER_SUBMITTED
 
 
 class EventResponse(BaseModel):

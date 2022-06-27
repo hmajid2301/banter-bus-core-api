@@ -1,5 +1,4 @@
 from http import HTTPStatus
-from typing import List
 
 from httpx import Headers
 
@@ -9,7 +8,7 @@ from app.clients.management_api.exceptions import UnexpectedResponse
 
 
 class FakeGameAPI(AsyncGamesApi):
-    def __init__(self, games: List[m.GameOut]):
+    def __init__(self, games: list[m.GameOut]):
         self.games = games
 
     async def get_game(self, game_name: str) -> m.GameOut:
@@ -17,6 +16,4 @@ class FakeGameAPI(AsyncGamesApi):
             if game.name == game_name:
                 return game
 
-        raise UnexpectedResponse(
-            status_code=HTTPStatus.NOT_FOUND, reason_phrase="", content="".encode("utf-8"), headers=Headers()
-        )
+        raise UnexpectedResponse(status_code=HTTPStatus.NOT_FOUND, reason_phrase="", content=b"", headers=Headers())

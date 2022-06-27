@@ -1,12 +1,10 @@
-from typing import List
-
 from app.room.room_exceptions import RoomExistsException, RoomNotFound
 from app.room.room_models import Room, RoomState
 from app.room.room_repository import AbstractRoomRepository
 
 
 class fibberoomRepository(AbstractRoomRepository):
-    def __init__(self, rooms: List[Room]):
+    def __init__(self, rooms: list[Room]):
         self.rooms = rooms
 
     async def add(self, new_room: Room):

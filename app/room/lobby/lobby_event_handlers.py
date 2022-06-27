@@ -1,5 +1,3 @@
-from typing import Tuple, Union
-
 from omnibus.log.logger import get_logger
 
 from app.event_manager import error_handler, event_handler, leave_room, publish_event
@@ -30,7 +28,7 @@ from app.room.room_factory import get_game_api, get_lobby_service
 
 @event_handler(input_model=CreateRoom)
 @error_handler(Exception, handle_error)
-async def create_room(sid: str, _: CreateRoom) -> Tuple[RoomCreated, None]:
+async def create_room(sid: str, _: CreateRoom) -> tuple[RoomCreated, None]:
     lobby_service = get_lobby_service()
     created_room = await lobby_service.create_room()
     room_created = RoomCreated(room_code=created_room.room_id)
@@ -39,7 +37,7 @@ async def create_room(sid: str, _: CreateRoom) -> Tuple[RoomCreated, None]:
 
 @event_handler(input_model=JoinRoom)
 @error_handler(Exception, handle_error)
-async def join_room(sid, join_room: JoinRoom) -> Tuple[Union[RoomJoined, Error], str]:
+async def join_room(sid, join_room: JoinRoom) -> tuple[RoomJoined | Error, str]:
     logger = get_logger()
     try:
         lobby_service = get_lobby_service()
@@ -65,7 +63,7 @@ async def join_room(sid, join_room: JoinRoom) -> Tuple[Union[RoomJoined, Error],
 
 @event_handler(input_model=KickPlayer)
 @error_handler(Exception, handle_error)
-async def kick_player(sid, kick_player: KickPlayer) -> Tuple[Union[PlayerKicked, Error], str]:
+async def kick_player(sid, kick_player: KickPlayer) -> tuple[PlayerKicked | Error, str]:
     logger = get_logger()
     try:
         lobby_service = get_lobby_service()
@@ -94,7 +92,7 @@ async def kick_player(sid, kick_player: KickPlayer) -> Tuple[Union[PlayerKicked,
 
 @event_handler(input_model=StartGame)
 @error_handler(Exception, handle_error)
-async def start_game(_: str, start_game: StartGame) -> Tuple[GameStarted, str]:
+async def start_game(_: str, start_game: StartGame) -> tuple[GameStarted, str]:
     lobby_service = get_lobby_service()
     game_api = get_game_api()
     await lobby_service.start_game(

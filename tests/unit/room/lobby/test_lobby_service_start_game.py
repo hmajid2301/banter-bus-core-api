@@ -1,5 +1,3 @@
-from typing import List
-
 import pytest
 from pytest_httpx import HTTPXMock
 from pytest_mock import MockFixture
@@ -32,7 +30,7 @@ async def test_should_start_game(httpx_mock: HTTPXMock):
     existing_room: Room = RoomFactory.build(
         state=RoomState.CREATED, room_id=room_id, host=room_host_player_id, player_count=2
     )
-    existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
+    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
     lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
     game_api = get_game_api_client()
 

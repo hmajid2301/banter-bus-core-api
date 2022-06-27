@@ -8,7 +8,7 @@ from httpx import AsyncClient as HttpXClient
 from omnibus.tests.uvicorn_test_server import UvicornTestServer
 from socketio.asyncio_client import AsyncClient
 
-from app import app
+from app import app  # type: ignore
 from app.game_state.game_state_models import GameState
 
 HOST = "127.0.0.1"

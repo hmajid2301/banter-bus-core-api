@@ -1,21 +1,21 @@
 from functools import lru_cache
-from typing import Dict, Optional, Set, TypedDict
+from typing import TypedDict
 
 from omnibus.config.settings import OmnibusSettings
 
 
 class IgnoreAttributes(TypedDict):
-    list: Dict[str, Set[str]]
+    list: dict[str, set[str]]
 
 
 class Settings(OmnibusSettings):
     MANAGEMENT_API_URL: str
-    MANAGEMENT_API_PORT: Optional[int]
+    MANAGEMENT_API_PORT: int | None
     DISCONNECT_TIMER_IN_SECONDS: int = 300
 
     MESSAGE_QUEUE_HOST: str
-    MESSAGE_QUEUE_PORT: Optional[int]
-    MESSAGE_QUEUE_PASSWORD: Optional[str]
+    MESSAGE_QUEUE_PORT: int | None
+    MESSAGE_QUEUE_PASSWORD: str | None
 
     QUESTIONS_PER_ROUND: int = 3
     LOG_RESPONSE_EXCLUDE_ATTR: IgnoreAttributes = {"list": {"players": {"avatar"}}}
@@ -43,6 +43,6 @@ class Settings(OmnibusSettings):
         return uri
 
 
-@lru_cache()
+@lru_cache
 def get_settings():
     return Settings()

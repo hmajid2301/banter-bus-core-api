@@ -1,4 +1,4 @@
-from typing import Any, Callable, Coroutine, List, Optional, Tuple, Type, Union
+from typing import Any, Callable, Coroutine
 
 from structlog import get_logger
 
@@ -8,7 +8,7 @@ from app.main import sio
 from app.room.room_events_models import EventModel, EventResponse
 
 
-def error_handler(exception: Type[Exception], error_callback: Callable[[str], Coroutine[Any, Any, None]]):
+def error_handler(exception: type[Exception], error_callback: Callable[[str], Coroutine[Any, Any, None]]):
     def outer(func: Callable[[str, Any], Coroutine[Any, Any, Any]]):  # TODO alias these complicated types
         async def inner(sid: str, data: EventModel):
             try:
@@ -21,11 +21,9 @@ def error_handler(exception: Type[Exception], error_callback: Callable[[str], Co
     return outer
 
 
-def event_handler(input_model: Type[EventModel]):
-    def outer(
-        func: Callable[[str, EventModel], Coroutine[Any, Any, Tuple[Union[List[EventResponse], EventModel], str]]]
-    ):
-        async def inner(sid: str, data: dict):
+def event_handler(input_model: type[EventModel]):
+    def outer(func: Callable[[str, EventModel], Coroutine[Any, Any, tuple[list[EventResponse] | EventModel, str]]]):
+        async def inner(sid: str, data: dict[Any, Any]):
             model = input_model(**data)
 
             logger = get_logger()
@@ -60,7 +58,7 @@ def event_handler(input_model: Type[EventModel]):
     return outer
 
 
-async def publish_event(event_name: str, event_body: EventModel, room: Optional[str] = None):
+async def publish_event(event_name: str, event_body: EventModel, room: str | None = None):
     await sio.emit(event_name, event_body.dict(), room=room)
 
 

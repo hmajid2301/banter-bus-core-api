@@ -32,13 +32,13 @@ class _GamesApi:
             path_params=path_params,
         )
 
-    def _build_for_get_all_game_names(self, status: str = None) -> Awaitable[List[str]]:
+    def _build_for_get_all_game_names(self, status: str = None) -> Awaitable[list[str]]:
         query_params = {}
         if status is not None:
             query_params["status"] = str(status)
 
         return self.api_client.request(
-            type_=List[str],
+            type_=list[str],
             method="GET",
             url="/game",
             params=query_params,
@@ -62,7 +62,7 @@ class AsyncGamesApi(_GamesApi):
     async def enable_game(self, game_name: str) -> m.GameOut:
         return await self._build_for_enable_game(game_name=game_name)
 
-    async def get_all_game_names(self, status: str = None) -> List[str]:
+    async def get_all_game_names(self, status: str = None) -> list[str]:
         return await self._build_for_get_all_game_names(status=status)
 
     async def get_game(self, game_name: str) -> m.GameOut:
@@ -78,7 +78,7 @@ class SyncGamesApi(_GamesApi):
         coroutine = self._build_for_enable_game(game_name=game_name)
         return get_event_loop().run_until_complete(coroutine)
 
-    def get_all_game_names(self, status: str = None) -> List[str]:
+    def get_all_game_names(self, status: str = None) -> list[str]:
         coroutine = self._build_for_get_all_game_names(status=status)
         return get_event_loop().run_until_complete(coroutine)
 

@@ -1,5 +1,3 @@
-from typing import List
-
 import pytest
 from pytest_mock import MockFixture
 
@@ -49,7 +47,7 @@ async def test_should_not_join_finished_room():
 async def test_should_join_non_empty_room():
     existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
 
-    existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
+    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
     lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
     existing_room.host = existing_players[0].player_id
 
@@ -66,7 +64,7 @@ async def test_should_join_non_empty_room():
 async def test_should_not_join_room_nickname_exists():
     existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
 
-    existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
+    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
     lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
     existing_room.host = existing_players[0].player_id
 
@@ -81,7 +79,7 @@ async def test_should_not_join_room_nickname_exists():
 async def test_should_rejoin_room():
     existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
 
-    existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
+    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
     lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
     first_player_id = existing_players[0].player_id
     first_player_sid = existing_players[0].latest_sid
@@ -96,7 +94,7 @@ async def test_should_rejoin_room():
 async def test_should_not_rejoin_in_finished_room():
     existing_room: Room = RoomFactory.build(state=RoomState.FINISHED)
 
-    existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
+    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
     lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
     first_player_id = existing_players[0].player_id
     first_player_sid = existing_players[0].latest_sid
@@ -110,7 +108,7 @@ async def test_should_not_rejoin_in_finished_room():
 async def test_should_not_rejoin_room_player_not_found():
     existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
 
-    existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
+    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
     lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
     first_player_sid = existing_players[0].latest_sid
     existing_room.host = existing_players[0].player_id
@@ -123,7 +121,7 @@ async def test_should_not_rejoin_room_player_not_found():
 async def test_should_not_rejoin_room_has_no_host():
     existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
 
-    existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
+    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
     lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
     first_player_id = existing_players[0].player_id
     first_player_sid = existing_players[0].latest_sid
@@ -137,7 +135,7 @@ async def test_should_not_rejoin_room_not_found():
     existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
     lobby_service = get_lobby_service(rooms=[existing_room])
 
-    existing_players: List[Player] = PlayerFactory.build_batch(3, room_id="unknown-room-id")
+    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id="unknown-room-id")
     lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
     existing_room.host = existing_players[0].player_id
 
@@ -154,7 +152,7 @@ async def test_should_update_room_host():
     room_host_player_id = "5a18ac45-9876-4f8e-b636-cf730b17e59l"
 
     existing_room: Room = RoomFactory.build(state=RoomState.CREATED, room_id=room_id, host=room_host_player_id)
-    existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=room_id)
+    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=room_id)
     lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
     existing_players[0].player_id = room_host_player_id
     player_disconnected = existing_players[1]
@@ -165,5 +163,5 @@ async def test_should_update_room_host():
     assert not room.host == player_disconnected.player_id
 
 
-def _sort_list_by_player_id(players: List[Player]):
+def _sort_list_by_player_id(players: list[Player]):
     players.sort(key=lambda p: p.player_id, reverse=True)

@@ -1,6 +1,5 @@
 import abc
 from datetime import datetime
-from typing import List, Optional
 
 from omnibus.database.repository import AbstractRepository
 from pymongo.errors import DuplicateKeyError
@@ -11,7 +10,7 @@ from app.player.player_models import Player
 
 class AbstractPlayerRepository(AbstractRepository[Player]):
     @abc.abstractmethod
-    async def get_all_in_room(self, room_id: str) -> List[Player]:
+    async def get_all_in_room(self, room_id: str) -> list[Player]:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -23,7 +22,7 @@ class AbstractPlayerRepository(AbstractRepository[Player]):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def get_disconnect(self) -> List[Player]:
+    async def get_disconnect(self) -> list[Player]:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -31,7 +30,7 @@ class AbstractPlayerRepository(AbstractRepository[Player]):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def update_disconnected_at(self, player: Player, disconnected_at: Optional[datetime] = None) -> Player:
+    async def update_disconnected_at(self, player: Player, disconnected_at: datetime | None = None) -> Player:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -53,7 +52,7 @@ class PlayerRepository(AbstractPlayerRepository):
 
         return player
 
-    async def get_all_in_room(self, room_id: str) -> List[Player]:
+    async def get_all_in_room(self, room_id: str) -> list[Player]:
         players = await Player.find(Player.room_id == room_id).to_list()
         return players
 
@@ -63,7 +62,7 @@ class PlayerRepository(AbstractPlayerRepository):
             raise PlayerNotFound(f"player {nickname=} and {room_id=} not found")
         return player
 
-    async def get_disconnect(self) -> List[Player]:
+    async def get_disconnect(self) -> list[Player]:
         players = await Player.find(Player.disconnected_at != None).to_list()  # noqa
         return players
 
@@ -81,7 +80,7 @@ class PlayerRepository(AbstractPlayerRepository):
         await player.save()
         return player
 
-    async def update_disconnected_at(self, player: Player, disconnected_at: Optional[datetime] = None) -> Player:
+    async def update_disconnected_at(self, player: Player, disconnected_at: datetime | None = None) -> Player:
         player.disconnected_at = disconnected_at
         await player.save()
         return player

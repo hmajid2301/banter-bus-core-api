@@ -1,5 +1,3 @@
-from typing import List
-
 from pydantic import parse_obj_as
 
 from app.event_manager import enter_room, publish_event
@@ -25,7 +23,7 @@ async def get_next_question_helper(sid: str, player_id: str, room_code: str):
 
 
 async def get_room_joined(sid: str, room_code: str, room_players: RoomPlayers) -> RoomJoined:
-    players = parse_obj_as(List[Player], room_players.players)
+    players = parse_obj_as(list[Player], room_players.players)
     room_joined = RoomJoined(players=players, host_player_nickname=room_players.host_player_nickname)
     enter_room(sid, room_code)
     return room_joined

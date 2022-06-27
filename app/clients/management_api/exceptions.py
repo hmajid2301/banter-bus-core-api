@@ -11,7 +11,7 @@ class ApiException(Exception):
 
 
 class UnexpectedResponse(ApiException):
-    def __init__(self, status_code: Optional[int], reason_phrase: str, content: bytes, headers: Headers) -> None:
+    def __init__(self, status_code: int | None, reason_phrase: str, content: bytes, headers: Headers) -> None:
         self.status_code = status_code
         self.reason_phrase = reason_phrase
         self.content = content
@@ -37,7 +37,7 @@ class UnexpectedResponse(ApiException):
         raw_content_str = f"Raw response content:\n{short_content!r}"
         return f"Unexpected Response: {status_str}\n{raw_content_str}"
 
-    def structured(self) -> Dict[str, Any]:
+    def structured(self) -> dict[str, Any]:
         return json.loads(self.content)
 
 

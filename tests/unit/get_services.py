@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from app.clients.management_api.api.games_api import AsyncGamesApi
 from app.clients.management_api.api.questions_api import AsyncQuestionsApi
 from app.clients.management_api.api_client import ApiClient
@@ -17,7 +15,7 @@ from tests.unit.player.fake_player_repository import FakePlayerRepository
 from tests.unit.room.fake_room_repository import fibberoomRepository
 
 
-def get_player_service(players: Optional[list[Player]] = None, num: int = 1, **kwargs) -> PlayerService:
+def get_player_service(players: list[Player] | None = None, num: int = 1, **kwargs) -> PlayerService:
     if players:
         existing_players = players
     elif num:
@@ -30,7 +28,7 @@ def get_player_service(players: Optional[list[Player]] = None, num: int = 1, **k
     return player_service
 
 
-def get_room_service(rooms: Optional[list[Room]] = None, num: int = 1, **kwargs) -> RoomService:
+def get_room_service(rooms: list[Room] | None = None, num: int = 1, **kwargs) -> RoomService:
     if rooms:
         existing_room = rooms
     elif num:
@@ -44,10 +42,10 @@ def get_room_service(rooms: Optional[list[Room]] = None, num: int = 1, **kwargs)
 
 
 def get_lobby_service(
-    rooms: Optional[list[Room]] = None,
+    rooms: list[Room] | None = None,
     num: int = 1,
-    players: Optional[List[Player]] = None,
-    game_states: Optional[List[GameState]] = None,
+    players: list[Player] | None = None,
+    game_states: list[GameState] | None = None,
     **kwargs
 ) -> LobbyService:
     room_service = get_room_service(rooms=rooms, num=num, **kwargs)
@@ -59,7 +57,7 @@ def get_lobby_service(
     return lobby_service
 
 
-def get_game_state_service(game_states: Optional[list[GameState]] = None, num: int = 1, **kwargs) -> GameStateService:
+def get_game_state_service(game_states: list[GameState] | None = None, num: int = 1, **kwargs) -> GameStateService:
     if game_states:
         existing_game_states = game_states
     elif num:

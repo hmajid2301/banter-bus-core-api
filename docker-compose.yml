@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   app:
     container_name: banter-bus-core-api
@@ -7,6 +5,8 @@ services:
       context: .
       dockerfile: Dockerfile
       target: development
+      cache_from:
+        - registry.gitlab.com/banter-bus/banter-bus-core-api:development
     environment:
       BANTER_BUS_CORE_API_DB_USERNAME: banterbus
       BANTER_BUS_CORE_API_DB_PASSWORD: banterbus
@@ -20,9 +20,10 @@ services:
       BANTER_BUS_CORE_API_MESSAGE_QUEUE_HOST: banter-bus-message-queue
       BANTER_BUS_CORE_API_MESSAGE_QUEUE_PORT: 6379
     ports:
-      - 8080:8080
+      - 127.0.0.1:8080:8080
     volumes:
       - ./:/app
+      - /app/.venv/ # This stops local .venv getting mounted
     depends_on:
       - database
       - management-api
@@ -41,7 +42,7 @@ services:
       BANTER_BUS_MANAGEMENT_API_CLIENT_ID: client_id
       BANTER_BUS_MANAGEMENT_API_USE_AUTH: "False"
     ports:
-      - 8090:8090
+      - 127.0.0.1:8090:8090
     depends_on:
       - database
 
@@ -67,7 +68,7 @@ services:
     volumes:
       - /data/db mongoclient/mongoclient
     ports:
-      - 4000:3000
+      - 127.0.0.1:4000:3000
 
   database-seed:
     container_name: banter-bus-database-seed
@@ -86,4 +87,4 @@ services:
     volumes:
       - /data/datastore /data
     ports:
-      - 6379:6379
+      - 127.0.0.1:6379:6379

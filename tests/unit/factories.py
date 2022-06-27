@@ -1,6 +1,5 @@
 import base64
 from datetime import datetime
-from typing import List
 
 import factory
 import factory.fuzzy
@@ -54,7 +53,7 @@ class GameStateFactory(factory.Factory):
     state = starting_state
     game_name = factory.fuzzy.FuzzyChoice(game_names)
     room_id = factory.Faker("uuid4")
-    player_scores: List[PlayerScore] = []
+    player_scores: list[PlayerScore] = []
     action = FibbingActions.show_question  # Fix this use action depending on game
     paused = GamePaused()
 

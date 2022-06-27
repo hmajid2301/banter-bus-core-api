@@ -163,7 +163,7 @@ class _QuestionsApi:
 
     def _build_for_get_random_questions(
         self, game_name: str, round: str = None, language_code: str = None, group_name: str = None, limit: int = None
-    ) -> Awaitable[List[m.QuestionSimpleOut]]:
+    ) -> Awaitable[list[m.QuestionSimpleOut]]:
         path_params = {"game_name": str(game_name)}
 
         query_params = {}
@@ -177,7 +177,7 @@ class _QuestionsApi:
             query_params["limit"] = str(limit)
 
         return self.api_client.request(
-            type_=List[m.QuestionSimpleOut],
+            type_=list[m.QuestionSimpleOut],
             method="GET",
             url="/game/{game_name}/question:random",
             path_params=path_params,
@@ -282,7 +282,7 @@ class AsyncQuestionsApi(_QuestionsApi):
 
     async def get_random_questions(
         self, game_name: str, round: str = None, language_code: str = None, group_name: str = None, limit: int = None
-    ) -> List[m.QuestionSimpleOut]:
+    ) -> list[m.QuestionSimpleOut]:
         return await self._build_for_get_random_questions(
             game_name=game_name, round=round, language_code=language_code, group_name=group_name, limit=limit
         )
@@ -366,7 +366,7 @@ class SyncQuestionsApi(_QuestionsApi):
 
     def get_random_questions(
         self, game_name: str, round: str = None, language_code: str = None, group_name: str = None, limit: int = None
-    ) -> List[m.QuestionSimpleOut]:
+    ) -> list[m.QuestionSimpleOut]:
         coroutine = self._build_for_get_random_questions(
             game_name=game_name, round=round, language_code=language_code, group_name=group_name, limit=limit
         )

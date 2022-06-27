@@ -5,9 +5,11 @@ from socketio.asyncio_client import AsyncClient
 
 from app.event_models import Error
 from app.game_state.game_state_factory import get_game_state_service
+from app.game_state.game_state_models import FibbingActions
 from app.main import sio
 from app.player.player_factory import get_player_service
 from app.room.room_events_models import (
+    AnswerSubmitted,
     GamePaused,
     GameUnpaused,
     GetNextQuestion,
@@ -16,6 +18,7 @@ from app.room.room_events_models import (
     PauseGame,
     PlayerDisconnected,
     RejoinRoom,
+    SubmitAnswer,
     UnpauseGame,
 )
 from tests.integration.conftest import BASE_URL
@@ -40,7 +43,7 @@ async def test_rejoin_room_that_has_started(client: AsyncClient):
     got_next_question: GotNextQuestion = future.result()
     assert got_next_question.updated_round.round_changed is True
     assert got_next_question.updated_round.new_round == "opinion"
-    assert got_next_question.question.answers is not None
+    assert got_next_question.question.answers is not None  # type: ignore
 
 
 @pytest.mark.asyncio
@@ -157,7 +160,7 @@ async def test_get_next_question(client: AsyncClient):
     got_next_question: GotNextQuestion = future.result()
     assert got_next_question.updated_round.round_changed is True
     assert got_next_question.updated_round.new_round == "opinion"
-    assert got_next_question.question.answers is not None
+    assert got_next_question.question.answers is not None  # type: ignore
 
 
 @pytest.mark.asyncio
@@ -249,3 +252,29 @@ async def test_disconnect_host(client: AsyncClient, client_two: AsyncClient):
     assert host_disconnected.new_host_nickname == new_host_nickname
     sio.leave_room(client_two.get_sid(), room=player.room_id)
     await client.connect(BASE_URL, socketio_path="/ws/socket.io")
+
+
+@pytest.mark.asyncio
+async def test_submit_answer(client: AsyncClient):
+    future = asyncio.get_running_loop().create_future()
+    game_state_service = get_game_state_service()
+    room_code = "2257856e-bf37-4cc4-8551-0b1ccdc38c60"
+    game_state = await game_state_service.get_game_state_by_room_id(room_id=room_code)
+    game_state.action = FibbingActions.submit_answers
+    game_state.state.questions.question_nb = 0  # type: ignore
+    await game_state_service.update_state(game_state=game_state, state=game_state.state)  # type: ignore
+
+    @client.on("ANSWER_SUBMITTED")
+    def _(data):
+        future.set_result(AnswerSubmitted(**data))
+
+    submit_answer = SubmitAnswer(
+        room_code=room_code,
+        player_id="8cdc1984-e832-48c7-9d89-1d724665bef1",
+        answer="lame",
+    )
+    sio.enter_room(client.get_sid(), room=room_code)
+    await client.emit("SUBMIT_ANSWER", submit_answer.dict())
+    await asyncio.wait_for(future, timeout=5.0)
+    answer_submitted: AnswerSubmitted = future.result()
+    assert answer_submitted

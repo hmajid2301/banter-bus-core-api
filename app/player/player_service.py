@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from typing import List, Optional
 from uuid import uuid4
 
 from app.player.player_models import NewPlayer, Player
@@ -26,7 +25,7 @@ class PlayerService:
         player = await self.player_repository.get(id_=player_id)
         return player
 
-    async def get_all_in_room(self, room_id: str) -> List[Player]:
+    async def get_all_in_room(self, room_id: str) -> list[Player]:
         players = await self.player_repository.get_all_in_room(room_id=room_id)
         return players
 
@@ -35,7 +34,7 @@ class PlayerService:
         await self.player_repository.remove_from_room(player=player)
         return player
 
-    async def update_disconnected_time(self, player: Player, disconnected_at: Optional[datetime] = None) -> Player:
+    async def update_disconnected_time(self, player: Player, disconnected_at: datetime | None = None) -> Player:
         player = await self.player_repository.update_disconnected_at(player=player, disconnected_at=disconnected_at)
         return player
 
@@ -57,3 +56,7 @@ class PlayerService:
                 await self.remove_from_room(nickname=player.nickname, room_id=player.room_id)
 
         return player
+
+    async def is_player_in_room(self, player_id: str, room_id: str) -> bool:
+        player = await self.player_repository.get(player_id)
+        return player.room_id == room_id

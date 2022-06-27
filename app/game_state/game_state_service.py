@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from typing import List, Optional
 
 from pydantic import parse_obj_as
 
@@ -13,11 +12,14 @@ from app.game_state.game_state_exceptions import (
     NoStateFound,
 )
 from app.game_state.game_state_models import (
+    DrawlossuemState,
     FibbingActions,
+    FibbingItState,
     GamePaused,
     GameState,
     NextQuestion,
     PlayerScore,
+    QuiblyState,
     UpdateQuestionRoundState,
 )
 from app.game_state.game_state_repository import AbstractGameStateRepository
@@ -31,10 +33,10 @@ class GameStateService:
         self.game_state_repository = game_state_repository
         self.question_client = question_client
 
-    async def create(self, room_id: str, players: List[Player], game_name: str) -> GameState:
+    async def create(self, room_id: str, players: list[Player], game_name: str) -> GameState:
         game = get_game(game_name=game_name)
         state = await game.get_starting_state(players=players, question_client=self.question_client)
-        player_scores = parse_obj_as(List[PlayerScore], players)
+        player_scores = parse_obj_as(list[PlayerScore], players)
         game_state = GameState(
             game_name=game_name,
             room_id=room_id,
@@ -71,6 +73,12 @@ class GameStateService:
         )
         return next_question_data
 
+    async def update_state(
+        self, game_state: GameState, state: FibbingItState | QuiblyState | DrawlossuemState
+    ) -> GameState:
+        game_state = await self.game_state_repository.update_state(game_state=game_state, state=state)
+        return game_state
+
     async def _update_question_state(self, game_state: GameState) -> UpdateQuestionRoundState:
         old_round = game_state.state.current_round  # type: ignore
         game = get_game(game_name=game_state.game_name)
@@ -103,7 +111,7 @@ class GameStateService:
             raise NoStateFound(f"game state for {room_id=} is `None`")
         return game_state
 
-    async def pause_game(self, room_id: str, player_disconnected: Optional[str] = None) -> int:
+    async def pause_game(self, room_id: str, player_disconnected: str | None = None) -> int:
         game_state = await self.game_state_repository.get(room_id)
         if game_state.paused.is_paused and not player_disconnected:
             raise GameStateAlreadyPaused("game is already paused")
@@ -119,7 +127,7 @@ class GameStateService:
         await self.game_state_repository.update_paused(game_state=game_state, game_paused=game_paused)
         return seconds_to_pause
 
-    def _add_waiting_for_players(self, game_state: GameState, player_disconnected: Optional[str] = None):
+    def _add_waiting_for_players(self, game_state: GameState, player_disconnected: str | None = None):
         waiting_for_players = game_state.paused.waiting_for_players
         if player_disconnected:
             if waiting_for_players:
@@ -128,7 +136,7 @@ class GameStateService:
                 waiting_for_players = [player_disconnected]
         return waiting_for_players
 
-    async def unpause_game(self, room_id: str, player_reconnected: Optional[str] = None) -> GamePaused:
+    async def unpause_game(self, room_id: str, player_reconnected: str | None = None) -> GamePaused:
         game_state = await self.game_state_repository.get(room_id)
         waiting_for_players = self._remove_waiting_for_players(game_state, player_reconnected)
 
@@ -143,7 +151,7 @@ class GameStateService:
         await self.game_state_repository.update_paused(game_state=game_state, game_paused=game_paused)
         return game_paused
 
-    def _remove_waiting_for_players(self, game_state: GameState, player_reconnected: Optional[str] = None):
+    def _remove_waiting_for_players(self, game_state: GameState, player_reconnected: str | None = None):
         waiting_for_players = game_state.paused.waiting_for_players
 
         if player_reconnected and waiting_for_players:

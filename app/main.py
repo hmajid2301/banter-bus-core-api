@@ -10,14 +10,17 @@ from app.player.player_models import Player
 from app.room.room_models import Room
 from app.socket_manager import SocketManager
 
-app = FastAPI(title="banter-bus-core-api")
-sio = SocketManager(app=app, redis_uri=get_settings().get_redis_uri())
+application = FastAPI(title="banter-bus-core-api")
+sio = SocketManager(app=application, redis_uri=get_settings().get_redis_uri())
 
 
-@app.on_event("startup")
+@application.on_event("startup")
 async def startup():
     await setup_app(
-        app=app, get_settings=get_settings, document_models=[Room, Player, GameState], healthcheck=db_healthcheck
+        app=application,
+        get_settings=get_settings,
+        document_models=[Room, Player, GameState],
+        healthcheck=db_healthcheck,
     )
-    app.add_exception_handler(Exception, log_uncaught_exceptions)
-    use_route_names_as_operation_ids(app)
+    application.add_exception_handler(Exception, log_uncaught_exceptions)
+    use_route_names_as_operation_ids(application)

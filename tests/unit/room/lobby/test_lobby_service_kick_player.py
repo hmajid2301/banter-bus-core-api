@@ -1,5 +1,3 @@
-from typing import List
-
 import pytest
 from pytest_mock import MockFixture
 
@@ -22,7 +20,7 @@ async def test_should_kick_player():
     room_host_player_id = "5a18ac45-9876-4f8e-b636-cf730b17e59l"
 
     existing_room: Room = RoomFactory.build(state=RoomState.CREATED, room_id=room_id, host=room_host_player_id)
-    existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=room_id)
+    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=room_id)
     existing_players[0].player_id = room_host_player_id
     player_to_kick = existing_players[1]
 
@@ -41,7 +39,7 @@ async def test_should_not_kick_player_player_not_host():
     room_host_player_id = "5a18ac45-9876-4f8e-b636-cf730b17e59l"
 
     existing_room: Room = RoomFactory.build(state=RoomState.CREATED, room_id=room_id, host=room_host_player_id)
-    existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=room_id)
+    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=room_id)
     existing_players[0].player_id = room_host_player_id
     player_to_kick = existing_players[1]
 
@@ -60,7 +58,7 @@ async def test_should_not_kick_player_room_not_found():
     room_host_player_id = "5a18ac45-9876-4f8e-b636-cf730b17e59l"
 
     existing_room: Room = RoomFactory.build(state=RoomState.CREATED, room_id=room_id, host=room_host_player_id)
-    existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=room_id)
+    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=room_id)
     existing_players[0].player_id = room_host_player_id
     player_to_kick = existing_players[1]
 
@@ -79,7 +77,7 @@ async def test_should_not_kick_player_invalid_room_state():
     room_host_player_id = "5a18ac45-9876-4f8e-b636-cf730b17e59l"
 
     existing_room: Room = RoomFactory.build(state=RoomState.FINISHED, room_id=room_id, host=room_host_player_id)
-    existing_players: List[Player] = PlayerFactory.build_batch(3, room_id=room_id)
+    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=room_id)
     existing_players[0].player_id = room_host_player_id
     player_to_kick = existing_players[1]
 

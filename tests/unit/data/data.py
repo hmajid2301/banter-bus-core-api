@@ -8,8 +8,8 @@ from app.game_state.game_state_models import (
 starting_state = FibbingItState(
     current_fibber_id="a_random_id",
     current_round="opinion",
-    questions_to_show=FibbingItQuestionsState(
-        current_answers=[],
+    questions=FibbingItQuestionsState(
+        current_answers={},
         rounds=FibbingItRounds(
             opinion=[
                 FibbingItQuestion(
@@ -49,23 +49,23 @@ starting_state = FibbingItState(
 
 fibbing_it_update_question_data = [
     (
-        {"questions_to_show": {"question_nb": 0}, "current_round": "opinion"},
-        {"questions_to_show": {"question_nb": 1}, "current_round": "opinion"},
+        {"questions": {"question_nb": 0}, "current_round": "opinion"},
+        {"questions": {"question_nb": 1}, "current_round": "opinion"},
     ),
     (
-        {"questions_to_show": {"question_nb": 2}, "current_round": "opinion"},
-        {"questions_to_show": {"question_nb": 0}, "current_round": "likely"},
+        {"questions": {"question_nb": 2}, "current_round": "opinion"},
+        {"questions": {"question_nb": 0}, "current_round": "likely"},
     ),
     (
-        {"questions_to_show": {"question_nb": 1}, "current_round": "likely"},
-        {"questions_to_show": {"question_nb": 2}, "current_round": "likely"},
+        {"questions": {"question_nb": 1}, "current_round": "likely"},
+        {"questions": {"question_nb": 2}, "current_round": "likely"},
     ),
     (
-        {"questions_to_show": {"question_nb": 2}, "current_round": "likely"},
-        {"questions_to_show": {"question_nb": 0}, "current_round": "free_form"},
+        {"questions": {"question_nb": 2}, "current_round": "likely"},
+        {"questions": {"question_nb": 0}, "current_round": "free_form"},
     ),
     (
-        {"questions_to_show": {"question_nb": 2}, "current_round": "free_form"},
+        {"questions": {"question_nb": 2}, "current_round": "free_form"},
         None,
     ),
 ]
@@ -74,7 +74,7 @@ fibbing_it_update_question_data = [
 fibbing_it_get_next_question_data = [
     (
         {
-            "questions_to_show": {"question_nb": 0},
+            "questions": {"question_nb": 0},
             "current_round": "opinion",
         },
         FibbingItQuestion(
@@ -84,19 +84,19 @@ fibbing_it_get_next_question_data = [
         ),
     ),
     (
-        {"questions_to_show": {"question_nb": 1}, "current_round": "likley"},
+        {"questions": {"question_nb": 1}, "current_round": "likley"},
         FibbingItQuestion(
             fibber_question="what don't you like about cats?", question="what do you like about cats?", answers=None
         ),
     ),
     (
-        {"questions_to_show": {"question_nb": 1}, "current_round": "free_form"},
+        {"questions": {"question_nb": 1}, "current_round": "free_form"},
         FibbingItQuestion(
             fibber_question="what don't you like about cats?", question="what do you like about cats?", answers=None
         ),
     ),
     (
-        {"questions_to_show": {"question_nb": 2}, "current_round": "free_form"},
+        {"questions": {"question_nb": 2}, "current_round": "free_form"},
         None,
     ),
 ]

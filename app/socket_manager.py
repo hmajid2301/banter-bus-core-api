@@ -1,5 +1,3 @@
-from typing import Union
-
 import socketio
 from fastapi import FastAPI
 
@@ -11,7 +9,7 @@ class SocketManager:
         redis_uri: str,
         mount_location: str = "/ws",
         socketio_path: str = "socket.io",
-        cors_allowed_origins: Union[str, list] = "*",
+        cors_allowed_origins: str | list[str] = "*",
         async_mode: str = "asgi",
     ) -> None:
         # TODO: Change Cors policy based on fastapi cors Middleware
@@ -22,7 +20,7 @@ class SocketManager:
         self._app = socketio.ASGIApp(socketio_server=self._sio, socketio_path=socketio_path)
 
         app.mount(mount_location, self._app)
-        app.sio = self._sio
+        app.sio = self._sio  # type: ignore
 
     def is_asyncio_based(self) -> bool:
         return True

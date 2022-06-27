@@ -1,5 +1,5 @@
 from asyncio import get_event_loop
-from typing import Any, Awaitable, Callable, Dict, Generic, Type, TypeVar, overload
+from typing import Any, Awaitable, Callable, Generic, TypeVar, overload
 
 from httpx import AsyncClient, Request, Response
 from pydantic import ValidationError, parse_obj_as
@@ -52,18 +52,18 @@ class ApiClient:
 
     @overload
     async def request(
-        self, *, type_: Type[T], method: str, url: str, path_params: Dict[str, Any] = None, **kwargs: Any
+        self, *, type_: type[T], method: str, url: str, path_params: dict[str, Any] = None, **kwargs: Any
     ) -> T:
         ...
 
     @overload  # noqa F811
     async def request(
-        self, *, type_: None, method: str, url: str, path_params: Dict[str, Any] = None, **kwargs: Any
+        self, *, type_: None, method: str, url: str, path_params: dict[str, Any] = None, **kwargs: Any
     ) -> None:
         ...
 
     async def request(  # noqa F811
-        self, *, type_: Any, method: str, url: str, path_params: Dict[str, Any] = None, **kwargs: Any
+        self, *, type_: Any, method: str, url: str, path_params: dict[str, Any] = None, **kwargs: Any
     ) -> Any:
         if path_params is None:
             path_params = {}
@@ -72,7 +72,7 @@ class ApiClient:
         return await self.send(request, type_)
 
     @overload
-    def request_sync(self, *, type_: Type[T], **kwargs: Any) -> T:
+    def request_sync(self, *, type_: type[T], **kwargs: Any) -> T:
         ...
 
     @overload  # noqa F811
@@ -85,7 +85,7 @@ class ApiClient:
         """
         return get_event_loop().run_until_complete(self.request(type_=type_, **kwargs))
 
-    async def send(self, request: Request, type_: Type[T]) -> T:
+    async def send(self, request: Request, type_: type[T]) -> T:
         response = await self.middleware(request, self.send_inner)
         if response.status_code in [200, 201]:
             try:

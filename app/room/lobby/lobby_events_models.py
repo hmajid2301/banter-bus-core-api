@@ -1,5 +1,3 @@
-from typing import List, Union
-
 from pydantic import BaseModel, validator
 
 from app.event_models import EventModel
@@ -32,7 +30,7 @@ class RoomCreated(EventModel):
 
 class JoinRoom(EventModel):
     nickname: str
-    avatar: Union[str, bytes]
+    avatar: str | bytes
     room_code: str
 
     @validator("avatar", pre=True)
@@ -48,7 +46,7 @@ class JoinRoom(EventModel):
 
 class Player(BaseModel):
     nickname: str
-    avatar: Union[str, bytes]
+    avatar: str | bytes
 
     @validator("avatar", pre=True)
     def base64_bytes_to_string(cls, value):
@@ -59,7 +57,7 @@ class Player(BaseModel):
 
 class RoomJoined(EventModel):
     host_player_nickname: str
-    players: List[Player]
+    players: list[Player]
 
     @property
     def event_name(self):

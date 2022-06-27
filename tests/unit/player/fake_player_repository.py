@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List, Optional
 
 from app.player.player_exceptions import PlayerExistsException, PlayerNotFound
 from app.player.player_models import Player
@@ -7,7 +6,7 @@ from app.player.player_repository import AbstractPlayerRepository
 
 
 class FakePlayerRepository(AbstractPlayerRepository):
-    def __init__(self, players: List[Player]):
+    def __init__(self, players: list[Player]):
         self.players = players
 
     async def add(self, new_player: Player):
@@ -24,14 +23,14 @@ class FakePlayerRepository(AbstractPlayerRepository):
 
         raise PlayerNotFound("player not found")
 
-    async def get_disconnect(self) -> List[Player]:
+    async def get_disconnect(self) -> list[Player]:
         players = []
         for player in self.players:
             if player.disconnected_at:
                 players.append(player)
         return players
 
-    async def get_all_in_room(self, room_id: str) -> List[Player]:
+    async def get_all_in_room(self, room_id: str) -> list[Player]:
         players = []
         for player in self.players:
             if player.room_id == room_id:
@@ -60,7 +59,7 @@ class FakePlayerRepository(AbstractPlayerRepository):
         player.room_id = None
         return player
 
-    async def update_disconnected_at(self, player: Player, disconnected_at: Optional[datetime] = None) -> Player:
+    async def update_disconnected_at(self, player: Player, disconnected_at: datetime | None = None) -> Player:
         player.disconnected_at = disconnected_at
         return player
 

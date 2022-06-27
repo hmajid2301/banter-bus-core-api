@@ -31,7 +31,7 @@ def pact():
     pact.start_mocking()
     time.sleep(0.25)
     yield pact
-    atexit.register(pact.stop_mocking)  # type: ignore
+    atexit.register(pact.stop_mocking)
 
 
 @pytest.fixture(scope="session")

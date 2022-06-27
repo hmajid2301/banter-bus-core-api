@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from typing import List
 
 import pytest
 from pytest_mock import MockFixture
@@ -29,7 +28,7 @@ async def test_should_create_new_player():
 
 @pytest.mark.asyncio
 async def test_should_get_player():
-    existing_players: List[Player] = PlayerFactory.build_batch(3)
+    existing_players: list[Player] = PlayerFactory.build_batch(3)
     player_service = get_player_service(players=existing_players)
 
     first_player = existing_players[0]
@@ -66,7 +65,7 @@ async def test_should_get_no_players_in_room():
 
 @pytest.mark.asyncio
 async def test_should_remove_player_from_room():
-    existing_players: List[Player] = PlayerFactory.build_batch(3)
+    existing_players: list[Player] = PlayerFactory.build_batch(3)
     player_service = get_player_service(players=existing_players)
 
     first_player = existing_players[0]
@@ -84,7 +83,7 @@ async def test_should_not_remove_player_from_room():
 
 @pytest.mark.asyncio
 async def test_should_update_disconnected_at_time():
-    existing_players: List[Player] = PlayerFactory.build_batch(3)
+    existing_players: list[Player] = PlayerFactory.build_batch(3)
     player_service = get_player_service(players=existing_players)
 
     first_player = existing_players[0]
@@ -94,7 +93,7 @@ async def test_should_update_disconnected_at_time():
 
 @pytest.mark.asyncio
 async def test_should_update_sid():
-    existing_players: List[Player] = PlayerFactory.build_batch(3)
+    existing_players: list[Player] = PlayerFactory.build_batch(3)
     player_service = get_player_service(players=existing_players)
 
     first_player = existing_players[0]
@@ -105,33 +104,33 @@ async def test_should_update_sid():
 
 @pytest.mark.asyncio
 async def test_player_gets_disconnected():
-    existing_players: List[Player] = PlayerFactory.build_batch(3)
+    existing_players: list[Player] = PlayerFactory.build_batch(3)
     player_service = get_player_service(players=existing_players)
 
     first_player = existing_players[0]
     first_player.disconnected_at = datetime.now() - timedelta(minutes=5)
     player = await player_service.disconnect_player(
-        nickname=first_player.nickname, room_id=first_player.room_id, disconnect_timer_in_seconds=300
+        nickname=first_player.nickname, room_id=first_player.room_id or "", disconnect_timer_in_seconds=300
     )
     assert player.room_id is None
 
 
 @pytest.mark.asyncio
 async def test_should_not_disconnect_player_under_five_minutes():
-    existing_players: List[Player] = PlayerFactory.build_batch(3)
+    existing_players: list[Player] = PlayerFactory.build_batch(3)
     player_service = get_player_service(players=existing_players)
 
     first_player = existing_players[0]
     first_player.disconnected_at = datetime.now() - timedelta(minutes=3)
     player = await player_service.disconnect_player(
-        nickname=first_player.nickname, room_id=first_player.room_id, disconnect_timer_in_seconds=300
+        nickname=first_player.nickname, room_id=first_player.room_id or "", disconnect_timer_in_seconds=300
     )
     assert player.room_id is not None
 
 
 @pytest.mark.asyncio
 async def test_should_not_disconnect_player_not_found():
-    existing_players: List[Player] = PlayerFactory.build_batch(3)
+    existing_players: list[Player] = PlayerFactory.build_batch(3)
     player_service = get_player_service(players=existing_players)
 
     first_player = existing_players[0]

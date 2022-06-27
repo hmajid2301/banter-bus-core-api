@@ -1,5 +1,3 @@
-from typing import Optional
-
 from app.clients.management_api.exceptions import UnexpectedResponse
 from app.core.exceptions import ExistsException, NotFoundException
 from app.room.room_models import RoomState
@@ -10,7 +8,7 @@ class RoomExistsException(ExistsException):
 
 
 class GameNotFound(NotFoundException):
-    def __init__(self, e: UnexpectedResponse, message: Optional[str] = None) -> None:
+    def __init__(self, e: UnexpectedResponse, message: str | None = None) -> None:
         self.e = e
         self.message = message
 
