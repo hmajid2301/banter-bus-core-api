@@ -34,7 +34,7 @@ from app.room.room_events_models import (
     PAUSE_GAME,
     PERMANENTLY_DISCONNECT_PLAYER,
     PLAYER_DISCONNECTED,
-    SUBMIT_ANSWER,
+    SUBMIT_ANSWER_FIBBING_IT,
     UNPAUSE_GAME,
     GamePaused,
     HostDisconnected,
@@ -96,4 +96,4 @@ sio.on(START_GAME, start_game)
 sio.on(GET_NEXT_QUESTION, get_next_question)
 sio.on(PAUSE_GAME, pause_game)
 sio.on(UNPAUSE_GAME, unpause_game)
-sio.on(SUBMIT_ANSWER, submit_answer)
+sio.on(SUBMIT_ANSWER_FIBBING_IT, submit_answer)

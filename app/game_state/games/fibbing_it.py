@@ -1,7 +1,9 @@
 import asyncio
 import random
+from datetime import datetime
 
 from app.clients.management_api.api.questions_api import AsyncQuestionsApi
+from app.game_state.game_state_exceptions import ActionTimedOut, InvalidGameState
 from app.game_state.game_state_models import (
     DrawlossuemState,
     FibbingActions,
@@ -116,6 +118,14 @@ class FibbingIt(AbstractGame):
         if not game_state.state or not game_state.action == FibbingActions.submit_answers:
             raise InvalidAction(
                 f"expected action to be {FibbingActions.submit_answers}, current action {game_state.action}"
+            )
+
+        now = datetime.now()
+        if not game_state.action_completed_by:
+            raise InvalidGameState("expected game_state.action_completed_by to exist")
+        elif game_state.action_completed_by <= now:
+            raise ActionTimedOut(
+                msg="cannot complete action out of time", now=now, completed_by=game_state.action_completed_by
             )
 
         state = FibbingItState(**game_state.state.dict())

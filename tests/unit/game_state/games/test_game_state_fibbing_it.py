@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from typing import Any
 
 import pytest
@@ -5,6 +6,7 @@ from mergedeep import merge
 from pytest_httpx import HTTPXMock
 from pytest_mock import MockFixture
 
+from app.game_state.game_state_exceptions import ActionTimedOut
 from app.game_state.game_state_models import (
     FibbingActions,
     FibbingItQuestion,
@@ -128,7 +130,10 @@ async def test_should_submit_answers(round: str, answer: str):
 
     state = _get_game_state(round=round)
     game_state: GameState = GameStateFactory.build(
-        room_id=room_id, action=FibbingActions.submit_answers, state=state.state
+        room_id=room_id,
+        action=FibbingActions.submit_answers,
+        state=state.state,
+        action_completed_by=datetime.now() + timedelta(minutes=5),
     )
     player_service = get_player_service(num=3, room_id=room_id)
     players = await player_service.get_all_in_room(room_id=room_id)
@@ -164,7 +169,10 @@ async def test_should_not_submit_answers_invalid_answer(round: str, answer: str)
 
     state = _get_game_state(round=round)
     game_state: GameState = GameStateFactory.build(
-        room_id=room_id, action=FibbingActions.submit_answers, state=state.state
+        room_id=room_id,
+        action=FibbingActions.submit_answers,
+        state=state.state,
+        action_completed_by=datetime.now() + timedelta(minutes=5),
     )
     player_service = get_player_service(num=3, room_id=room_id)
     players = await player_service.get_all_in_room(room_id=room_id)
@@ -179,6 +187,33 @@ async def test_should_not_submit_answers_invalid_answer(round: str, answer: str)
             player_id=player_id,
             player_ids=player_ids,
             answer=answer,
+        )
+
+
+@pytest.mark.asyncio
+async def test_should_not_submit_answers_timed_out():
+    room_id = "5b2dd1e9-d8e3-4855-80ef-3bd0acfd481f"
+
+    state = _get_game_state(round="opinion")
+    game_state: GameState = GameStateFactory.build(
+        room_id=room_id,
+        action=FibbingActions.submit_answers,
+        state=state.state,
+        action_completed_by=datetime.now() - timedelta(minutes=5),
+    )
+    player_service = get_player_service(num=3, room_id=room_id)
+    players = await player_service.get_all_in_room(room_id=room_id)
+
+    fibbing_it = await get_fibbing_it_game()
+    player_id = players[0].player_id
+
+    player_ids = [player.player_id for player in players]
+    with pytest.raises(ActionTimedOut):
+        fibbing_it.submit_answers(
+            game_state=game_state,
+            player_id=player_id,
+            player_ids=player_ids,
+            answer="lame",
         )
 
 

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from app.core.exceptions import ExistsException, NotFoundException
 
 
@@ -33,3 +35,14 @@ class InvalidGameAction(Exception):
 
 class GameStateIsNoneError(Exception):
     pass
+
+
+class InvalidGameState(Exception):
+    pass
+
+
+class ActionTimedOut(Exception):
+    def __init__(self, msg: str, now: datetime, completed_by: datetime) -> None:
+        self.msg = msg
+        self.now = now
+        self.completed_by = completed_by

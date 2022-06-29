@@ -56,6 +56,7 @@ class GameStateFactory(factory.Factory):
     player_scores: list[PlayerScore] = []
     action = FibbingActions.show_question  # Fix this use action depending on game
     paused = GamePaused()
+    action_completed_by = None
 
 
 def get_new_player() -> NewPlayer:

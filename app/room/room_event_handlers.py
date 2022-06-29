@@ -4,7 +4,7 @@ from app.core.config import get_settings
 from app.event_manager import error_handler, event_handler, leave_room
 from app.event_models import Error
 from app.exception_handlers import handle_error
-from app.game_state.game_state_exceptions import GameStateNotFound
+from app.game_state.game_state_exceptions import ActionTimedOut, GameStateNotFound
 from app.game_state.game_state_factory import get_game_state_service
 from app.game_state.games.fibbing_it import FibbingIt
 from app.player.player_exceptions import PlayerHasNoRoomError, PlayerNotInRoom
@@ -17,7 +17,7 @@ from app.room.lobby.lobby_event_helpers import (
 )
 from app.room.lobby.lobby_events_models import RoomJoined
 from app.room.room_events_models import (
-    AnswerSubmitted,
+    AnswerSubmittedFibbingIt,
     EventResponse,
     GamePaused,
     GameUnpaused,
@@ -26,7 +26,7 @@ from app.room.room_events_models import (
     PermanentlyDisconnectedPlayer,
     PermanentlyDisconnectPlayer,
     RejoinRoom,
-    SubmitAnswer,
+    SubmitAnswerFibbingIt,
     UnpauseGame,
 )
 from app.room.room_exceptions import RoomNotFound
@@ -146,9 +146,10 @@ async def unpause_game(_: str, unpause_game: UnpauseGame) -> tuple[GameUnpaused,
     return GameUnpaused(), unpause_game.room_code
 
 
-@event_handler(input_model=SubmitAnswer)
+@event_handler(input_model=SubmitAnswerFibbingIt)
 @error_handler(Exception, handle_error)
-async def submit_answer(sid: str, submit_answer: SubmitAnswer) -> tuple[AnswerSubmitted | Error, str]:
+async def submit_answer(sid: str, submit_answer: SubmitAnswerFibbingIt) -> tuple[AnswerSubmittedFibbingIt | Error, str]:
+    logger = get_logger()
     game_state_service = get_game_state_service()
     player_service = get_player_service()
     player = await player_service.get(player_id=submit_answer.player_id)
@@ -160,8 +161,12 @@ async def submit_answer(sid: str, submit_answer: SubmitAnswer) -> tuple[AnswerSu
 
     fibbing_it = FibbingIt()
     player_ids = [player.player_id for player in players]
-    new_state = fibbing_it.submit_answers(
-        game_state=state, player_ids=player_ids, player_id=submit_answer.player_id, answer=submit_answer.answer
-    )
-    await game_state_service.update_state(game_state=state, state=new_state)
-    return AnswerSubmitted(), sid
+    try:
+        new_state = fibbing_it.submit_answers(
+            game_state=state, player_ids=player_ids, player_id=submit_answer.player_id, answer=submit_answer.answer
+        )
+        await game_state_service.update_state(game_state=state, state=new_state)
+        return AnswerSubmittedFibbingIt(), sid
+    except ActionTimedOut as e:
+        logger.exception("unable to submit answer, time has run out", now=e.now, completed_by=e.completed_by)
+        return Error(code="time_run_out", message="Cannot submit answer, time has run out"), sid

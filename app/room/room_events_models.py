@@ -14,8 +14,8 @@ PAUSE_GAME = "PAUSE_GAME"
 GAME_PAUSED = "GAME_PAUSED"
 UNPAUSE_GAME = "UNPAUSE_GAME"
 GAME_UNPAUSED = "GAME_UNPAUSED"
-SUBMIT_ANSWER = "SUBMIT_ANSWER"
-ANSWER_SUBMITTED = "ANSWER_SUBMITTED"
+SUBMIT_ANSWER_FIBBING_IT = "SUBMIT_ANSWER_FIBBING_IT"
+ANSWER_SUBMITTED_FIBBING_IT = "ANSWER_SUBMITTED_FIBBING_IT"
 
 
 class HostDisconnected(EventModel):
@@ -132,20 +132,20 @@ class GameUnpaused(EventModel):
         return GAME_UNPAUSED
 
 
-class SubmitAnswer(EventModel):
+class SubmitAnswerFibbingIt(EventModel):
     player_id: str
     answer: str
     room_code: str
 
     @property
     def event_name(self):
-        return SUBMIT_ANSWER
+        return SUBMIT_ANSWER_FIBBING_IT
 
 
-class AnswerSubmitted(EventModel):
+class AnswerSubmittedFibbingIt(EventModel):
     @property
     def event_name(self):
-        return ANSWER_SUBMITTED
+        return ANSWER_SUBMITTED_FIBBING_IT
 
 
 class EventResponse(BaseModel):
