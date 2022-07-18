@@ -136,7 +136,7 @@ async def pause_game(_: str, pause_game: PauseGame) -> tuple[GamePaused, str]:
 
 
 @event_handler(input_model=UnpauseGame)
-@error_handler(Exception, handle_error)
+# @error_handler(Exception, handle_error)
 async def unpause_game(_: str, unpause_game: UnpauseGame) -> tuple[GameUnpaused, str]:
     room_service = get_room_service()
     game_state_service = get_game_state_service()
