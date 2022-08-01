@@ -1,5 +1,6 @@
 from asyncio import get_event_loop
-from typing import Any, Awaitable, Callable, Generic, TypeVar, overload
+from collections.abc import Awaitable, Callable
+from typing import Any, Generic, TypeVar, overload
 
 from httpx import AsyncClient, Request, Response
 from pydantic import ValidationError, parse_obj_as

@@ -279,7 +279,7 @@ async def test_submit_answer(client: AsyncClient):
     await client.emit("SUBMIT_ANSWER_FIBBING_IT", submit_answer.dict())
     await asyncio.wait_for(future, timeout=5.0)
     answer_submitted: AnswerSubmittedFibbingIt = future.result()
-    assert answer_submitted
+    assert answer_submitted.all_players_submitted is False
 
 
 @pytest.mark.asyncio

@@ -24,7 +24,7 @@ from app.room.room_event_handlers import (
     pause_game,
     permanently_disconnect_player,
     rejoin_room,
-    submit_answer,
+    submit_answer_fibbing_it,
     unpause_game,
 )
 from app.room.room_events_models import (
@@ -96,4 +96,4 @@ sio.on(START_GAME, start_game)
 sio.on(GET_NEXT_QUESTION, get_next_question)
 sio.on(PAUSE_GAME, pause_game)
 sio.on(UNPAUSE_GAME, unpause_game)
-sio.on(SUBMIT_ANSWER_FIBBING_IT, submit_answer)
+sio.on(SUBMIT_ANSWER_FIBBING_IT, submit_answer_fibbing_it)

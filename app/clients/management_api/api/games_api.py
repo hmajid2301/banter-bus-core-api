@@ -1,6 +1,7 @@
 # flake8: noqa E501
 from asyncio import get_event_loop
-from typing import TYPE_CHECKING, Awaitable, List
+from collections.abc import Awaitable
+from typing import TYPE_CHECKING, List
 
 from app.clients.management_api import models as m
 

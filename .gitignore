@@ -221,3 +221,5 @@ report.xml
 .devcontainer/config.sh
 .devcontainer/devcontainer.json
 *-pact.json
+
+.temp-config/

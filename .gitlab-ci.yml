@@ -6,6 +6,7 @@ services:
 variables:
   DOCKER_DRIVER: overlay2
   DOCKER_HOST: tcp://docker:2375
+  DOCKER_BUILDKIT: 0
 
 stages:
   - pre
@@ -21,6 +22,7 @@ publish:docker:prod:
   stage: pre
   only:
     - main
+  before_script: []
   script:
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
     - docker build --target production -t ${CI_REGISTRY_IMAGE}:latest .

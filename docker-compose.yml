@@ -8,6 +8,7 @@ services:
       cache_from:
         - registry.gitlab.com/banter-bus/banter-bus-core-api:development
     environment:
+      HISTFILE: /app/.histfile
       BANTER_BUS_CORE_API_DB_USERNAME: banterbus
       BANTER_BUS_CORE_API_DB_PASSWORD: banterbus
       BANTER_BUS_CORE_API_DB_HOST: banter-bus-database
@@ -19,11 +20,15 @@ services:
       BANTER_BUS_CORE_API_USE_AUTH: "False"
       BANTER_BUS_CORE_API_MESSAGE_QUEUE_HOST: banter-bus-message-queue
       BANTER_BUS_CORE_API_MESSAGE_QUEUE_PORT: 6379
+      BANTER_BUS_CORE_API_WEB_HOST: "0.0.0.0"
+      BANTER_BUS_CORE_API_WEB_PORT: 8080
     ports:
       - 127.0.0.1:8080:8080
     volumes:
+      - $HOME/.histfile:/app/.histfile
       - ./:/app
       - /app/.venv/ # This stops local .venv getting mounted
+      - app-history:/app/home/commandhistory
     depends_on:
       - database
       - management-api
@@ -88,3 +93,6 @@ services:
       - /data/datastore /data
     ports:
       - 127.0.0.1:6379:6379
+
+volumes:
+  app-history:

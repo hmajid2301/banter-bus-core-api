@@ -1,5 +1,6 @@
 .DEFAULT_GOAL := help
 
+# TODO: tidy this up
 
 .PHONY: help
 help: ## Generates a help README

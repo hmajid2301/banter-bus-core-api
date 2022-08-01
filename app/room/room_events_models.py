@@ -143,6 +143,8 @@ class SubmitAnswerFibbingIt(EventModel):
 
 
 class AnswerSubmittedFibbingIt(EventModel):
+    all_players_submitted: bool
+
     @property
     def event_name(self):
         return ANSWER_SUBMITTED_FIBBING_IT
