@@ -26,8 +26,8 @@ from app.room.room_exceptions import (
 from app.room.room_factory import get_game_api, get_lobby_service
 
 
-@event_handler(input_model=CreateRoom)
 @error_handler(Exception, handle_error)
+@event_handler(input_model=CreateRoom)
 async def create_room(sid: str, _: CreateRoom) -> tuple[RoomCreated, None]:
     lobby_service = get_lobby_service()
     created_room = await lobby_service.create_room()
@@ -35,8 +35,8 @@ async def create_room(sid: str, _: CreateRoom) -> tuple[RoomCreated, None]:
     return room_created, None
 
 
-@event_handler(input_model=JoinRoom)
 @error_handler(Exception, handle_error)
+@event_handler(input_model=JoinRoom)
 async def join_room(sid, join_room: JoinRoom) -> tuple[RoomJoined | Error, str]:
     logger = get_logger()
     try:
@@ -61,8 +61,8 @@ async def join_room(sid, join_room: JoinRoom) -> tuple[RoomJoined | Error, str]:
         return error, sid
 
 
-@event_handler(input_model=KickPlayer)
 @error_handler(Exception, handle_error)
+@event_handler(input_model=KickPlayer)
 async def kick_player(sid, kick_player: KickPlayer) -> tuple[PlayerKicked | Error, str]:
     logger = get_logger()
     try:
@@ -90,8 +90,8 @@ async def kick_player(sid, kick_player: KickPlayer) -> tuple[PlayerKicked | Erro
         return error, sid
 
 
-@event_handler(input_model=StartGame)
 @error_handler(Exception, handle_error)
+@event_handler(input_model=StartGame)
 async def start_game(_: str, start_game: StartGame) -> tuple[GameStarted, str]:
     lobby_service = get_lobby_service()
     game_api = get_game_api()

@@ -60,7 +60,7 @@ async def test_rejoin_room_game_unpaused(client: AsyncClient):
 
     @client.on("GAME_UNPAUSED")
     def _(data):
-        future.set_result(GameUnpaused(**data))
+        future.set_result(GameUnpaused())
 
     rejoin_room = RejoinRoom(player_id=player_id)
     await client.emit("REJOIN_ROOM", rejoin_room.dict())
@@ -85,7 +85,7 @@ async def test_rejoin_room_game_should_not_unpaused(client: AsyncClient):
 
     @client.on("GAME_UNPAUSED")
     def _(data):
-        future.set_result(GameUnpaused(**data))
+        future.set_result(GameUnpaused())
 
     rejoin_room = RejoinRoom(player_id=player_id)
     await client.emit("REJOIN_ROOM", rejoin_room.dict())
@@ -219,7 +219,7 @@ async def test_unpause_room(client: AsyncClient):
 
     @client.on("GAME_UNPAUSED")
     def _(data):
-        future.set_result(GameUnpaused(**data))
+        future.set_result(GameUnpaused())
 
     unpaused_game = UnpauseGame(
         room_code=room_code,

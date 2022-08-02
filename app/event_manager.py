@@ -23,9 +23,9 @@ def error_handler(exception: type[Exception], error_callback: Callable[[str], Co
 
 
 def event_handler(input_model: type[EventModel]):
-    def outer(func: Callable[[str, EventModel], Coroutine[Any, Any, tuple[list[EventResponse] | EventModel, str]]]):
+    def outer(func: Callable[[str, Any], Coroutine[Any, Any, tuple[list[EventResponse] | EventModel, str | None]]]):
         async def inner(sid: str, data: dict[Any, Any]):
-            model = input_model(**data)
+            model = input_model(**data)  # type: ignore
 
             logger = get_logger()
             logger.debug(model.event_name)

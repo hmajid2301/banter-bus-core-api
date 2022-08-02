@@ -33,8 +33,8 @@ from app.room.room_exceptions import RoomNotFound
 from app.room.room_factory import get_lobby_service, get_room_service
 
 
-@event_handler(input_model=PermanentlyDisconnectPlayer)
 @error_handler(Exception, handle_error)
+@event_handler(input_model=PermanentlyDisconnectPlayer)
 async def permanently_disconnect_player(
     _: str, data: PermanentlyDisconnectPlayer
 ) -> tuple[PermanentlyDisconnectedPlayer, str]:
@@ -66,8 +66,8 @@ async def permanently_disconnect_player(
         raise e
 
 
-@event_handler(input_model=RejoinRoom)
 @error_handler(Exception, handle_error)
+@event_handler(input_model=RejoinRoom)
 async def rejoin_room(sid: str, rejoin_room: RejoinRoom) -> tuple[RoomJoined | Error, str]:
     logger = get_logger()
     try:
@@ -101,8 +101,8 @@ async def rejoin_room(sid: str, rejoin_room: RejoinRoom) -> tuple[RoomJoined | E
         return error, sid
 
 
-@event_handler(input_model=GetNextQuestion)
 @error_handler(Exception, handle_error)
+@event_handler(input_model=GetNextQuestion)
 async def get_next_question(_: str, get_next_question: GetNextQuestion) -> tuple[list[EventResponse], None]:
     logger = get_logger()
     game_state_service = get_game_state_service()
@@ -124,8 +124,8 @@ async def get_next_question(_: str, get_next_question: GetNextQuestion) -> tuple
     return event_responses, None
 
 
-@event_handler(input_model=PauseGame)
 @error_handler(Exception, handle_error)
+@event_handler(input_model=PauseGame)
 async def pause_game(_: str, pause_game: PauseGame) -> tuple[GamePaused, str]:
     room_service = get_room_service()
     game_state_service = get_game_state_service()
@@ -135,8 +135,8 @@ async def pause_game(_: str, pause_game: PauseGame) -> tuple[GamePaused, str]:
     return GamePaused(paused_for=paused_for_seconds, message="Game paused by host."), pause_game.room_code
 
 
-@event_handler(input_model=UnpauseGame)
 @error_handler(Exception, handle_error)
+@event_handler(input_model=UnpauseGame)
 async def unpause_game(_: str, unpause_game: UnpauseGame) -> tuple[GameUnpaused, str]:
     room_service = get_room_service()
     game_state_service = get_game_state_service()
@@ -147,8 +147,8 @@ async def unpause_game(_: str, unpause_game: UnpauseGame) -> tuple[GameUnpaused,
 
 
 # TODO: check if all users have submitted answers, then move to next stage
-@event_handler(input_model=SubmitAnswerFibbingIt)
 @error_handler(Exception, handle_error)
+@event_handler(input_model=SubmitAnswerFibbingIt)
 async def submit_answer_fibbing_it(
     sid: str, submit_answer: SubmitAnswerFibbingIt
 ) -> tuple[AnswerSubmittedFibbingIt | Error, str]:

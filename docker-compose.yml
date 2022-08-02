@@ -28,7 +28,6 @@ services:
       - $HOME/.histfile:/app/.histfile
       - ./:/app
       - /app/.venv/ # This stops local .venv getting mounted
-      - app-history:/app/home/commandhistory
     depends_on:
       - database
       - management-api
@@ -93,6 +92,3 @@ services:
       - /data/datastore /data
     ports:
       - 127.0.0.1:6379:6379
-
-volumes:
-  app-history:

@@ -210,6 +210,6 @@ class GetQuestions:
         )
         for question in random_questions:
             player_names = [player.nickname for player in self.players]
-            question = FibbingItQuestion(fibber_question="", question=question.content, answers=player_names)
-            questions_in_round.append(question)
+            fibbing_it_question = FibbingItQuestion(fibber_question="", question=question.content, answers=player_names)
+            questions_in_round.append(fibbing_it_question)
         return questions_in_round
