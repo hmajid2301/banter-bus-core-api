@@ -22,7 +22,7 @@ async def get_next_question_helper(sid: str, player_id: str, room_code: str):
     await publish_event(event_name=GOT_NEXT_QUESTION, event_body=got_next_question, room=sid)
 
 
-async def get_room_joined(sid: str, room_code: str, room_players: RoomPlayers) -> RoomJoined:
+async def enter_room_joined(sid: str, room_code: str, room_players: RoomPlayers) -> RoomJoined:
     players = parse_obj_as(list[Player], room_players.players)
     room_joined = RoomJoined(players=players, host_player_nickname=room_players.host_player_nickname)
     enter_room(sid, room_code)

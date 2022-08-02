@@ -56,7 +56,7 @@ class FibbingItState(BaseModel):
 class FibbingActions(Enum):
     show_question = "SHOW_QUESTION"
     submit_answers = "SUBMIT_ANSWERS"
-    vote_on_fibber = "VOTE_ON_fibber"
+    vote_on_fibber = "VOTE_ON_FIBBER"
 
 
 class QuiblyActions(Enum):

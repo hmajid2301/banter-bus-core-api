@@ -1,7 +1,7 @@
 from app.core.config import get_settings
 from app.core.exceptions import GameNotFound
 from app.game_state.games.abstract_game import AbstractGame
-from app.game_state.games.fibbing_it import FibbingIt
+from app.game_state.games.fibbing_it.fibbing_it import FibbingIt
 
 
 def get_game(game_name: str) -> AbstractGame:

@@ -40,7 +40,7 @@ def mock_beanie_document(mocker: MockFixture):
 
 @pytest.mark.asyncio
 async def test_should_get_starting_state(httpx_mock: HTTPXMock):
-    fibbing_it = await get_fibbing_it_game()
+    fibbing_it = get_fibbing_it_game()
     mock_get_questions(httpx_mock)
     question_client = get_question_api_client()
     players = await _create_players()
@@ -73,7 +73,7 @@ async def test_should_get_starting_state(httpx_mock: HTTPXMock):
     ],
 )
 async def test_should_update_question_state(current_question_state: dict[Any, Any], expected_state: dict[Any, Any]):
-    fibbing_it = await get_fibbing_it_game()
+    fibbing_it = get_fibbing_it_game()
     new_starting_state = merge(starting_state.dict(), current_question_state)
     fibbing_it_questions = FibbingItState(**new_starting_state)
 
@@ -98,7 +98,7 @@ async def test_should_update_question_state(current_question_state: dict[Any, An
     ],
 )
 async def test_should_get_next_question(current_question_state: dict[Any, Any], expected_question: FibbingItQuestion):
-    fibbing_it = await get_fibbing_it_game()
+    fibbing_it = get_fibbing_it_game()
     new_state = merge(starting_state.dict(), current_question_state)
     fibbing_it_questions = FibbingItState(**new_state)
 
@@ -115,7 +115,7 @@ async def _create_players() -> list[Player]:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "round, answer",
+    "round_, answer",
     [
         ("opinion", "lame"),
         ("likely", "9d2dd1e9-d8e3-4855-80ef-3bd0acfd48dd"),
@@ -125,10 +125,10 @@ async def _create_players() -> list[Player]:
         "Submit answer to round likely with answer correct player id",
     ],
 )
-async def test_should_submit_answers(round: str, answer: str):
+async def test_should_submit_answers(round_: str, answer: str):
     room_id = "5b2dd1e9-d8e3-4855-80ef-3bd0acfd481f"
 
-    state = _get_game_state(round=round)
+    state = _get_game_state(round_=round_)
     game_state: GameState = GameStateFactory.build(
         room_id=room_id,
         action=FibbingActions.submit_answers,
@@ -138,7 +138,7 @@ async def test_should_submit_answers(round: str, answer: str):
     player_service = get_player_service(num=3, room_id=room_id)
     players = await player_service.get_all_in_room(room_id=room_id)
 
-    fibbing_it = await get_fibbing_it_game()
+    fibbing_it = get_fibbing_it_game()
     player_id = players[0].player_id
     players[1].player_id = "9d2dd1e9-d8e3-4855-80ef-3bd0acfd48dd"
 
@@ -154,7 +154,7 @@ async def test_should_submit_answers(round: str, answer: str):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "round, answer",
+    "round_, answer",
     [
         ("opinion", "not lame"),
         ("likely", "dd2dd1e9-d8e3-4855-80ef-3bd0acfd48dd"),
@@ -164,10 +164,10 @@ async def test_should_submit_answers(round: str, answer: str):
         "Submit answer to round likely with answer incorrect player id",
     ],
 )
-async def test_should_not_submit_answers_invalid_answer(round: str, answer: str):
+async def test_should_not_submit_answers_invalid_answer(round_: str, answer: str):
     room_id = "5b2dd1e9-d8e3-4855-80ef-3bd0acfd481f"
 
-    state = _get_game_state(round=round)
+    state = _get_game_state(round_=round_)
     game_state: GameState = GameStateFactory.build(
         room_id=room_id,
         action=FibbingActions.submit_answers,
@@ -177,7 +177,7 @@ async def test_should_not_submit_answers_invalid_answer(round: str, answer: str)
     player_service = get_player_service(num=3, room_id=room_id)
     players = await player_service.get_all_in_room(room_id=room_id)
 
-    fibbing_it = await get_fibbing_it_game()
+    fibbing_it = get_fibbing_it_game()
     player_id = players[0].player_id
 
     player_ids = [player.player_id for player in players]
@@ -194,7 +194,7 @@ async def test_should_not_submit_answers_invalid_answer(round: str, answer: str)
 async def test_should_not_submit_answers_timed_out():
     room_id = "5b2dd1e9-d8e3-4855-80ef-3bd0acfd481f"
 
-    state = _get_game_state(round="opinion")
+    state = _get_game_state(round_="opinion")
     game_state: GameState = GameStateFactory.build(
         room_id=room_id,
         action=FibbingActions.submit_answers,
@@ -204,7 +204,7 @@ async def test_should_not_submit_answers_timed_out():
     player_service = get_player_service(num=3, room_id=room_id)
     players = await player_service.get_all_in_room(room_id=room_id)
 
-    fibbing_it = await get_fibbing_it_game()
+    fibbing_it = get_fibbing_it_game()
     player_id = players[0].player_id
 
     player_ids = [player.player_id for player in players]
@@ -217,8 +217,35 @@ async def test_should_not_submit_answers_timed_out():
         )
 
 
-def _get_game_state(round="opinion"):
-    state = GameState(
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "round_",
+    ["opinion", "likely", "free_form"],
+    ids=[
+        "Select random answer for round opinion",
+        "Select random answer for round likely",
+        "Select empty answer for round free_form",
+    ],
+)
+async def test_should_select_random_answers(round_: str):
+    room_id = "5b2dd1e9-d8e3-4855-80ef-3bd0acfd481f"
+
+    state = _get_game_state(round_=round_)
+    player_service = get_player_service(num=3, room_id=room_id)
+    players = await player_service.get_all_in_room(room_id=room_id)
+
+    fibbing_it = get_fibbing_it_game()
+    player_ids = [player.player_id for player in players]
+    fibbing_it_state = FibbingItState(**state.state.dict())
+    new_state = fibbing_it.select_random_answer(state=fibbing_it_state, player_ids=player_ids)
+
+    answers = new_state.questions.current_answers
+    for player_id in player_ids:
+        assert answers[player_id] is not None
+
+
+def _get_game_state(round_="opinion"):
+    return GameState(
         paused=GamePaused(),
         room_id="2257856e-bf37-4cc4-8551-0b1ccdc38c60",
         game_name="fibbing_it",
@@ -251,17 +278,17 @@ def _get_game_state(round="opinion"):
                     ],
                     likely=[
                         FibbingItQuestion(
-                            fibber_question="",
+                            fibber_question="Least likely to get arrested",
                             question="Most likely to get arrested",
                             answers=["Richard", "Michael", "Brandon"],
                         ),
                         FibbingItQuestion(
-                            fibber_question="",
+                            fibber_question="Most likely to fight a horse and lose",
                             question="Most likely to eat a tub of ice-cream",
                             answers=["Richard", "Michael", "Brandon"],
                         ),
                         FibbingItQuestion(
-                            fibber_question="",
+                            fibber_question="Most likely to eat a tub of ice-cream",
                             question="Most likely to fight a horse and lose",
                             answers=["Richard", "Michael", "Brandon"],
                         ),
@@ -283,8 +310,6 @@ def _get_game_state(round="opinion"):
                 question_nb=0,
                 current_answers={},
             ),
-            current_round=round,
+            current_round=round_,
         ),
     )
-
-    return state

@@ -6,6 +6,7 @@ from app.game_state.game_state_factory import get_game_state_service
 from app.main import sio
 from app.player.player_exceptions import PlayerNotFound
 from app.player.player_factory import get_player_service
+from app.room.games.fibbing_it_event_handlers import submit_answer_fibbing_it
 from app.room.lobby.lobby_event_handlers import (
     create_room,
     join_room,
@@ -24,7 +25,6 @@ from app.room.room_event_handlers import (
     pause_game,
     permanently_disconnect_player,
     rejoin_room,
-    submit_answer_fibbing_it,
     unpause_game,
 )
 from app.room.room_events_models import (

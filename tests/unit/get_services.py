@@ -3,7 +3,7 @@ from app.clients.management_api.api.questions_api import AsyncQuestionsApi
 from app.clients.management_api.api_client import ApiClient
 from app.game_state.game_state_models import GameState
 from app.game_state.game_state_service import GameStateService
-from app.game_state.games.fibbing_it import FibbingIt
+from app.game_state.games.fibbing_it.fibbing_it import FibbingIt
 from app.player.player_models import Player
 from app.player.player_service import PlayerService
 from app.room.lobby.lobby_service import LobbyService
@@ -24,8 +24,7 @@ def get_player_service(players: list[Player] | None = None, num: int = 1, **kwar
         existing_players = []
 
     player_repository = FakePlayerRepository(players=existing_players)
-    player_service = PlayerService(player_repository=player_repository)
-    return player_service
+    return PlayerService(player_repository=player_repository)
 
 
 def get_room_service(rooms: list[Room] | None = None, num: int = 1, **kwargs) -> RoomService:
@@ -51,10 +50,7 @@ def get_lobby_service(
     room_service = get_room_service(rooms=rooms, num=num, **kwargs)
     player_service = get_player_service(players=players)
     game_state_service = get_game_state_service(game_states=game_states)
-    lobby_service = LobbyService(
-        room_service=room_service, player_service=player_service, game_state_service=game_state_service
-    )
-    return lobby_service
+    return LobbyService(room_service=room_service, player_service=player_service, game_state_service=game_state_service)
 
 
 def get_game_state_service(game_states: list[GameState] | None = None, num: int = 1, **kwargs) -> GameStateService:
@@ -83,6 +79,5 @@ def get_question_api_client() -> AsyncQuestionsApi:
     return question_api
 
 
-async def get_fibbing_it_game() -> FibbingIt:
-    fibbing_it = FibbingIt()
-    return fibbing_it
+def get_fibbing_it_game() -> FibbingIt:
+    return FibbingIt()

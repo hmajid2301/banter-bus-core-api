@@ -1,4 +1,3 @@
-import asyncio
 import random
 from datetime import datetime
 
@@ -8,17 +7,12 @@ from app.game_state.game_state_models import (
     DrawlossuemState,
     FibbingActions,
     FibbingItQuestion,
-    FibbingItQuestionsState,
-    FibbingItRounds,
     FibbingItState,
     GameState,
     QuiblyState,
 )
-from app.game_state.games.exceptions import (
-    InvalidAction,
-    InvalidAnswer,
-    InvalidGameRound,
-)
+from app.game_state.games.exceptions import InvalidAction, InvalidAnswer
+from app.game_state.games.fibbing_it.get_questions import GetQuestions
 from app.game_state.games.game import AbstractGame
 from app.player.player_models import Player
 
@@ -43,10 +37,9 @@ class FibbingIt(AbstractGame):
             question_client=question_client, players=players, questions_per_round=self.questions_per_round_index + 1
         )
         questions = await get_questions()
-        starting_state = FibbingItState(
+        return FibbingItState(
             current_fibber_id=first_fibber.player_id, questions=questions, current_round=self.rounds[0]
         )
-        return starting_state
 
     async def update_question_state(
         self, current_state: FibbingItState | QuiblyState | DrawlossuemState
@@ -141,75 +134,15 @@ class FibbingIt(AbstractGame):
         state.questions.current_answers[player_id] = answer
         return state
 
-
-class GetQuestions:
-    def __init__(self, question_client: AsyncQuestionsApi, players: list[Player], questions_per_round: int = 3) -> None:
-        self.question_client = question_client
-        self.players = players
-        self.rounds = ["opinion", "likely", "free_form"]
-        self.rounds_with_groups = ["opinion", "free_form"]
-        self.questions_per_round = questions_per_round
-
-    async def __call__(self) -> FibbingItQuestionsState:
-        rounds_dict = await self._get_rounds()
-        rounds = FibbingItRounds(**rounds_dict)
-        fibbing_it_state = FibbingItQuestionsState(rounds=rounds, current_answers={})
-        return fibbing_it_state
-
-    async def _get_rounds(self) -> dict[str, list[FibbingItQuestion]]:
-        rounds_questions_map: dict[str, list[FibbingItQuestion]] = {"opinion": [], "likely": [], "free_form": []}
-        for round_ in self.rounds:
-            questions_in_round = await self._get_questions_for_round(round_)
-
-            rounds_questions_map[round_] = questions_in_round
-        return rounds_questions_map
-
-    async def _get_questions_for_round(self, round_: str) -> list[FibbingItQuestion]:
-        questions_in_round: list[FibbingItQuestion] = []
-        if round_ in self.rounds_with_groups:
-            questions_in_round = await self._get_questions_for_rounds_with_groups(round_)
-        else:
-            questions_in_round = await self._get_questions_for_rounds_without_group(round_)
-        return questions_in_round
-
-    async def _get_questions_for_rounds_with_groups(self, round_: str) -> list[FibbingItQuestion]:
-        questions_in_round: list[FibbingItQuestion] = []
-        random_groups = await self.question_client.get_random_groups(
-            game_name="fibbing_it", round=round_, limit=self.questions_per_round
-        )
-        questions_in_group = await asyncio.gather(
-            *[
-                self.question_client.get_random_questions(game_name="fibbing_it", round=round_, group_name=random_group)
-                for random_group in random_groups.groups
-            ]
-        )
-
-        for question_group in questions_in_group:
-            if round_ == "opinion":
-                questions_content = [question.content for question in question_group if question.type == "question"]
-                answers_content = [answer.content for answer in question_group if answer.type == "answer"]
-                fibber_question, real_question = random.sample(questions_content, k=2)
-                question = FibbingItQuestion(
-                    fibber_question=fibber_question, question=real_question, answers=answers_content
-                )
-            elif round_ == "free_form":
-                questions_content = [question.content for question in question_group]
-                fibber_question, real_question = random.sample(questions_content, k=2)
-                question = FibbingItQuestion(fibber_question=fibber_question, question=real_question)
-            else:
-                raise InvalidGameRound(f"unexpected game round {round_}")
-
-            questions_in_round.append(question)
-
-        return questions_in_round
-
-    async def _get_questions_for_rounds_without_group(self, round_: str) -> list[FibbingItQuestion]:
-        questions_in_round: list[FibbingItQuestion] = []
-        random_questions = await self.question_client.get_random_questions(
-            game_name="fibbing_it", round=round_, limit=self.questions_per_round
-        )
-        for question in random_questions:
-            player_names = [player.nickname for player in self.players]
-            fibbing_it_question = FibbingItQuestion(fibber_question="", question=question.content, answers=player_names)
-            questions_in_round.append(fibbing_it_question)
-        return questions_in_round
+    def select_random_answer(self, state: FibbingItState, player_ids: list[str]) -> FibbingItState:
+        player_answers = state.questions.current_answers
+        for player_id in player_ids:
+            if not player_answers.get(player_id):
+                if state.current_round == "free_form":
+                    player_answers[player_id] = ""
+                elif state.current_round in ["likely", "opinion"]:
+                    question = self.get_next_question(current_state=state)
+                    if not question or not question.answers:
+                        raise Exception()
+                    player_answers[player_id] = random.choice(question.answers)
+        return state

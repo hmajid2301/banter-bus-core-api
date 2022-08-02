@@ -4,20 +4,18 @@ from app.core.config import get_settings
 from app.event_manager import error_handler, event_handler, leave_room
 from app.event_models import Error
 from app.exception_handlers import handle_error
-from app.game_state.game_state_exceptions import ActionTimedOut, GameStateNotFound
+from app.game_state.game_state_exceptions import GameStateNotFound
 from app.game_state.game_state_factory import get_game_state_service
-from app.game_state.games.fibbing_it import FibbingIt
 from app.player.player_exceptions import PlayerHasNoRoomError, PlayerNotInRoom
 from app.player.player_factory import get_player_service
 from app.room.games.game import get_game
 from app.room.lobby.lobby_event_helpers import (
+    enter_room_joined,
     get_next_question_helper,
-    get_room_joined,
     send_unpause_event_if_no_players_are_disconnected,
 )
 from app.room.lobby.lobby_events_models import RoomJoined
 from app.room.room_events_models import (
-    AnswerSubmittedFibbingIt,
     EventResponse,
     GamePaused,
     GameUnpaused,
@@ -26,7 +24,6 @@ from app.room.room_events_models import (
     PermanentlyDisconnectedPlayer,
     PermanentlyDisconnectPlayer,
     RejoinRoom,
-    SubmitAnswerFibbingIt,
     UnpauseGame,
 )
 from app.room.room_exceptions import RoomNotFound
@@ -76,10 +73,11 @@ async def rejoin_room(sid: str, rejoin_room: RejoinRoom) -> tuple[RoomJoined | E
 
         room_service = get_room_service()
         room = await room_service.get(room_id=room_players.room_code)
-        room_joined = await get_room_joined(sid, room_players.room_code, room_players)
+        room_joined = await enter_room_joined(sid, room_players.room_code, room_players)
         if room.state.is_room_rejoinable_and_started:
             await get_next_question_helper(sid=sid, player_id=rejoin_room.player_id, room_code=room_players.room_code)
 
+        # TODO: why ? is this working like this
         try:
             game_state_service = get_game_state_service()
             await send_unpause_event_if_no_players_are_disconnected(
@@ -144,37 +142,3 @@ async def unpause_game(_: str, unpause_game: UnpauseGame) -> tuple[GameUnpaused,
         room_id=unpause_game.room_code, player_id=unpause_game.player_id, game_state_service=game_state_service
     )
     return GameUnpaused(), unpause_game.room_code
-
-
-# TODO: check if all users have submitted answers, then move to next stage
-@error_handler(Exception, handle_error)
-@event_handler(input_model=SubmitAnswerFibbingIt)
-async def submit_answer_fibbing_it(
-    sid: str, submit_answer: SubmitAnswerFibbingIt
-) -> tuple[AnswerSubmittedFibbingIt | Error, str]:
-    logger = get_logger()
-    game_state_service = get_game_state_service()
-    player_service = get_player_service()
-    player = await player_service.get(player_id=submit_answer.player_id)
-    if not player.room_id == submit_answer.room_code:
-        return Error(code="player_not_in_room", message="Player not in room"), sid
-
-    players = await player_service.get_all_in_room(room_id=submit_answer.room_code)
-    state = await game_state_service.get_game_state_by_room_id(room_id=submit_answer.room_code)
-
-    fibbing_it = FibbingIt()
-    player_ids = [player.player_id for player in players]
-    try:
-        new_state = fibbing_it.submit_answers(
-            game_state=state, player_ids=player_ids, player_id=submit_answer.player_id, answer=submit_answer.answer
-        )
-        await game_state_service.update_state(game_state=state, state=new_state)
-
-        all_submitted = False
-        if len(new_state.questions.current_answers) == len(players):
-            all_submitted = True
-
-        return AnswerSubmittedFibbingIt(all_players_submitted=all_submitted), sid
-    except ActionTimedOut as e:
-        logger.exception("unable to submit answer, time has run out", now=e.now, completed_by=e.completed_by)
-        return Error(code="time_run_out", message="Cannot submit answer, time has run out"), sid

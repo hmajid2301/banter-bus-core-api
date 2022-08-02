@@ -5,7 +5,7 @@ from app.event_models import Error
 from app.exception_handlers import handle_error
 from app.player.player_exceptions import PlayerNotHostError
 from app.player.player_models import NewPlayer
-from app.room.lobby.lobby_event_helpers import get_room_joined
+from app.room.lobby.lobby_event_helpers import enter_room_joined
 from app.room.lobby.lobby_events_models import (
     NEW_ROOM_JOINED,
     CreateRoom,
@@ -47,7 +47,7 @@ async def join_room(sid, join_room: JoinRoom) -> tuple[RoomJoined | Error, str]:
             latest_sid=sid,
         )
         room_players = await lobby_service.join(room_id=join_room.room_code, new_player=new_player)
-        room_joined = await get_room_joined(sid, join_room.room_code, room_players)
+        room_joined = await enter_room_joined(sid, join_room.room_code, room_players)
         new_room_joined = NewRoomJoined(player_id=room_players.player_id)
         await publish_event(event_name=NEW_ROOM_JOINED, event_body=new_room_joined, room=sid)
         return room_joined, join_room.room_code
