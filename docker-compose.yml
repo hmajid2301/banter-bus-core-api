@@ -8,7 +8,6 @@ services:
       cache_from:
         - registry.gitlab.com/banter-bus/banter-bus-core-api:development
     environment:
-      HISTFILE: /app/.histfile
       BANTER_BUS_CORE_API_DB_USERNAME: banterbus
       BANTER_BUS_CORE_API_DB_PASSWORD: banterbus
       BANTER_BUS_CORE_API_DB_HOST: banter-bus-database
@@ -22,10 +21,10 @@ services:
       BANTER_BUS_CORE_API_MESSAGE_QUEUE_PORT: 6379
       BANTER_BUS_CORE_API_WEB_HOST: "0.0.0.0"
       BANTER_BUS_CORE_API_WEB_PORT: 8080
+      PRE_COMMIT_HOME: /app/.cache
     ports:
       - 127.0.0.1:8080:8080
     volumes:
-      - $HOME/.histfile:/app/.histfile
       - ./:/app
       - /app/.venv/ # This stops local .venv getting mounted
     depends_on:

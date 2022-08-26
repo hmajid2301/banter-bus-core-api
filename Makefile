@@ -15,41 +15,45 @@ start-deps: ## Start all the Docker containers that this app depends on directly
 	@docker compose pull
 	@docker compose up --build -d database database-gui database-seed message-queue management-api
 
-.PHONY: unit_tests_docker
-unit_tests_docker: ## Run unit tests in Docker container
-	@docker compose run app make unit_tests
-
-.PHONY: integration_tests_docker
-integration_tests_docker: ## Run integration tests in Docker container
-	@docker compose run app make integration_tests
-
-.PHONY: coverage_docker
-coverage_docker: ## Run coverage tests in Docker container
-	@docker compose run app make coverage
+.PHONY: lint
+lint: ## Run the lint steps (pre-commit hook) in docker
+	@docker compose run --rm --no-deps app make _lint
 
 .PHONY: unit_tests
-unit_tests: ## Run all the unit tests
-	@poetry run pytest -v tests/unit
+unit_tests: ## Run all the unit tests in docker
+	@docker compose run --rm --no-deps  app make _unit_tests
 
 .PHONY: integration_tests
-integration_tests: ## Run all the integration tests
-	@poetry run pytest -v tests/integration
+integration_tests: ## Run all the integration tests in docker
+	@docker compose run --rm app make _integration_tests
 
 .PHONY: contract_tests
-contract_tests: ## Create contract test JSON
-	@poetry run pytest -v tests/contract
+contract_tests: ## Create contract test JSON in docker
+	@docker compose run --rm --no-deps  app make _contract_tests
 
 .PHONY: coverage
-coverage: ## Run the integration tests with code coverage report generated
+coverage: ## Run the integration tests with code coverage report generated in docker
+	@docker compose run --rm app make _coverage
+
+.PHONY: _unit_tests
+_unit_tests: ## Run all the unit tests
+	@poetry run pytest -v tests/unit
+
+.PHONY: _integration_tests
+_integration_tests: ## Run all the integration tests
+	@poetry run pytest -v tests/integration
+
+.PHONY: _contract_tests
+_contract_tests: ## Create contract test JSON
+	@poetry run pytest -v tests/contract
+
+.PHONY: _coverage
+_coverage: ## Run the integration tests with code coverage report generated
 	@poetry run pytest -v --junitxml=report.xml --cov=app/ tests/integration
 	@poetry run coverage xml
 
-.PHONY: install-hooks
-install-hooks: ## Install pre commit hooks
-	@poetry run pre-commit install
-
-.PHONY: lint
-lint: ## Run the lint steps (pre-commit hook)
+.PHONY: _lint
+_lint: ## Run the lint steps (pre-commit hook)
 	@poetry run pre-commit run --all-files
 
 .PHONY: pull-template-updates

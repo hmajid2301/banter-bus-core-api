@@ -17,6 +17,7 @@ stages:
 
 before_script:
   - docker compose build
+  - apk add make
 
 publish:docker:prod:
   stage: pre
@@ -42,16 +43,15 @@ test:lint:
   stage: test
   only:
     - merge_request
-  before_script: []
   script:
-    - docker compose run app make lint
+    - make lint
 
 test:unit:
   stage: test
   only:
     - merge_request
   script:
-    - docker compose run app make unit_tests
+    - make unit_tests
 
 test:coverage:
   stage: test
@@ -59,7 +59,7 @@ test:coverage:
     - main
     - merge_request
   script:
-    - docker compose run app make coverage
+    - make coverage
   coverage: '/^TOTAL.+?(\S+\%)$/'
   artifacts:
     when: always
@@ -74,14 +74,14 @@ test:integration:
   only:
     - merge_request
   script:
-    - docker compose run app make integration_tests
+    - make integration_tests
 
 test:publish-contract:
   stage: test
   only:
     - main
   script:
-    - docker compose run app make contract_tests
+    - make contract_tests
     - apk add curl
     - |
       curl -X PUT -H "Authorization: Bearer ${BROKER_TOKEN}" -H "Content-Type: application/json" \

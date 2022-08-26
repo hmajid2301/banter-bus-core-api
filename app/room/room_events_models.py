@@ -16,6 +16,8 @@ UNPAUSE_GAME = "UNPAUSE_GAME"
 GAME_UNPAUSED = "GAME_UNPAUSED"
 SUBMIT_ANSWER_FIBBING_IT = "SUBMIT_ANSWER_FIBBING_IT"
 ANSWER_SUBMITTED_FIBBING_IT = "ANSWER_SUBMITTED_FIBBING_IT"
+GET_ANSWERS_FIBBING_IT = "GET_ANSWERS_FIBBING_IT"
+GOT_ANSWERS_FIBBING_IT = "GOT_ANSWERS_FIBBING_IT"
 
 
 class HostDisconnected(EventModel):
@@ -148,6 +150,28 @@ class AnswerSubmittedFibbingIt(EventModel):
     @property
     def event_name(self):
         return ANSWER_SUBMITTED_FIBBING_IT
+
+
+class GetAnswersFibbingIt(EventModel):
+    player_id: str
+    room_code: str
+
+    @property
+    def event_name(self):
+        return GET_ANSWERS_FIBBING_IT
+
+
+class Answer(BaseModel):
+    nickname: str
+    answer: str
+
+
+class GotAnswersFibbingIt(EventModel):
+    answers: list[Answer]
+
+    @property
+    def event_name(self):
+        return GOT_ANSWERS_FIBBING_IT
 
 
 class EventResponse(BaseModel):

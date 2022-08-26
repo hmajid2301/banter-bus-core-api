@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Any
 
+import factory
 import pytest
 from mergedeep import merge
 from pytest_httpx import HTTPXMock
@@ -231,30 +232,95 @@ async def test_should_select_random_answers(round_: str):
     room_id = "5b2dd1e9-d8e3-4855-80ef-3bd0acfd481f"
 
     state = _get_game_state(round_=round_)
+    state.action = FibbingActions.submit_answers
+    state.action_completed_by = datetime.now() + timedelta(minutes=30)
     player_service = get_player_service(num=3, room_id=room_id)
     players = await player_service.get_all_in_room(room_id=room_id)
 
     fibbing_it = get_fibbing_it_game()
     player_ids = [player.player_id for player in players]
-    fibbing_it_state = FibbingItState(**state.state.dict())
-    new_state = fibbing_it.select_random_answer(state=fibbing_it_state, player_ids=player_ids)
+    new_state = fibbing_it.select_random_answer(game_state=state, player_ids=player_ids)
 
     answers = new_state.questions.current_answers
     for player_id in player_ids:
         assert answers[player_id] is not None
 
 
-def _get_game_state(round_="opinion"):
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "round_, answers",
+    [
+        (
+            "opinion",
+            {
+                "85cf4976-174c-44bf-9b69-8bd3701fe4ac": "lame",
+                "10d70441-3ceb-476f-a0a7-88992ea4e6ed": "tasty",
+                "c0e12e13-f1ef-43b0-a550-bc3a35a1f95b": "cool",
+            },
+        ),
+        (
+            "likely",
+            {
+                "85cf4976-174c-44bf-9b69-8bd3701fe4ac": "Richard",
+                "10d70441-3ceb-476f-a0a7-88992ea4e6ed": "Richard",
+                "c0e12e13-f1ef-43b0-a550-bc3a35a1f95b": "Brandon",
+            },
+        ),
+        (
+            "free_form",
+            {
+                "85cf4976-174c-44bf-9b69-8bd3701fe4ac": "Cause I can",
+                "10d70441-3ceb-476f-a0a7-88992ea4e6ed": "I don't wanna",
+                "c0e12e13-f1ef-43b0-a550-bc3a35a1f95b": "Yes ofc!",
+            },
+        ),
+    ],
+    ids=[
+        "Get all answers for round opinion",
+        "Get all answers for round likely",
+        "Get all answers for round free_form",
+    ],
+)
+async def test_should_get_player_answers(round_: str, answers: dict[str, str]):
+    # TODO: refactor common bits
+    room_id = "5b2dd1e9-d8e3-4855-80ef-3bd0acfd481f"
+
+    game_state = _get_game_state(round_=round_, answers=answers)
+    game_state.action = FibbingActions.submit_answers
+    ids_ = [
+        "85cf4976-174c-44bf-9b69-8bd3701fe4ac",
+        "10d70441-3ceb-476f-a0a7-88992ea4e6ed",
+        "c0e12e13-f1ef-43b0-a550-bc3a35a1f95b",
+    ]
+    player_id_sequence = factory.Sequence(lambda n: ids_[n % 3])
+    player_service = get_player_service(num=3, room_id=room_id, player_id=player_id_sequence)
+    players = await player_service.get_all_in_room(room_id=room_id)
+
+    fibbing_it = get_fibbing_it_game()
+    player_id_nickname_map = {player.player_id: player.nickname for player in players}
+    fibbing_it_state = FibbingItState(**game_state.state.dict())  # type: ignore
+    player_answers = fibbing_it.get_player_answers(state=fibbing_it_state, player_map=player_id_nickname_map)
+    assert len(player_answers) == 3
+
+
+def _get_game_state(
+    answers: dict[str, str] | None = None,
+    round_="opinion",
+) -> GameState:
+    if answers is None:
+        answers = {}
+
     return GameState(
         paused=GamePaused(),
         room_id="2257856e-bf37-4cc4-8551-0b1ccdc38c60",
         game_name="fibbing_it",
         player_scores=[
             PlayerScore(player_id="5fcfe479-1984-471d-bd23-136e85696da4", score=0),
-            PlayerScore(player_id="f921d6cf-b59f-4a3c-9e58-f0273121cc1a", score=0),
+            PlayerScore(player_id="f921d6cfb59f-4a3c-9e58-f0273121cc1a", score=0),
             PlayerScore(player_id="285243e1-0656-44cc-9549-fea3a17e2540", score=0),
         ],
         action=FibbingActions.show_question,
+        action_completed_by=datetime.now(),
         state=FibbingItState(
             current_fibber_id="8cdc1984-e832-48c7-9d89-1d724665bef1",
             questions=FibbingItQuestionsState(
@@ -308,7 +374,7 @@ def _get_game_state(round_="opinion"):
                     ],
                 ),
                 question_nb=0,
-                current_answers={},
+                current_answers=answers,
             ),
             current_round=round_,
         ),

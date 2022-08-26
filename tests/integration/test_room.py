@@ -13,7 +13,9 @@ from app.room.room_events_models import (
     AnswerSubmittedFibbingIt,
     GamePaused,
     GameUnpaused,
+    GetAnswersFibbingIt,
     GetNextQuestion,
+    GotAnswersFibbingIt,
     GotNextQuestion,
     HostDisconnected,
     PauseGame,
@@ -307,3 +309,35 @@ async def test_submit_answer_out_of_time(client: AsyncClient):
     await asyncio.wait_for(future, timeout=5.0)
     error: Error = future.result()
     assert error.code == "time_run_out"
+
+
+@pytest.mark.asyncio
+async def test_get_answers(client: AsyncClient):
+    future = asyncio.get_running_loop().create_future()
+    game_state_service = get_game_state_service()
+    room_code = "2257856e-bf37-4cc4-8551-0b1ccdc38c60"
+    game_state = await game_state_service.get_game_state_by_room_id(room_id=room_code)
+    game_state.state.questions.current_answers = {  # type: ignore
+        "8cdc1984-e832-48c7-9d89-1d724665bef1": "lame",
+        "02b38b51-3926-4b11-829a-54aa848f992f": "tasty",
+        "49e810c5-c0ae-4443-88da-9fa4788541f2": "lame",
+        "63fd683c-570a-49ac-b2bb-b1f306296ea7": "cool",
+    }
+    game_state.action = FibbingActions.submit_answers
+    game_state.action_completed_by = datetime.now() + timedelta(minutes=15)
+    game_state.state.questions.question_nb = 0  # type: ignore
+    await game_state_service.update_state(game_state=game_state, state=game_state.state)  # type: ignore
+
+    @client.on("GOT_ANSWERS_FIBBING_IT")
+    def _(data):
+        future.set_result(GotAnswersFibbingIt(**data))
+
+    get_answers = GetAnswersFibbingIt(
+        room_code=room_code,
+        player_id="8cdc1984-e832-48c7-9d89-1d724665bef1",
+    )
+    sio.enter_room(client.get_sid(), room=room_code)
+    await client.emit("GET_ANSWERS_FIBBING_IT", get_answers.dict())
+    await asyncio.wait_for(future, timeout=5.0)
+    answers: GotAnswersFibbingIt = future.result()
+    assert len(answers.answers) == 4

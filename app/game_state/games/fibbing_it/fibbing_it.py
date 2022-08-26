@@ -2,7 +2,12 @@ import random
 from datetime import datetime
 
 from app.clients.management_api.api.questions_api import AsyncQuestionsApi
-from app.game_state.game_state_exceptions import ActionTimedOut, InvalidGameState
+from app.game_state.game_state_exceptions import (
+    ActionNotTimedOut,
+    ActionTimedOut,
+    InvalidGameState,
+    NoAnswersFound,
+)
 from app.game_state.game_state_models import (
     DrawlossuemState,
     FibbingActions,
@@ -99,7 +104,8 @@ class FibbingIt(AbstractGame):
     def get_next_action(self, current_action: str) -> FibbingActions:
         next_action_map = {
             FibbingActions.show_question.value: FibbingActions.submit_answers,
-            FibbingActions.submit_answers.value: FibbingActions.vote_on_fibber,
+            FibbingActions.submit_answers.value: FibbingActions.reveal_answers,
+            FibbingActions.reveal_answers.value: FibbingActions.vote_on_fibber,
             FibbingActions.vote_on_fibber.value: FibbingActions.show_question,
         }
         next_action = next_action_map[current_action]
@@ -110,7 +116,7 @@ class FibbingIt(AbstractGame):
     ) -> FibbingItState:
         if not game_state.state or not game_state.action == FibbingActions.submit_answers:
             raise InvalidAction(
-                f"expected action to be {FibbingActions.submit_answers}, current action {game_state.action}"
+                f"expected action to be {FibbingActions.submit_answers.value}, current action {game_state.action.value}"
             )
 
         now = datetime.now()
@@ -134,7 +140,19 @@ class FibbingIt(AbstractGame):
         state.questions.current_answers[player_id] = answer
         return state
 
-    def select_random_answer(self, state: FibbingItState, player_ids: list[str]) -> FibbingItState:
+    def select_random_answer(self, game_state: GameState, player_ids: list[str]) -> FibbingItState:
+        if not game_state.state or not game_state.action == FibbingActions.submit_answers:
+            raise InvalidAction(
+                f"expected action to be {FibbingActions.submit_answers.value}, current action {game_state.action.value}"
+            )
+
+        now = datetime.now()
+        if not game_state.action_completed_by:
+            raise InvalidGameState("expected game_state.action_completed_by to exist")
+        elif not game_state.action_completed_by >= now:
+            raise ActionNotTimedOut("cannot complete action is not yet out of time")
+
+        state = FibbingItState(**game_state.state.dict())
         player_answers = state.questions.current_answers
         for player_id in player_ids:
             if not player_answers.get(player_id):
@@ -143,6 +161,13 @@ class FibbingIt(AbstractGame):
                 elif state.current_round in ["likely", "opinion"]:
                     question = self.get_next_question(current_state=state)
                     if not question or not question.answers:
-                        raise Exception()
+                        raise NoAnswersFound("no answers found for question")
                     player_answers[player_id] = random.choice(question.answers)
         return state
+
+    def get_player_answers(self, state: FibbingItState, player_map: dict[str, str]) -> list[dict[str, str]]:
+        current_answers = state.questions.current_answers
+        player_answers = [
+            {"nickname": nickname, "answer": current_answers[player_id]} for player_id, nickname in player_map.items()
+        ]
+        return player_answers

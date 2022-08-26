@@ -12,6 +12,7 @@ from app.game_state.game_state_exceptions import (
     NoStateFound,
 )
 from app.game_state.game_state_models import (
+    DrawlossuemActions,
     DrawlossuemState,
     FibbingActions,
     FibbingItState,
@@ -19,11 +20,11 @@ from app.game_state.game_state_models import (
     GameState,
     NextQuestion,
     PlayerScore,
+    QuiblyActions,
     QuiblyState,
     UpdateQuestionRoundState,
 )
 from app.game_state.game_state_repository import AbstractGameStateRepository
-from app.game_state.games.abstract_game import AbstractGame
 from app.game_state.games.game import get_game
 from app.player.player_models import Player
 
@@ -67,7 +68,8 @@ class GameStateService:
         game = get_game(game_name=game_state.game_name)
         next_question = game.get_next_question(current_state=game_state.state)  # type: ignore
         timer = game.get_timer(current_state=game_state.state, prev_action=game_state.action)  # type: ignore
-        game_state = await self._update_next_action(game=game, timer=timer, game_state=game_state)
+        next_action = game.get_next_action(current_action=game_state.action.value)
+        game_state = await self.update_next_action(next_action=next_action, timer=timer, game_state=game_state)
         next_question_data = NextQuestion(
             updated_round=updated_round_state, next_question=next_question, timer_in_seconds=timer
         )
@@ -98,8 +100,9 @@ class GameStateService:
         updated_round_state = UpdateQuestionRoundState(round_changed=round_changed, new_round=new_round)
         return updated_round_state
 
-    async def _update_next_action(self, game: AbstractGame, timer: int, game_state: GameState) -> GameState:
-        next_action = game.get_next_action(current_action=game_state.action.value)
+    async def update_next_action(
+        self, next_action: FibbingActions | QuiblyActions | DrawlossuemActions, timer: int, game_state: GameState
+    ) -> GameState:
         new_game_state = await self.game_state_repository.update_next_action(
             game_state=game_state, timer_in_seconds=timer, next_action=next_action
         )

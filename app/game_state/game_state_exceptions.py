@@ -25,6 +25,7 @@ class GameStateNotPaused(Exception):
     pass
 
 
+# Todo check this vs GameAlreadyPaused
 class GameIsPaused(Exception):
     pass
 
@@ -41,8 +42,16 @@ class InvalidGameState(Exception):
     pass
 
 
+class NoAnswersFound(Exception):
+    pass
+
+
 class ActionTimedOut(Exception):
     def __init__(self, msg: str, now: datetime, completed_by: datetime) -> None:
         self.msg = msg
         self.now = now
         self.completed_by = completed_by
+
+
+class ActionNotTimedOut(Exception):
+    pass
