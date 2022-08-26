@@ -21,8 +21,8 @@ before_script:
 
 publish:docker:prod:
   stage: pre
-  # only:
-  #   - main
+  only:
+    - main
   image: google/cloud-sdk
   before_script: []
   script:
@@ -35,103 +35,103 @@ publish:docker:prod:
     - docker push eu.gcr.io/${GCP_PROJECT_ID}/banter-bus-core-api
     - docker push ${CI_REGISTRY_IMAGE}:latest
 
-# publish:docker:dev:
-#   stage: pre
-#   only:
-#     - main
-#   before_script: []
-#   script:
-#     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-#     - docker build --target development -t ${CI_REGISTRY_IMAGE}:development .
-#     - docker push ${CI_REGISTRY_IMAGE}:development
+publish:docker:dev:
+  stage: pre
+  only:
+    - main
+  before_script: []
+  script:
+    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+    - docker build --target development -t ${CI_REGISTRY_IMAGE}:development .
+    - docker push ${CI_REGISTRY_IMAGE}:development
 
-# test:lint:
-#   stage: test
-#   only:
-#     - merge_request
-#   script:
-#     - make lint
+test:lint:
+  stage: test
+  only:
+    - merge_request
+  script:
+    - make lint
 
-# test:unit:
-#   stage: test
-#   only:
-#     - merge_request
-#   script:
-#     - make unit_tests
+test:unit:
+  stage: test
+  only:
+    - merge_request
+  script:
+    - make unit_tests
 
-# test:coverage:
-#   stage: test
-#   only:
-#     - main
-#     - merge_request
-#   script:
-#     - make coverage
-#   coverage: '/^TOTAL.+?(\S+\%)$/'
-#   artifacts:
-#     when: always
-#     reports:
-#       coverage_report:
-#         coverage_format: cobertura
-#         path: coverage.xml
-#       junit: report.xml
+test:coverage:
+  stage: test
+  only:
+    - main
+    - merge_request
+  script:
+    - make coverage
+  coverage: '/^TOTAL.+?(\S+\%)$/'
+  artifacts:
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+      junit: report.xml
 
-# test:integration:
-#   stage: test
-#   only:
-#     - merge_request
-#   script:
-#     - make integration_tests
+test:integration:
+  stage: test
+  only:
+    - merge_request
+  script:
+    - make integration_tests
 
-# test:publish-contract:
-#   stage: test
-#   only:
-#     - main
-#   script:
-#     - make contract_tests
-#     - apk add curl
-#     - |
-#       curl -X PUT -H "Authorization: Bearer ${BROKER_TOKEN}" -H "Content-Type: application/json" \
-#           -d @core_api-management_api-pact.json \
-#           https://banterbus.pactflow.io/pacts/provider/management_api/consumer/core_api/version/${CI_COMMIT_SHORT_SHA}
+test:publish-contract:
+  stage: test
+  only:
+    - main
+  script:
+    - make contract_tests
+    - apk add curl
+    - |
+      curl -X PUT -H "Authorization: Bearer ${BROKER_TOKEN}" -H "Content-Type: application/json" \
+          -d @core_api-management_api-pact.json \
+          https://banterbus.pactflow.io/pacts/provider/management_api/consumer/core_api/version/${CI_COMMIT_SHORT_SHA}
 
-# management-api:commit:
-#   stage: post-test
-#   image: bitnami/git
-#   only:
-#     - main
-#   before_script: []
-#   script:
-#     - git clone https://gitlab.com/banter-bus/banter-bus-management-api.git
-#     - cd banter-bus-management-api
-#     - echo "MANAGEMENT_API_VERSION=$(git rev-parse --short HEAD)" >> ../build.env
-#   artifacts:
-#     reports:
-#       dotenv: build.env
+management-api:commit:
+  stage: post-test
+  image: bitnami/git
+  only:
+    - main
+  before_script: []
+  script:
+    - git clone https://gitlab.com/banter-bus/banter-bus-management-api.git
+    - cd banter-bus-management-api
+    - echo "MANAGEMENT_API_VERSION=$(git rev-parse --short HEAD)" >> ../build.env
+  artifacts:
+    reports:
+      dotenv: build.env
 
-# verify:test-contract:
-#   stage: pre-publish
-#   image:
-#     name: pactfoundation/pact-cli:latest
-#     entrypoint: [""]
-#   only:
-#     - main
-#   allow_failure: true
-#   dependencies:
-#     - management-api:commit
-#   before_script: []
-#   script:
-#     - |
-#       pact verify --pact-broker-base-url 'https://banterbus.pactflow.io' --provider management_api \
-#       --broker-token ${BROKER_TOKEN} --provider-app-version ${MANAGEMENT_API_VERSION} \
-#       --provider-base-url "${BANTER_BUS_CORE_API_MANAGEMENT_API_URL}:${BANTER_BUS_CORE_API_MANAGEMENT_API_PORT}" --publish-verification-results
+verify:test-contract:
+  stage: pre-publish
+  image:
+    name: pactfoundation/pact-cli:latest
+    entrypoint: [""]
+  only:
+    - main
+  allow_failure: true
+  dependencies:
+    - management-api:commit
+  before_script: []
+  script:
+    - |
+      pact verify --pact-broker-base-url 'https://banterbus.pactflow.io' --provider management_api \
+      --broker-token ${BROKER_TOKEN} --provider-app-version ${MANAGEMENT_API_VERSION} \
+      --provider-base-url "${BANTER_BUS_CORE_API_MANAGEMENT_API_URL}:${BANTER_BUS_CORE_API_MANAGEMENT_API_PORT}" --publish-verification-results
 
 edit:service-yaml:
   stage: pre-publish
   image:
     name: mikefarah/yq
     entrypoint: [""]
-  # only:
-  #   - main
+  only:
+    - main
   before_script: []
   script:
     - export RANDOM_NAME=$(echo $RANDOM | md5sum | head -c 8; echo)
@@ -144,8 +144,8 @@ edit:service-yaml:
 publish:cloud-run:
   stage: publish
   image: google/cloud-sdk
-  # only:
-  #   - main
+  only:
+    - main
   services:
     - docker:dind
   dependencies:
