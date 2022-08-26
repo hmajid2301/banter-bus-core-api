@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: development
+      target: production
       cache_from:
         - registry.gitlab.com/banter-bus/banter-bus-core-api:development
     environment:
