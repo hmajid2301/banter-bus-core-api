@@ -30,7 +30,7 @@ publish:docker:prod:
     - cat ${GCP_CLOUD_BUILD_KEY} | docker login -u _json_key --password-stdin https://eu.gcr.io
     - gcloud config set project ${GCP_PROJECT_ID}
     - gcloud auth activate-service-account --key-file ${GCP_CLOUD_BUILD_KEY}
-    - docker build --target production --cache-from -t ${CI_REGISTRY_IMAGE}:latest .
+    - docker build --target production --cache-from ${CI_REGISTRY_IMAGE} -t ${CI_REGISTRY_IMAGE}:latest .
     - docker tag ${CI_REGISTRY_IMAGE}:latest eu.gcr.io/${GCP_PROJECT_ID}/banter-bus-core-api .
     - docker push eu.gcr.io/${GCP_PROJECT_ID}/banter-bus-core-api
     - docker push ${CI_REGISTRY_IMAGE}:latest
