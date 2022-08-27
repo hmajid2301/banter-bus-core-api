@@ -49,6 +49,8 @@ class GameStateService:
         await self.game_state_repository.add(game_state)
         return game_state
 
+    # TODO: move to fibbing it
+    # TODO: adjust actions so it changes at correct time
     async def get_next_question(self, game_state: GameState) -> NextQuestion:
         current_action = game_state.action
         now = datetime.now()
@@ -67,7 +69,7 @@ class GameStateService:
         updated_round_state = await self._update_question_state(game_state=game_state)
         game = get_game(game_name=game_state.game_name)
         next_question = game.get_next_question(current_state=game_state.state)  # type: ignore
-        timer = game.get_timer(current_state=game_state.state, prev_action=game_state.action)  # type: ignore
+        timer = game.get_timer(current_round=game_state.state.current_round, action=game_state.action)  # type: ignore
         next_action = game.get_next_action(current_action=game_state.action.value)
         game_state = await self.update_next_action(next_action=next_action, timer=timer, game_state=game_state)
         next_question_data = NextQuestion(

@@ -35,8 +35,8 @@ class AbstractGame(abc.ABC):
     @abc.abstractmethod
     def get_timer(
         self,
-        current_state: FibbingItState | QuiblyState | DrawlossuemState,
-        prev_action: FibbingActions | QuiblyActions | DrawlossuemActions,
+        current_round: str,
+        action: FibbingActions | QuiblyActions | DrawlossuemActions,
     ) -> int:
         raise NotImplementedError
 

@@ -1,15 +1,14 @@
 from omnibus.log.logger import get_logger
-from pydantic import parse_obj_as
 
 from app.event_manager import error_handler, event_handler
 from app.event_models import Error
 from app.exception_handlers import handle_error
 from app.game_state.game_state_exceptions import ActionTimedOut
 from app.game_state.game_state_factory import get_game_state_service
+from app.game_state.game_state_models import FibbingActions, FibbingItState
 from app.game_state.games.fibbing_it.fibbing_it import FibbingIt
 from app.player.player_factory import get_player_service
 from app.room.room_events_models import (
-    Answer,
     AnswerSubmittedFibbingIt,
     GetAnswersFibbingIt,
     GotAnswersFibbingIt,
@@ -70,5 +69,8 @@ async def get_answers_fibbing_it(sid: str, get_answers: GetAnswersFibbingIt) -> 
     answers = fibbing_it.get_player_answers(
         state=new_state, player_map={player.player_id: player.nickname for player in players}
     )
-    answer = parse_obj_as(list[Answer], answers)
-    return GotAnswersFibbingIt(answers=answer), sid
+    timer = fibbing_it.get_timer(
+        current_round=FibbingItState(**state.state.dict()).current_round,  # type: ignore
+        action=FibbingActions(state.action),
+    )
+    return GotAnswersFibbingIt(answers=answers, timer_in_seconds=timer), sid

@@ -34,6 +34,7 @@ class FibbingIt(AbstractGame):
             self.round_timer_map = {
                 FibbingActions.show_question: {"likely": 30, "opinion": 45, "free_form": 60},
                 FibbingActions.submit_answers: {"likely": 30, "opinion": 30, "free_form": 30},
+                FibbingActions.vote_on_fibber: {"likely": 60, "opinion": 60, "free_form": 60},
             }
 
     async def get_starting_state(self, question_client: AsyncQuestionsApi, players: list[Player]) -> FibbingItState:
@@ -86,9 +87,8 @@ class FibbingIt(AbstractGame):
         question = questions[current_question_state.question_nb]
         return question
 
-    def get_timer(self, current_state: FibbingItState, prev_action: FibbingActions) -> int:  # type: ignore[override]
-        timer = self.round_timer_map[prev_action][current_state.current_round]
-        return timer
+    def get_timer(self, current_round: str, action: FibbingActions) -> int:  # type: ignore[override]
+        return self.round_timer_map[action][current_round]
 
     def has_round_changed(
         self, current_state: FibbingItState | QuiblyState | DrawlossuemState, old_round: str, new_round: str
@@ -104,8 +104,7 @@ class FibbingIt(AbstractGame):
     def get_next_action(self, current_action: str) -> FibbingActions:
         next_action_map = {
             FibbingActions.show_question.value: FibbingActions.submit_answers,
-            FibbingActions.submit_answers.value: FibbingActions.reveal_answers,
-            FibbingActions.reveal_answers.value: FibbingActions.vote_on_fibber,
+            FibbingActions.submit_answers.value: FibbingActions.vote_on_fibber,
             FibbingActions.vote_on_fibber.value: FibbingActions.show_question,
         }
         next_action = next_action_map[current_action]
@@ -165,9 +164,7 @@ class FibbingIt(AbstractGame):
                     player_answers[player_id] = random.choice(question.answers)
         return state
 
-    def get_player_answers(self, state: FibbingItState, player_map: dict[str, str]) -> list[dict[str, str]]:
+    def get_player_answers(self, state: FibbingItState, player_map: dict[str, str]) -> dict[str, str]:
         current_answers = state.questions.current_answers
-        player_answers = [
-            {"nickname": nickname, "answer": current_answers[player_id]} for player_id, nickname in player_map.items()
-        ]
+        player_answers = {nickname: current_answers[player_id] for player_id, nickname in player_map.items()}
         return player_answers

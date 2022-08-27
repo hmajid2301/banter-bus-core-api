@@ -161,13 +161,9 @@ class GetAnswersFibbingIt(EventModel):
         return GET_ANSWERS_FIBBING_IT
 
 
-class Answer(BaseModel):
-    nickname: str
-    answer: str
-
-
 class GotAnswersFibbingIt(EventModel):
-    answers: list[Answer]
+    answers: dict[str, str]
+    timer_in_seconds: int
 
     @property
     def event_name(self):
