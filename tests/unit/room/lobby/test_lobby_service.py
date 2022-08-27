@@ -28,6 +28,7 @@ async def test_should_join_empty_room():
     room_players = await lobby_service.join(room_id=existing_room.room_id, new_player=new_player)
 
     expected_player = Player(**new_player.dict(), room_id=existing_room.room_id, player_id=room_players.player_id)
+    expected_player.revision_id = room_players.players[0].revision_id
     assert room_players.players == [expected_player]
     assert room_players.host_player_nickname == expected_player.nickname
 

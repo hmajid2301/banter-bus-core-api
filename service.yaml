@@ -34,6 +34,10 @@ spec:
             - name: http1
               containerPort: 8080
           env:
+            - name: BANTER_BUS_CORE_API_WEB_HOST
+              value: "0.0.0.0"
+            - name: BANTER_BUS_CORE_API_WEB_PORT
+              value: "8080"
             - name: BANTER_BUS_CORE_API_DB_USERNAME
               value: banter-bus
             - name: BANTER_BUS_CORE_API_DB_HOST
@@ -53,7 +57,7 @@ spec:
             - name: BANTER_BUS_CORE_API_MESSAGE_QUEUE_HOST
               value: redis-13370.c299.asia-northeast1-1.gce.cloud.redislabs.com
             - name: BANTER_BUS_CORE_API_MESSAGE_QUEUE_PORT
-              value: "13370"
+              value: "18607"
             - name: BANTER_BUS_CORE_API_DB_PASSWORD
               valueFrom:
                 secretKeyRef:

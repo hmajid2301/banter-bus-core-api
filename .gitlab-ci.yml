@@ -16,17 +16,22 @@ stages:
   - publish
 
 before_script:
-  - docker compose build
   - apk add make
 
 publish:docker:prod:
   stage: pre
   only:
     - main
+  image: google/cloud-sdk
   before_script: []
   script:
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    - docker build --target production -t ${CI_REGISTRY_IMAGE}:latest .
+    - cat ${GCP_CLOUD_BUILD_KEY} | docker login -u _json_key --password-stdin https://eu.gcr.io
+    - gcloud config set project ${GCP_PROJECT_ID}
+    - gcloud auth activate-service-account --key-file ${GCP_CLOUD_BUILD_KEY}
+    - docker build --target production --cache-from ${CI_REGISTRY_IMAGE} -t ${CI_REGISTRY_IMAGE}:latest .
+    - docker tag ${CI_REGISTRY_IMAGE}:latest eu.gcr.io/${GCP_PROJECT_ID}/banter-bus-core-api
+    - docker push eu.gcr.io/${GCP_PROJECT_ID}/banter-bus-core-api
     - docker push ${CI_REGISTRY_IMAGE}:latest
 
 publish:docker:dev:
@@ -150,7 +155,4 @@ publish:cloud-run:
     - cat ${GCP_CLOUD_BUILD_KEY} | docker login -u _json_key --password-stdin https://eu.gcr.io
     - gcloud auth activate-service-account --key-file ${GCP_CLOUD_BUILD_KEY}
     - gcloud config set project ${GCP_PROJECT_ID}
-    - docker pull ${CI_REGISTRY_IMAGE}:latest
-    - docker tag ${CI_REGISTRY_IMAGE}:latest eu.gcr.io/${GCP_PROJECT_ID}/banter-bus-core-api
-    - docker push eu.gcr.io/${GCP_PROJECT_ID}/banter-bus-core-api
     - gcloud run services replace --platform=managed service.yaml

@@ -23,6 +23,7 @@ async def test_should_create_new_player():
 
     player = await player_service.create(room_id=room_id, new_player=new_player)
     expected_player = Player(**new_player.dict(), room_id=room_id, player_id=player.player_id)
+    expected_player.revision_id = player.revision_id
     assert player == expected_player
 
 

@@ -7,7 +7,7 @@ authors = ["Haseeb Majid <hello@haseebmajid.dev>"]
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
 httpx = "^0.22.0"
-omnibus = { git = "https://gitlab.com/banter-bus/omnibus.git", tag = "0.3.0" }
+omnibus = { git = "https://gitlab.com/banter-bus/omnibus.git", rev = "0.3.2" }
 python-socketio = "^5.6.0"
 aioredis = "^2.0.1"
 redis = "^4.2.2"
