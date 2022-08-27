@@ -648,8 +648,8 @@ uvicorn = {version = "^0.18.1", extras = ["standard"]}
 [package.source]
 type = "git"
 url = "https://gitlab.com/banter-bus/omnibus.git"
-reference = "fix-cors"
-resolved_reference = "f8fded18d85d6876a947b1b3779f24cb9b44c664"
+reference = "0.3.2"
+resolved_reference = "108cc3892917dbd018cff931b68bc425fe82d829"
 
 [[package]]
 name = "packaging"
@@ -1351,7 +1351,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "98e9e539caa165cfe7f91599962be0450d3bdc851cd77ec26b0a7cf26c3a2c86"
+content-hash = "6c82ed0f406ead0097b2ef8116fe2b660506fdbf873294c1245c6907c17ded6d"
 
 [metadata.files]
 aiohttp = [
