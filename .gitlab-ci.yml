@@ -16,7 +16,6 @@ stages:
   - publish
 
 before_script:
-  - docker compose build
   - apk add make
 
 publish:docker:prod:

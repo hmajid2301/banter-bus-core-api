@@ -10,29 +10,33 @@ help: ## Generates a help README
 start: ## Start the application "stack" using Docker
 	@docker compose up --build
 
+.PHONY: build
+build: ## Build all the docker images
+	@docker compose build
+
 .PHONY: start-deps
 start-deps: ## Start all the Docker containers that this app depends on directly
 	@docker compose pull
 	@docker compose up --build -d database database-gui database-seed message-queue management-api
 
 .PHONY: lint
-lint: ## Run the lint steps (pre-commit hook) in docker
+lint: build ## Run the lint steps (pre-commit hook) in docker
 	@docker compose run --rm --no-deps app make _lint
 
 .PHONY: unit_tests
-unit_tests: ## Run all the unit tests in docker
-	@docker compose run --rm --no-deps  app make _unit_tests
+unit_tests: build ## Run all the unit tests in docker
+	@docker compose run --rm --no-deps app make _unit_tests
 
 .PHONY: integration_tests
-integration_tests: ## Run all the integration tests in docker
+integration_tests: build ## Run all the integration tests in docker
 	@docker compose run --rm app make _integration_tests
 
 .PHONY: contract_tests
-contract_tests: ## Create contract test JSON in docker
+contract_tests: build ## Create contract test JSON in docker
 	@docker compose run --rm --no-deps  app make _contract_tests
 
 .PHONY: coverage
-coverage: ## Run the integration tests with code coverage report generated in docker
+coverage: build ## Run the integration tests with code coverage report generated in docker
 	@docker compose run --rm app make _coverage
 
 .PHONY: _unit_tests

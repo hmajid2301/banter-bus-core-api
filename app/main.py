@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from omnibus.app import setup_app
-from omnibus.log.logger import get_logger
 from omnibus.operation_id import use_route_names_as_operation_ids
 
 from app.core.config import get_settings
@@ -25,5 +24,3 @@ async def startup():
     )
     application.add_exception_handler(Exception, log_uncaught_exceptions)
     use_route_names_as_operation_ids(application)
-    log = get_logger()
-    log.info("TESTIng")
