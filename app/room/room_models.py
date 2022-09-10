@@ -5,6 +5,8 @@ from enum import Enum
 
 from beanie import Document, Indexed
 
+from app.player.player_models import Player
+
 
 class RoomState(Enum):
     CREATED = "CREATED"
@@ -31,9 +33,9 @@ class Room(Document):
     game_name: str | None = None
     host: str | None = None
     state: RoomState
-    player_count: int = 0
     created_at: datetime
     updated_at: datetime
+    players: list[Player] = []
 
     class Collection:
         name = "room"

@@ -4,27 +4,25 @@ from app.clients.management_api.api_client import ApiClient
 from app.game_state.game_state_models import GameState
 from app.game_state.game_state_service import GameStateService
 from app.game_state.games.fibbing_it.fibbing_it import FibbingIt
-from app.player.player_models import Player
 from app.player.player_service import PlayerService
 from app.room.lobby.lobby_service import LobbyService
 from app.room.room_models import Room
 from app.room.room_service import RoomService
-from tests.unit.factories import GameStateFactory, PlayerFactory, RoomFactory
+from tests.unit.factories import GameStateFactory, RoomFactory
 from tests.unit.game_state.fake_game_state_repository import FakeGameStateRepository
-from tests.unit.player.fake_player_repository import FakePlayerRepository
-from tests.unit.room.fake_room_repository import fibberoomRepository
+from tests.unit.room.fake_room_repository import FakeRoomRepository
 
 
-def get_player_service(players: list[Player] | None = None, num: int = 1, **kwargs) -> PlayerService:
-    if players:
-        existing_players = players
+def get_player_service(rooms: list[Room] | None = None, num: int = 1, **kwargs) -> PlayerService:
+    if rooms:
+        existing_room = rooms
     elif num:
-        existing_players = PlayerFactory.build_batch(num, **kwargs)
+        existing_room = RoomFactory.build_batch(num, **kwargs)
     else:
-        existing_players = []
+        existing_room = []
 
-    player_repository = FakePlayerRepository(players=existing_players)
-    return PlayerService(player_repository=player_repository)
+    room_repository = FakeRoomRepository(rooms=existing_room)
+    return PlayerService(room_repository=room_repository)
 
 
 def get_room_service(rooms: list[Room] | None = None, num: int = 1, **kwargs) -> RoomService:
@@ -35,20 +33,15 @@ def get_room_service(rooms: list[Room] | None = None, num: int = 1, **kwargs) ->
     else:
         existing_room = []
 
-    room_repository = fibberoomRepository(rooms=existing_room)
-    room_service = RoomService(room_repository=room_repository)
-    return room_service
+    room_repository = FakeRoomRepository(rooms=existing_room)
+    return RoomService(room_repository=room_repository)
 
 
 def get_lobby_service(
-    rooms: list[Room] | None = None,
-    num: int = 1,
-    players: list[Player] | None = None,
-    game_states: list[GameState] | None = None,
-    **kwargs
+    rooms: list[Room] | None = None, num: int = 1, game_states: list[GameState] | None = None, **kwargs
 ) -> LobbyService:
     room_service = get_room_service(rooms=rooms, num=num, **kwargs)
-    player_service = get_player_service(players=players)
+    player_service = get_player_service(rooms=rooms, num=num, **kwargs)
     game_state_service = get_game_state_service(game_states=game_states)
     return LobbyService(room_service=room_service, player_service=player_service, game_state_service=game_state_service)
 
@@ -63,20 +56,17 @@ def get_game_state_service(game_states: list[GameState] | None = None, num: int 
 
     question_client = get_question_api_client()
     game_state_repository = FakeGameStateRepository(game_states=existing_game_states)
-    game_state_service = GameStateService(game_state_repository=game_state_repository, question_client=question_client)
-    return game_state_service
+    return GameStateService(game_state_repository=game_state_repository, question_client=question_client)
 
 
 def get_game_api_client() -> AsyncGamesApi:
     api_client = ApiClient(host="http://localhost")
-    game_api = AsyncGamesApi(api_client=api_client)
-    return game_api
+    return AsyncGamesApi(api_client=api_client)
 
 
 def get_question_api_client() -> AsyncQuestionsApi:
     api_client = ApiClient(host="http://localhost")
-    question_api = AsyncQuestionsApi(api_client=api_client)
-    return question_api
+    return AsyncQuestionsApi(api_client=api_client)
 
 
 def get_fibbing_it_game() -> FibbingIt:

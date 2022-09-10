@@ -32,8 +32,7 @@ async def test_rejoin_room_that_has_started(client: AsyncClient):
     future = asyncio.get_running_loop().create_future()
     player_id = "8cdc1984-e832-48c7-9d89-1d724665bef1"
     player_service = get_player_service()
-    player = await player_service.get(player_id=player_id)
-    await player_service.update_latest_sid(latest_sid=client.get_sid(), player=player)
+    await player_service.update_latest_sid(latest_sid=client.get_sid(), player_id=player_id)
 
     @client.on("GOT_NEXT_QUESTION")
     def _(data):
@@ -54,8 +53,7 @@ async def test_rejoin_room_game_unpaused(client: AsyncClient):
     future = asyncio.get_running_loop().create_future()
     player_id = "8cdc1984-e832-48c7-9d89-1d724665bef1"
     player_service = get_player_service()
-    player = await player_service.get(player_id=player_id)
-    await player_service.update_latest_sid(latest_sid=client.get_sid(), player=player)
+    await player_service.update_latest_sid(latest_sid=client.get_sid(), player_id=player_id)
 
     game_state_service = get_game_state_service()
     await game_state_service.pause_game(room_id="2257856e-bf37-4cc4-8551-0b1ccdc38c60", player_disconnected=player_id)
@@ -76,8 +74,7 @@ async def test_rejoin_room_game_should_not_unpaused(client: AsyncClient):
     future = asyncio.get_running_loop().create_future()
     player_id = "8cdc1984-e832-48c7-9d89-1d724665bef1"
     player_service = get_player_service()
-    player = await player_service.get(player_id=player_id)
-    await player_service.update_latest_sid(latest_sid=client.get_sid(), player=player)
+    await player_service.update_latest_sid(latest_sid=client.get_sid(), player_id=player_id)
 
     game_state_service = get_game_state_service()
     await game_state_service.pause_game(room_id="2257856e-bf37-4cc4-8551-0b1ccdc38c60", player_disconnected=player_id)
@@ -100,9 +97,10 @@ async def test_rejoin_room_game_should_not_unpaused(client: AsyncClient):
 async def test_disconnect(client: AsyncClient, client_two: AsyncClient):
     future = asyncio.get_running_loop().create_future()
     player_service = get_player_service()
-    player = await player_service.get(player_id="778cb730-93de-4364-917a-8760ee50d0ff")
-    sio.enter_room(client_two.get_sid(), room=player.room_id)
-    await player_service.update_latest_sid(player=player, latest_sid=client.get_sid())
+    player_id = "778cb730-93de-4364-917a-8760ee50d0ff"
+    room_id = "5a18ac45-9876-4f8e-b636-cf730b17e59l"
+    sio.enter_room(client_two.get_sid(), room=room_id)
+    await player_service.update_latest_sid(latest_sid=client.get_sid(), player_id=player_id)
 
     @client_two.on("PLAYER_DISCONNECTED")
     def _(data):
@@ -111,10 +109,10 @@ async def test_disconnect(client: AsyncClient, client_two: AsyncClient):
     await client.disconnect()
     await asyncio.wait_for(future, timeout=5.0)
 
-    player_disconnected_nickname = player.nickname
+    player_disconnected_nickname = "AnotherPlayer"
     player_disconnected: PlayerDisconnected = future.result()
     assert player_disconnected.nickname == player_disconnected_nickname
-    sio.leave_room(client_two.get_sid(), room=player.room_id)
+    sio.leave_room(client_two.get_sid(), room=room_id)
     await client.connect(BASE_URL, socketio_path="/ws/socket.io")
 
 
@@ -122,10 +120,11 @@ async def test_disconnect(client: AsyncClient, client_two: AsyncClient):
 async def test_disconnect_game_paused(client: AsyncClient, client_two: AsyncClient):
     future = asyncio.get_running_loop().create_future()
     player_service = get_player_service()
-    player = await player_service.get(player_id="8cdc1984-e832-48c7-9d89-1d724665bef1")
+    player_id = "8cdc1984-e832-48c7-9d89-1d724665bef1"
+    room_id = "2257856e-bf37-4cc4-8551-0b1ccdc38c60"
 
-    sio.enter_room(client_two.get_sid(), room=player.room_id)
-    await player_service.update_latest_sid(player=player, latest_sid=client.get_sid())
+    sio.enter_room(client_two.get_sid(), room=room_id)
+    await player_service.update_latest_sid(latest_sid=client.get_sid(), player_id=player_id)
 
     @client_two.on("GAME_PAUSED")
     def _(data):
@@ -145,8 +144,7 @@ async def test_get_next_question(client: AsyncClient):
     future = asyncio.get_running_loop().create_future()
     player_service = get_player_service()
     player_id = "8cdc1984-e832-48c7-9d89-1d724665bef1"
-    player = await player_service.get(player_id=player_id)
-    await player_service.update_latest_sid(latest_sid=client.get_sid(), player=player)
+    await player_service.update_latest_sid(latest_sid=client.get_sid(), player_id=player_id)
 
     @client.on("GOT_NEXT_QUESTION")
     def _(data):
@@ -171,8 +169,7 @@ async def test_should_not_get_next_question_player_not_in_room(client: AsyncClie
     future = asyncio.get_running_loop().create_future()
     player_service = get_player_service()
     player_id = "99acb730-93de-4364-917a-8760ee50d0gg"
-    player = await player_service.get(player_id=player_id)
-    await player_service.update_latest_sid(latest_sid=client.get_sid(), player=player)
+    await player_service.update_latest_sid(latest_sid=client.get_sid(), player_id=player_id)
 
     @client.on("ERROR")
     def _(data):
@@ -239,9 +236,11 @@ async def test_unpause_room(client: AsyncClient):
 async def test_disconnect_host(client: AsyncClient, client_two: AsyncClient):
     future = asyncio.get_running_loop().create_future()
     player_service = get_player_service()
-    player = await player_service.get(player_id="52dcb730-93ad-4364-917a-8760ee50d0f5")
-    sio.enter_room(client_two.get_sid(), room=player.room_id)
-    await player_service.update_latest_sid(player=player, latest_sid=client.get_sid())
+    room_id = "5a18ac45-9876-4f8e-b636-cf730b17e59l"
+    sio.enter_room(client_two.get_sid(), room=room_id)
+    await player_service.update_latest_sid(
+        player_id="52dcb730-93ad-4364-917a-8760ee50d0f5", latest_sid=client.get_sid()
+    )
 
     @client_two.on("HOST_DISCONNECTED")
     def _(data):
@@ -253,7 +252,7 @@ async def test_disconnect_host(client: AsyncClient, client_two: AsyncClient):
     new_host_nickname = "CanIHaseeburger"
     host_disconnected: HostDisconnected = future.result()
     assert host_disconnected.new_host_nickname == new_host_nickname
-    sio.leave_room(client_two.get_sid(), room=player.room_id)
+    sio.leave_room(client_two.get_sid(), room=room_id)
     await client.connect(BASE_URL, socketio_path="/ws/socket.io")
 
 

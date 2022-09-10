@@ -20,12 +20,13 @@ from app.game_state.game_state_models import (
 )
 from app.game_state.games.exceptions import InvalidAnswer
 from app.player.player_models import Player
+from app.room.room_models import Room
 from tests.unit.data.data import (
     fibbing_it_get_next_question_data,
     fibbing_it_update_question_data,
     starting_state,
 )
-from tests.unit.factories import GameStateFactory
+from tests.unit.factories import GameStateFactory, PlayerFactory, RoomFactory
 from tests.unit.get_services import (
     get_fibbing_it_game,
     get_player_service,
@@ -136,7 +137,9 @@ async def test_should_submit_answers(round_: str, answer: str):
         state=state.state,
         action_completed_by=datetime.now() + timedelta(minutes=5),
     )
-    player_service = get_player_service(num=3, room_id=room_id)
+    existing_players: list[Player] = PlayerFactory.build_batch(3)
+    room: Room = RoomFactory.build(players=existing_players, room_id=room_id)
+    player_service = get_player_service(rooms=[room])
     players = await player_service.get_all_in_room(room_id=room_id)
 
     fibbing_it = get_fibbing_it_game()
@@ -293,9 +296,11 @@ async def test_should_get_player_answers(round_: str, answers: dict[str, str]):
         "c0e12e13-f1ef-43b0-a550-bc3a35a1f95b",
     ]
     player_id_sequence = factory.Sequence(lambda n: ids_[n % 3])
-    player_service = get_player_service(num=3, room_id=room_id, player_id=player_id_sequence)
-    players = await player_service.get_all_in_room(room_id=room_id)
+    existing_players: list[Player] = PlayerFactory.build_batch(3, player_id=player_id_sequence)
+    room: Room = RoomFactory.build(players=existing_players, room_id=room_id)
+    player_service = get_player_service(rooms=[room])
 
+    players = await player_service.get_all_in_room(room_id=room_id)
     fibbing_it = get_fibbing_it_game()
     player_id_nickname_map = {player.player_id: player.nickname for player in players}
     fibbing_it_state = FibbingItState(**game_state.state.dict())  # type: ignore

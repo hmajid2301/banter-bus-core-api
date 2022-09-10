@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from beanie import Document, Indexed
 from pydantic.main import BaseModel
 
 
@@ -10,11 +9,10 @@ class NewPlayer(BaseModel):
     latest_sid: str
 
 
-class Player(Document):
-    player_id: Indexed(str, unique=True)  # type: ignore
+class Player(BaseModel):
+    player_id: str
     avatar: bytes
     nickname: str
-    room_id: str | None = None
     disconnected_at: datetime | None = None
     latest_sid: str
 

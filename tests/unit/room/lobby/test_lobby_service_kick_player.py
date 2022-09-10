@@ -19,12 +19,14 @@ async def test_should_kick_player():
     room_id = "4d18ac45-8034-4f8e-b636-cf730b17e51a"
     room_host_player_id = "5a18ac45-9876-4f8e-b636-cf730b17e59l"
 
-    existing_room: Room = RoomFactory.build(state=RoomState.CREATED, room_id=room_id, host=room_host_player_id)
-    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=room_id)
+    existing_players: list[Player] = PlayerFactory.build_batch(3)
     existing_players[0].player_id = room_host_player_id
+    existing_room: Room = RoomFactory.build(
+        state=RoomState.CREATED, room_id=room_id, host=room_host_player_id, players=existing_players
+    )
     player_to_kick = existing_players[1]
 
-    lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
+    lobby_service = get_lobby_service(rooms=[existing_room])
     player_kicked = await lobby_service.kick_player(
         player_to_kick_nickname=player_to_kick.nickname,
         player_attempting_kick=room_host_player_id,

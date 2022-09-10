@@ -44,21 +44,21 @@ publish:docker:dev:
     - docker build --target development -t ${CI_REGISTRY_IMAGE}:development .
     - docker push ${CI_REGISTRY_IMAGE}:development
 
-test:lint:
+lint:
   stage: test
   only:
     - merge_request
   script:
     - make lint
 
-test:unit:
+unit:
   stage: test
   only:
     - merge_request
   script:
     - make unit_tests
 
-test:coverage:
+coverage:
   stage: test
   only:
     - main
@@ -74,14 +74,14 @@ test:coverage:
         path: coverage.xml
       junit: report.xml
 
-test:integration:
+integration:
   stage: test
   only:
     - merge_request
   script:
     - make integration_tests
 
-test:publish-contract:
+publish-contract:
   stage: test
   only:
     - main

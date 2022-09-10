@@ -52,7 +52,7 @@ async def join_room(sid, join_room: JoinRoom) -> tuple[RoomJoined | Error, str]:
         await publish_event(event_name=NEW_ROOM_JOINED, event_body=new_room_joined, room=sid)
         return room_joined, join_room.room_code
     except RoomNotFound as e:
-        logger.exception("room not found", room_code=e.room_identifier)
+        logger.exception("room not found", room_code=e.id)
         error = Error(code="room_join_fail", message="room not found")
         return error, sid
     except NicknameExistsException as e:
@@ -67,7 +67,6 @@ async def kick_player(sid, kick_player: KickPlayer) -> tuple[PlayerKicked | Erro
     logger = get_logger()
     try:
         lobby_service = get_lobby_service()
-
         kicked_player = await lobby_service.kick_player(
             player_to_kick_nickname=kick_player.kick_player_nickname,
             player_attempting_kick=kick_player.player_id,
@@ -85,7 +84,7 @@ async def kick_player(sid, kick_player: KickPlayer) -> tuple[PlayerKicked | Erro
         error = Error(code="kick_player_fail", message="You are not host, so cannot kick another player")
         return error, sid
     except RoomNotFound as e:
-        logger.exception("room not found", room_code=e.room_identifier)
+        logger.exception("room not found", room_code=e.id)
         error = Error(code="kick_player_fail", message="Room not found")
         return error, sid
 

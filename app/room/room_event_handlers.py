@@ -4,9 +4,8 @@ from app.core.config import get_settings
 from app.event_manager import error_handler, event_handler, leave_room
 from app.event_models import Error
 from app.exception_handlers import handle_error
-from app.game_state.game_state_exceptions import GameStateNotFound
 from app.game_state.game_state_factory import get_game_state_service
-from app.player.player_exceptions import PlayerHasNoRoomError, PlayerNotInRoom
+from app.player.player_exceptions import PlayerNotInRoom
 from app.player.player_factory import get_player_service
 from app.room.games.game import get_game
 from app.room.lobby.lobby_event_helpers import (
@@ -40,26 +39,19 @@ async def permanently_disconnect_player(
     try:
         config = get_settings()
         player_service = get_player_service()
-        room_service = get_room_service()
 
-        room = await room_service.get(room_id=data.room_code)
-        await room_service.update_player_count(room, increment=False)
         disconnected_player = await player_service.disconnect_player(
             nickname=data.nickname,
             room_id=data.room_code,
             disconnect_timer_in_seconds=config.DISCONNECT_TIMER_IN_SECONDS,
         )
 
-        if not disconnected_player.room_id:
-            logger.warning("Player already disconnected ", player_id=disconnected_player.player_id)
-            raise Exception("Unexpected state player already disconnected")
-
-        leave_room(disconnected_player.latest_sid, room=disconnected_player.room_id)
+        leave_room(disconnected_player.latest_sid, room=data.room_code)
         # TODO: remove from waiting for
         perm_disconnected_player = PermanentlyDisconnectedPlayer(nickname=data.nickname)
         return perm_disconnected_player, data.room_code
     except RoomNotFound as e:
-        logger.exception("room not found", room_code=e.room_identifier)
+        logger.exception("room not found", room_code=e.id)
         raise e
 
 
@@ -77,25 +69,15 @@ async def rejoin_room(sid: str, rejoin_room: RejoinRoom) -> tuple[RoomJoined | E
         if room.state.is_room_rejoinable_and_started:
             await get_next_question_helper(sid=sid, player_id=rejoin_room.player_id, room_code=room_players.room_code)
 
-        # TODO: why ? is this working like this
-        try:
-            game_state_service = get_game_state_service()
-            await send_unpause_event_if_no_players_are_disconnected(
-                game_state_service=game_state_service, room_id=room_players.room_code, player_id=rejoin_room.player_id
-            )
-        except GameStateNotFound:
-            pass
+        game_state_service = get_game_state_service()
+        await send_unpause_event_if_no_players_are_disconnected(
+            game_state_service=game_state_service, room_id=room_players.room_code, player_id=rejoin_room.player_id
+        )
 
         return room_joined, room_players.room_code
     except RoomNotFound as e:
-        logger.exception("room not found", room_code=e.room_identifier)
+        logger.exception("room not found", room_code=e.id)
         error = Error(code="room_join_fail", message="room not found")
-        return error, sid
-    except PlayerHasNoRoomError:
-        logger.exception(
-            "player has no room, they were likely disconnected from said room", player_id=rejoin_room.player_id
-        )
-        error = Error(code="room_join_fail", message="disconnected from room, please re-join with a new nickname")
         return error, sid
 
 
@@ -108,12 +90,17 @@ async def get_next_question(_: str, get_next_question: GetNextQuestion) -> tuple
     next_question = await game_state_service.get_next_question(game_state=game_state)
 
     player_service = get_player_service()
+    room_service = get_room_service()
     player = await player_service.get(player_id=get_next_question.player_id)
-    if not player.room_id == get_next_question.room_code:
+    room = await room_service.get(room_id=get_next_question.room_code)
+    for player in room.players:
+        if player.player_id == get_next_question.player_id:
+            break
+    else:
         logger.warning("Player getting next question not in room", get_next_question=get_next_question.dict())
         raise PlayerNotInRoom("player not in room, cannot get next question")
 
-    players = await player_service.get_all_in_room(room_id=get_next_question.room_code)
+    players = room.players
     game = get_game(game_name=game_state.game_name)
     event_responses: list[EventResponse] = []
     for player in players:

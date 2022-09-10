@@ -6,7 +6,6 @@ from app.core.config import get_settings
 from app.core.exception_handlers import log_uncaught_exceptions
 from app.game_state.game_state_models import GameState
 from app.healthcheck import db_healthcheck
-from app.player.player_models import Player
 from app.room.room_models import Room
 from app.socket_manager import SocketManager
 
@@ -19,7 +18,7 @@ async def startup():
     await setup_app(
         app=application,
         get_settings=get_settings,
-        document_models=[Room, Player, GameState],
+        document_models=[Room, GameState],
         healthcheck=db_healthcheck,
     )
     application.add_exception_handler(Exception, log_uncaught_exceptions)

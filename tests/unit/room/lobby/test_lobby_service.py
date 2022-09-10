@@ -6,7 +6,6 @@ from app.player.player_models import NewPlayer, Player
 from app.room.room_exceptions import (
     NicknameExistsException,
     RoomHasNoHostError,
-    RoomNotFound,
     RoomNotJoinableError,
 )
 from app.room.room_models import Room, RoomState
@@ -27,9 +26,8 @@ async def test_should_join_empty_room():
     new_player = get_new_player()
     room_players = await lobby_service.join(room_id=existing_room.room_id, new_player=new_player)
 
-    expected_player = Player(**new_player.dict(), room_id=existing_room.room_id, player_id=room_players.player_id)
-    expected_player.revision_id = room_players.players[0].revision_id
-    assert room_players.players == [expected_player]
+    expected_player = Player(**new_player.dict(), player_id=room_players.player_id)
+    assert room_players.players == [*existing_room.players, expected_player]
     assert room_players.host_player_nickname == expected_player.nickname
 
 
@@ -46,16 +44,16 @@ async def test_should_not_join_finished_room():
 
 @pytest.mark.asyncio
 async def test_should_join_non_empty_room():
-    existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
+    existing_players: list[Player] = PlayerFactory.build_batch(3)
+    existing_room: Room = RoomFactory.build(state=RoomState.CREATED, players=existing_players)
 
-    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
-    lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
+    lobby_service = get_lobby_service(rooms=[existing_room])
     existing_room.host = existing_players[0].player_id
 
     new_player = get_new_player()
     room_players = await lobby_service.join(room_id=existing_room.room_id, new_player=new_player)
 
-    expected_player = Player(**new_player.dict(), room_id=existing_room.room_id, player_id=room_players.player_id)
+    expected_player = Player(**new_player.dict(), player_id=room_players.player_id)
     expected_players = [expected_player, *existing_players]
     assert _sort_list_by_player_id(room_players.players) == _sort_list_by_player_id(expected_players)
     assert room_players.host_player_nickname != expected_player.nickname
@@ -63,10 +61,10 @@ async def test_should_join_non_empty_room():
 
 @pytest.mark.asyncio
 async def test_should_not_join_room_nickname_exists():
-    existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
+    existing_players: list[Player] = PlayerFactory.build_batch(3)
+    existing_room: Room = RoomFactory.build(state=RoomState.CREATED, players=existing_players)
 
-    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
-    lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
+    lobby_service = get_lobby_service(rooms=[existing_room])
     existing_room.host = existing_players[0].player_id
 
     player: Player = PlayerFactory.build(nickname=existing_players[0].nickname)
@@ -78,10 +76,10 @@ async def test_should_not_join_room_nickname_exists():
 
 @pytest.mark.asyncio
 async def test_should_rejoin_room():
-    existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
+    existing_players: list[Player] = PlayerFactory.build_batch(3)
+    existing_room: Room = RoomFactory.build(state=RoomState.CREATED, players=existing_players)
 
-    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
-    lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
+    lobby_service = get_lobby_service(rooms=[existing_room])
     first_player_id = existing_players[0].player_id
     first_player_sid = existing_players[0].latest_sid
     existing_room.host = first_player_id
@@ -93,10 +91,10 @@ async def test_should_rejoin_room():
 
 @pytest.mark.asyncio
 async def test_should_not_rejoin_in_finished_room():
-    existing_room: Room = RoomFactory.build(state=RoomState.FINISHED)
+    existing_players: list[Player] = PlayerFactory.build_batch(3)
+    existing_room: Room = RoomFactory.build(state=RoomState.FINISHED, players=existing_players)
 
-    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
-    lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
+    lobby_service = get_lobby_service(rooms=[existing_room])
     first_player_id = existing_players[0].player_id
     first_player_sid = existing_players[0].latest_sid
     existing_room.host = first_player_id
@@ -107,10 +105,10 @@ async def test_should_not_rejoin_in_finished_room():
 
 @pytest.mark.asyncio
 async def test_should_not_rejoin_room_player_not_found():
-    existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
+    existing_players: list[Player] = PlayerFactory.build_batch(3)
+    existing_room: Room = RoomFactory.build(state=RoomState.CREATED, players=existing_players)
 
-    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
-    lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
+    lobby_service = get_lobby_service(rooms=[existing_room])
     first_player_sid = existing_players[0].latest_sid
     existing_room.host = existing_players[0].player_id
 
@@ -120,10 +118,10 @@ async def test_should_not_rejoin_room_player_not_found():
 
 @pytest.mark.asyncio
 async def test_should_not_rejoin_room_has_no_host():
-    existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
+    existing_players: list[Player] = PlayerFactory.build_batch(3)
+    existing_room: Room = RoomFactory.build(state=RoomState.CREATED, players=existing_players)
 
-    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=existing_room.room_id)
-    lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
+    lobby_service = get_lobby_service(rooms=[existing_room])
     first_player_id = existing_players[0].player_id
     first_player_sid = existing_players[0].latest_sid
 
@@ -132,36 +130,22 @@ async def test_should_not_rejoin_room_has_no_host():
 
 
 @pytest.mark.asyncio
-async def test_should_not_rejoin_room_not_found():
-    existing_room: Room = RoomFactory.build(state=RoomState.CREATED)
-    lobby_service = get_lobby_service(rooms=[existing_room])
-
-    existing_players: list[Player] = PlayerFactory.build_batch(3, room_id="unknown-room-id")
-    lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
-    existing_room.host = existing_players[0].player_id
-
-    first_player_id = existing_players[0].player_id
-    first_player_sid = existing_players[0].latest_sid
-
-    with pytest.raises(RoomNotFound):
-        await lobby_service.rejoin(player_id=first_player_id, latest_sid=first_player_sid)
-
-
-@pytest.mark.asyncio
 async def test_should_update_room_host():
     room_id = "4d18ac45-8034-4f8e-b636-cf730b17e51a"
     room_host_player_id = "5a18ac45-9876-4f8e-b636-cf730b17e59l"
 
-    existing_room: Room = RoomFactory.build(state=RoomState.CREATED, room_id=room_id, host=room_host_player_id)
     existing_players: list[Player] = PlayerFactory.build_batch(3, room_id=room_id)
-    lobby_service = get_lobby_service(rooms=[existing_room], players=existing_players)
+    existing_room: Room = RoomFactory.build(
+        state=RoomState.CREATED, room_id=room_id, host=room_host_player_id, players=existing_players
+    )
+    lobby_service = get_lobby_service(rooms=[existing_room])
     existing_players[0].player_id = room_host_player_id
     player_disconnected = existing_players[1]
 
     await lobby_service.update_host(room=existing_room, old_host_id=player_disconnected.player_id)
     room_service = get_room_service(rooms=[existing_room])
     room = await room_service.get(room_id=existing_room.room_id)
-    assert not room.host == player_disconnected.player_id
+    assert room.host != player_disconnected.player_id
 
 
 def _sort_list_by_player_id(players: list[Player]):

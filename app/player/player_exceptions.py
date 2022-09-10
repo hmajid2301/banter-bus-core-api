@@ -17,6 +17,10 @@ class PlayerNotInRoom(NotFoundException):
     pass
 
 
+class PlayerAlreadyDisconnected(Exception):
+    pass
+
+
 class PlayerNotHostError(NotFoundException):
     def __init__(self, msg: str, player_id: str, host_player_id) -> None:
         self.msg = msg

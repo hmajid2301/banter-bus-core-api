@@ -24,7 +24,8 @@
       "request": "launch",
       "module": "pytest",
       "args": ["-rf", "tests/integration"],
-      "justMyCode": false
+      "justMyCode": false,
+      "envFile": "${workspaceFolder}/.env"
     },
     {
       "name": "Test: Current File",

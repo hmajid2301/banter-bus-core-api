@@ -109,7 +109,7 @@ async def test_should_not_start_game_too_many_players(httpx_mock: HTTPXMock):
     room_host_player_id = "5a18ac45-9876-4f8e-b636-cf730b17e59l"
 
     existing_room: Room = RoomFactory.build(
-        state=RoomState.CREATED, room_id=room_id, host=room_host_player_id, player_count=11
+        state=RoomState.CREATED, room_id=room_id, host=room_host_player_id, players=PlayerFactory.build_batch(11)
     )
     lobby_service = get_lobby_service(rooms=[existing_room])
     game_api = get_game_api_client()
@@ -127,7 +127,7 @@ async def test_should_not_start_game_too_few_players(httpx_mock: HTTPXMock):
     room_host_player_id = "5a18ac45-9876-4f8e-b636-cf730b17e59l"
 
     existing_room: Room = RoomFactory.build(
-        state=RoomState.CREATED, room_id=room_id, host=room_host_player_id, player_count=0
+        state=RoomState.CREATED, room_id=room_id, host=room_host_player_id, players=PlayerFactory.build_batch(0)
     )
     lobby_service = get_lobby_service(rooms=[existing_room])
     game_api = get_game_api_client()

@@ -18,9 +18,9 @@ class GameNotEnabled(Exception):
 
 
 class RoomNotFound(NotFoundException):
-    def __init__(self, msg: str, room_identifier: str) -> None:
+    def __init__(self, msg: str, id_: str) -> None:
         self.msg = msg
-        self.room_identifier = room_identifier
+        self.id = id_
 
 
 class RoomInInvalidState(Exception):

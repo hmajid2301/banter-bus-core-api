@@ -1,12 +1,11 @@
-from app.player.player_repository import AbstractPlayerRepository, PlayerRepository
 from app.player.player_service import PlayerService
+from app.room.room_repository import RoomRepository
 
 
-def get_player_repository() -> AbstractPlayerRepository:
-    return PlayerRepository()
+def get_room_repository() -> RoomRepository:
+    return RoomRepository()
 
 
 def get_player_service() -> PlayerService:
-    player_repository = get_player_repository()
-    player_service = PlayerService(player_repository=player_repository)
-    return player_service
+    room_repository = get_room_repository()
+    return PlayerService(room_repository=room_repository)

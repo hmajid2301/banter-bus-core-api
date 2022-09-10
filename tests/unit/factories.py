@@ -17,19 +17,6 @@ from tests.unit.data.data import starting_state
 game_names = ["quibly", "fibbing_it", "drawlosseum"]
 
 
-class RoomFactory(factory.Factory):
-    class Meta:
-        model = Room
-
-    room_id = factory.Faker("uuid4")
-    game_name = None
-    host = None
-    state = factory.fuzzy.FuzzyChoice(RoomState)
-    created_at = datetime.now()
-    updated_at = datetime.now()
-    player_count = 0
-
-
 class PlayerFactory(factory.Factory):
     class Meta:
         model = Player
@@ -44,6 +31,19 @@ class PlayerFactory(factory.Factory):
         "lexify", text="??????????????", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
     )
     disconnected_at = None
+
+
+class RoomFactory(factory.Factory):
+    class Meta:
+        model = Room
+
+    room_id = factory.Faker("uuid4")
+    game_name = None
+    host = None
+    state = factory.fuzzy.FuzzyChoice(RoomState)
+    created_at = datetime.now()
+    updated_at = datetime.now()
+    players = factory.List([factory.SubFactory(PlayerFactory)])
 
 
 class GameStateFactory(factory.Factory):
@@ -61,5 +61,4 @@ class GameStateFactory(factory.Factory):
 
 def get_new_player() -> NewPlayer:
     player: Player = PlayerFactory.build()
-    new_player = NewPlayer(**player.dict())
-    return new_player
+    return NewPlayer(**player.dict())

@@ -14,9 +14,11 @@ from app.room.room_events_models import (
     GotAnswersFibbingIt,
     SubmitAnswerFibbingIt,
 )
+from app.room.room_factory import get_room_service
 
 
 # TODO: check if all users have submitted answers, then move to next stage
+# TODO: refactor common code
 @error_handler(Exception, handle_error)
 @event_handler(input_model=SubmitAnswerFibbingIt)
 async def submit_answer_fibbing_it(
@@ -25,11 +27,17 @@ async def submit_answer_fibbing_it(
     logger = get_logger()
     game_state_service = get_game_state_service()
     player_service = get_player_service()
+    room_service = get_room_service()
     player = await player_service.get(player_id=submit_answer.player_id)
-    if player.room_id != submit_answer.room_code:
+    room = await room_service.get(room_id=submit_answer.room_code)
+
+    for player in room.players:
+        if player.player_id == submit_answer.player_id:
+            break
+    else:
         return Error(code="player_not_in_room", message="Player not in room"), sid
 
-    players = await player_service.get_all_in_room(room_id=submit_answer.room_code)
+    players = room.players
     state = await game_state_service.get_game_state_by_room_id(room_id=submit_answer.room_code)
 
     fibbing_it = FibbingIt()
@@ -54,11 +62,17 @@ async def get_answers_fibbing_it(sid: str, get_answers: GetAnswersFibbingIt) -> 
     logger.debug("Get all answers")
     game_state_service = get_game_state_service()
     player_service = get_player_service()
+    room_service = get_room_service()
     player = await player_service.get(player_id=get_answers.player_id)
-    if player.room_id != get_answers.room_code:
+    room = await room_service.get(room_id=get_answers.room_code)
+
+    for player in room.players:
+        if player.player_id == get_answers.player_id:
+            break
+    else:
         return Error(code="player_not_in_room", message="Player not in room"), sid
 
-    players = await player_service.get_all_in_room(room_id=get_answers.room_code)
+    players = room.players
     state = await game_state_service.get_game_state_by_room_id(room_id=get_answers.room_code)
 
     fibbing_it = FibbingIt()
