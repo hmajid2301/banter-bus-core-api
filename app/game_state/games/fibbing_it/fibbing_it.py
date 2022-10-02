@@ -168,3 +168,21 @@ class FibbingIt(AbstractGame):
         current_answers = state.questions.current_answers
         player_answers = {nickname: current_answers[player_id] for player_id, nickname in player_map.items()}
         return player_answers
+
+    def submit_vote(self, game_state: GameState, nickname: str) -> FibbingItState:
+        if not game_state.state or not game_state.action == FibbingActions.submit_answers:
+            raise InvalidAction(
+                f"expected action to be {FibbingActions.submit_answers.value}, current action {game_state.action.value}"
+            )
+
+        now = datetime.now()
+        if not game_state.action_completed_by:
+            raise InvalidGameState("expected game_state.action_completed_by to exist")
+        elif game_state.action_completed_by <= now:
+            raise ActionTimedOut(
+                msg="cannot complete action out of time", now=now, completed_by=game_state.action_completed_by
+            )
+
+        state = FibbingItState(**game_state.state.dict())
+        state.questions.votes[nickname] += 1
+        return state

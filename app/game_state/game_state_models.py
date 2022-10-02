@@ -44,7 +44,8 @@ class FibbingItRounds(BaseModel):
 class FibbingItQuestionsState(BaseModel):
     rounds: FibbingItRounds
     question_nb: int = -1
-    current_answers: dict[str, str]
+    current_answers: dict[str, str] = {}
+    votes: dict[str, int] = {}
 
 
 class FibbingItState(BaseModel):

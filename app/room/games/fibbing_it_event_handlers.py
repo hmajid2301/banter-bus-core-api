@@ -13,6 +13,8 @@ from app.room.room_events_models import (
     GetAnswersFibbingIt,
     GotAnswersFibbingIt,
     SubmitAnswerFibbingIt,
+    SubmitVoteFibbingIt,
+    VoteSubmittedFibbingIt,
 )
 from app.room.room_factory import get_room_service
 
@@ -88,3 +90,45 @@ async def get_answers_fibbing_it(sid: str, get_answers: GetAnswersFibbingIt) -> 
         action=FibbingActions(state.action),
     )
     return GotAnswersFibbingIt(answers=answers, timer_in_seconds=timer), sid
+
+
+@error_handler(Exception, handle_error)
+@event_handler(input_model=SubmitVoteFibbingIt)
+async def submit_vote_fibbing_it(
+    sid: str, submit_vote: SubmitVoteFibbingIt
+) -> tuple[VoteSubmittedFibbingIt | Error, str]:
+    logger = get_logger()
+    game_state_service = get_game_state_service()
+    player_service = get_player_service()
+    room_service = get_room_service()
+    player = await player_service.get(player_id=submit_vote.player_id)
+    room = await room_service.get(room_id=submit_vote.room_code)
+
+    for player in room.players:
+        if player.player_id == submit_vote.player_id:
+            break
+    else:
+        return Error(code="player_not_in_room", message="Player not in room"), sid
+
+    for player in room.players:
+        if player.nickname == submit_vote.nickname:
+            break
+    else:
+        return Error(code="player_not_in_room", message="Player not in room"), sid
+
+    players = room.players
+    state = await game_state_service.get_game_state_by_room_id(room_id=submit_vote.room_code)
+
+    fibbing_it = FibbingIt()
+    try:
+        new_state = fibbing_it.submit_vote(
+            game_state=state,
+            nickname=submit_vote.nickname,
+        )
+
+        await game_state_service.update_state(game_state=state, state=new_state)
+        all_submitted = len(new_state.questions.votes) == len(players)
+        return VoteSubmittedFibbingIt(all_players_submitted=all_submitted), sid
+    except ActionTimedOut as e:
+        logger.exception("unable to submit vote, time has run out", now=e.now, completed_by=e.completed_by)
+        return Error(code="time_run_out", message="Cannot submit vote, time has run out"), sid

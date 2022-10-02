@@ -9,6 +9,7 @@ from app.player.player_factory import get_player_service
 from app.room.games.fibbing_it_event_handlers import (
     get_answers_fibbing_it,
     submit_answer_fibbing_it,
+    submit_vote_fibbing_it,
 )
 from app.room.lobby.lobby_event_handlers import (
     create_room,
@@ -39,6 +40,7 @@ from app.room.room_events_models import (
     PERMANENTLY_DISCONNECT_PLAYER,
     PLAYER_DISCONNECTED,
     SUBMIT_ANSWER_FIBBING_IT,
+    SUBMIT_VOTE_FIBBING_IT,
     UNPAUSE_GAME,
     GamePaused,
     HostDisconnected,
@@ -99,3 +101,4 @@ sio.on(PAUSE_GAME, pause_game)
 sio.on(UNPAUSE_GAME, unpause_game)
 sio.on(SUBMIT_ANSWER_FIBBING_IT, submit_answer_fibbing_it)
 sio.on(GET_ANSWERS_FIBBING_IT, get_answers_fibbing_it)
+sio.on(SUBMIT_VOTE_FIBBING_IT, submit_vote_fibbing_it)

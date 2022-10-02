@@ -18,6 +18,8 @@ SUBMIT_ANSWER_FIBBING_IT = "SUBMIT_ANSWER_FIBBING_IT"
 ANSWER_SUBMITTED_FIBBING_IT = "ANSWER_SUBMITTED_FIBBING_IT"
 GET_ANSWERS_FIBBING_IT = "GET_ANSWERS_FIBBING_IT"
 GOT_ANSWERS_FIBBING_IT = "GOT_ANSWERS_FIBBING_IT"
+SUBMIT_VOTE_FIBBING_IT = "SUBMIT_VOTE_FIBBING_IT"
+VOTE_SUBMITTED_FIBBING_IT = "VOTE_SUBMITTED_FIBBING_IT"
 
 
 class HostDisconnected(EventModel):
@@ -168,6 +170,24 @@ class GotAnswersFibbingIt(EventModel):
     @property
     def event_name(self):
         return GOT_ANSWERS_FIBBING_IT
+
+
+class SubmitVoteFibbingIt(EventModel):
+    player_id: str
+    nickname: str
+    room_code: str
+
+    @property
+    def event_name(self):
+        return SUBMIT_VOTE_FIBBING_IT
+
+
+class VoteSubmittedFibbingIt(EventModel):
+    all_players_submitted: bool
+
+    @property
+    def event_name(self):
+        return VOTE_SUBMITTED_FIBBING_IT
 
 
 class EventResponse(BaseModel):
