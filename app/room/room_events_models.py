@@ -183,7 +183,7 @@ class SubmitVoteFibbingIt(EventModel):
 
 
 class VoteSubmittedFibbingIt(EventModel):
-    all_players_submitted: bool
+    votes: dict[str, int]
 
     @property
     def event_name(self):

@@ -116,7 +116,6 @@ async def submit_vote_fibbing_it(
     else:
         return Error(code="player_not_in_room", message="Player not in room"), sid
 
-    players = room.players
     state = await game_state_service.get_game_state_by_room_id(room_id=submit_vote.room_code)
 
     fibbing_it = FibbingIt()
@@ -127,8 +126,7 @@ async def submit_vote_fibbing_it(
         )
 
         await game_state_service.update_state(game_state=state, state=new_state)
-        all_submitted = len(new_state.questions.votes) == len(players)
-        return VoteSubmittedFibbingIt(all_players_submitted=all_submitted), sid
+        return VoteSubmittedFibbingIt(votes=new_state.questions.votes), submit_vote.room_code
     except ActionTimedOut as e:
         logger.exception("unable to submit vote, time has run out", now=e.now, completed_by=e.completed_by)
         return Error(code="time_run_out", message="Cannot submit vote, time has run out"), sid

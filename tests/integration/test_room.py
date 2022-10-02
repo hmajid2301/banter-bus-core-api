@@ -367,4 +367,4 @@ async def test_vote_answer(client: AsyncClient):
     await client.emit("SUBMIT_VOTE_FIBBING_IT", submit_answer.dict())
     await asyncio.wait_for(future, timeout=5.0)
     vote_submitted: VoteSubmittedFibbingIt = future.result()
-    assert vote_submitted.all_players_submitted is False
+    assert vote_submitted.votes == {"AnotherPlayer": 1}
