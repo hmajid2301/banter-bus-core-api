@@ -170,9 +170,9 @@ class FibbingIt(AbstractGame):
         return player_answers
 
     def submit_vote(self, game_state: GameState, nickname: str) -> FibbingItState:
-        if not game_state.state or not game_state.action == FibbingActions.submit_answers:
+        if not game_state.state or not game_state.action == FibbingActions.vote_on_fibber:
             raise InvalidAction(
-                f"expected action to be {FibbingActions.submit_answers.value}, current action {game_state.action.value}"
+                f"expected action to be {FibbingActions.vote_on_fibber.value}, current action {game_state.action.value}"
             )
 
         now = datetime.now()
@@ -184,5 +184,9 @@ class FibbingIt(AbstractGame):
             )
 
         state = FibbingItState(**game_state.state.dict())
-        state.questions.votes[nickname] += 1
+        votes = state.questions.votes
+        if nickname not in votes:
+            votes[nickname] = 0
+
+        votes[nickname] += 1
         return state

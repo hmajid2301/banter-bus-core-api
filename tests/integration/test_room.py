@@ -22,7 +22,9 @@ from app.room.room_events_models import (
     PlayerDisconnected,
     RejoinRoom,
     SubmitAnswerFibbingIt,
+    SubmitVoteFibbingIt,
     UnpauseGame,
+    VoteSubmittedFibbingIt,
 )
 from tests.integration.conftest import BASE_URL
 
@@ -340,3 +342,29 @@ async def test_get_answers(client: AsyncClient):
     await asyncio.wait_for(future, timeout=5.0)
     answers: GotAnswersFibbingIt = future.result()
     assert len(answers.answers) == 4
+
+
+@pytest.mark.asyncio
+async def test_vote_answer(client: AsyncClient):
+    future = asyncio.get_running_loop().create_future()
+    game_state_service = get_game_state_service()
+    room_code = "2257856e-bf37-4cc4-8551-0b1ccdc38c60"
+    game_state = await game_state_service.get_game_state_by_room_id(room_id=room_code)
+    game_state.action_completed_by = datetime.now() + timedelta(minutes=5)
+    game_state.action = FibbingActions.vote_on_fibber
+    await game_state_service.update_state(game_state=game_state, state=game_state.state)  # type: ignore
+
+    @client.on("VOTE_SUBMITTED_FIBBING_IT")
+    def _(data):
+        future.set_result(VoteSubmittedFibbingIt(**data))
+
+    submit_answer = SubmitVoteFibbingIt(
+        room_code=room_code,
+        player_id="8cdc1984-e832-48c7-9d89-1d724665bef1",
+        nickname="AnotherPlayer",
+    )
+    sio.enter_room(client.get_sid(), room=room_code)
+    await client.emit("SUBMIT_VOTE_FIBBING_IT", submit_answer.dict())
+    await asyncio.wait_for(future, timeout=5.0)
+    vote_submitted: VoteSubmittedFibbingIt = future.result()
+    assert vote_submitted.all_players_submitted is False
